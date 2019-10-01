@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="GUI.MainWindow"
+            prefHeight="400.0" prefWidth="600.0">
+    <HBox prefHeight="528.0" prefWidth="700">
+        <children>
+
+            <SplitPane dividerPositions="0.1196319018404908" orientation="VERTICAL">
+                <items>
+                    <Label prefHeight="25.0" text="Agents" textAlignment="CENTER"/>
+                    <ListView fx:id="workingAgentsListView" prefWidth="650.0"/>
+                </items>
+            </SplitPane>
+
+
+        </children>
+    </HBox>
+
+
+</AnchorPane>

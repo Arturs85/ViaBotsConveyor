@@ -1,20 +1,40 @@
 package viabots;
 
+import viabots.behaviours.PartType;
+import viabots.behaviours.S1ManipulatorBehaviour;
 import viabots.behaviours.TestCommunicationBehaviour;
 
-enum ManipulatorType {BAXTER,IRB160,PEPPER,SMALL_ONE};
+;
 
 public class ManipulatorAgent extends ViaBotAgent {
-    ManipulatorType type;
-public CommunicationWithHardware communication=new CommunicationWithHardware();
+    public ManipulatorType type;
+    public CommunicationWithHardware communication = new CommunicationWithHardware();
 
 
     @Override
     protected void setup() {
         super.setup();
-communication.start();// tries to connect to server in new thread
-        addBehaviour(new TestCommunicationBehaviour());
+        communication.start();// tries to connect to server in new thread
+        // addBehaviour(new TestCommunicationBehaviour(this));
+        addBehaviour(new S1ManipulatorBehaviour(this));
+    }
 
+    public void insertPart(PartType partType) {
+        switch (partType) {
+            case A:
+                communication.sendString(InterProcessCommands.insertPartA);
+                break;
+            case B:
+                communication.sendString(InterProcessCommands.insertPartB);
+                break;
+            case C:
+                communication.sendString(InterProcessCommands.insertPartC);
+                break;
+            case D:
+                communication.sendString(InterProcessCommands.insertPartD);
+                break;
+
+        }
     }
 
 

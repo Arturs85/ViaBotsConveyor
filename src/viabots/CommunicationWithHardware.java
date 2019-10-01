@@ -4,6 +4,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.net.SocketException;
 
 
 /**
@@ -20,26 +21,35 @@ public class CommunicationWithHardware extends Thread {
     DataOutputStream dout = null;
     final Integer syncLock = 1;
 
+    public boolean isConnected() {
+        synchronized (syncLock) {
+            if (socket != null) return true;
+
+        }
+        return false;
+    }
+
     @Override
     public void run() {
         super.run();
-        while (socket == null) {
-            connect();
+        while (!isInterrupted()) {
+            while (socket == null) {
+                connect();
+
+                try {
+                    sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+            }
 
             try {
                 sleep(100);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-
         }
-
-        try {
-            sleep(100);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
 
     }
 
@@ -50,23 +60,29 @@ public class CommunicationWithHardware extends Thread {
                 socket = new Socket("localhost", PORT);
                 din = new DataInputStream(socket.getInputStream());
                 dout = new DataOutputStream(socket.getOutputStream());
+                System.out.println(getClass().getName() + ": connected");
             } catch (IOException e) {
-                e.printStackTrace();
+                //e.printStackTrace();
+                System.out.println(getClass().getName() + " :unable to connect to server");
                 socket = null;// if any of streams were not created
             }
         }
     }
 
-
+    public void sendString(String s) {
+        sendBytes(s.getBytes());
+    }
     public void sendBytes(byte[] bytes) {
         synchronized (syncLock) {
             if (socket != null) {
                 try {
                     dout.write(bytes);
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    //e.printStackTrace();
                     socket = null;
                 }
+            } else {
+                System.out.println(getClass().getCanonicalName() + ": socket  null");
             }
         }
     }
@@ -76,8 +92,10 @@ public class CommunicationWithHardware extends Thread {
      * if timeout is reached or socket is closed than IOException is thrown
      */
     public String listenForReplyWTimeout() throws IOException {
+        if (socket == null) throw new IOException();
 
         {
+
             socket.setSoTimeout(SO_READ_TIMEOUT_MS);
             byte[] reply = new byte[MAX_MSG_LENGTH];
             int len = 0;
@@ -91,6 +109,7 @@ public class CommunicationWithHardware extends Thread {
                 }
             }
             if (len <= 0) {
+                socket = null;
                 System.out.println("err: reply stream ended");
                 throw new IOException();
             }

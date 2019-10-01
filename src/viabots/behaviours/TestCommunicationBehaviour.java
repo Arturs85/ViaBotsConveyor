@@ -2,27 +2,40 @@ package viabots.behaviours;
 
 import jade.core.Agent;
 import jade.core.behaviours.OneShotBehaviour;
+import jade.core.behaviours.TickerBehaviour;
 import viabots.ManipulatorAgent;
 
 import java.io.IOException;
 
-public class TestCommunicationBehaviour extends OneShotBehaviour {
-ManipulatorAgent master = (ManipulatorAgent) getAgent();
+public class TestCommunicationBehaviour extends TickerBehaviour {
+    ManipulatorAgent master;
 
+    public TestCommunicationBehaviour(ManipulatorAgent manipulatorAgent) {
+        super(manipulatorAgent, 1000);
+        master = manipulatorAgent;
+    }
     @Override
-    public void action() {
-        if(master.communication!= null){
+    protected void onTick() {
+
+
+        if (master.communication != null) {
+            if (!master.communication.isConnected()) {
+                return;
+
+            }
             master.communication.sendBytes(new byte[]{66,67,69});
             String reply=null;
             try {
               reply=  master.communication.listenForReplyWTimeout();
             } catch (IOException e) {
-
-                e.printStackTrace();
+                System.out.println("No reply---");
+                //   e.printStackTrace();
             return;
             }
             if(reply!= null)
                 System.out.println("Received reply within timeout: "+reply);
         }
     }
+
+
 }
