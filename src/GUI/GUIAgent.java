@@ -37,14 +37,14 @@ public class GUIAgent extends Agent {
             topicHelper = (TopicManagementHelper) getHelper(TopicManagementHelper.SERVICE_NAME);
             uiTopic = topicHelper.createTopic(TopicNames.GUI_TOPIC.name());
             uiMsgTpl = MessageTemplate.MatchTopic(uiTopic);
-
+            topicHelper.register(uiTopic);
         } catch (
                 ServiceException e) {
             e.printStackTrace();
         }
         addBehaviour(new GUIAgentBehaviour(this));
 
-        agents.add(new AgentInfo(ManipulatorType.BAXTER));
+        agents.add(new AgentInfo(ManipulatorType.UNKNOWN));
 
     }
 
@@ -74,14 +74,16 @@ public class GUIAgent extends Agent {
             MessageToGUI data;
             try {
                 data = (MessageToGUI) msg.getContentObject();
-                updateGUI(data);
-                System.out.println("GUI received msg:- hardware:" + data.isHardwareReady);
-
+                if (data != null) {
+                    updateGUI(data);
+                    System.out.println("GUI received msg:- hardware:" + data.isHardwareReady);
+                }
             } catch (UnreadableException e) {
                 e.printStackTrace();
             }
         } else
             System.out.println(getName() + " received null msg-no msg");
+        conveyorGUI.controller.workingAgentsListView.refresh();
     }
 
 

@@ -28,7 +28,7 @@ public class S1ManipulatorBehaviour extends TickerBehaviour {
         msg.addReceiver(master.uiTopic);
 
         master.send(msg);
-
+        // System.out.println(getBehaviourName()+" sent msg to gui-----------");
     }
 
     void insertPart(PartType partType) {
@@ -46,7 +46,7 @@ public class S1ManipulatorBehaviour extends TickerBehaviour {
 
         } catch (IOException e) {
             //e.printStackTrace();
-            System.out.println(getBehaviourName() + "did not receive  insertion ok msg within timeout");
+            // System.out.println(getBehaviourName() + "did not receive  insertion ok msg within timeout");
         }
     }
 }

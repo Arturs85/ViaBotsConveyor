@@ -7,7 +7,7 @@ import viabots.behaviours.TestCommunicationBehaviour;
 ;
 
 public class ManipulatorAgent extends ViaBotAgent {
-    public ManipulatorType type;
+    public ManipulatorType type = ManipulatorType.UNKNOWN;//for testing
     public CommunicationWithHardware communication = new CommunicationWithHardware();
 
 

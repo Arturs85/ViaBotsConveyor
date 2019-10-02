@@ -12,6 +12,8 @@ public class AgentInfoListCell extends ListCell<AgentInfo> {
     @FXML
     public Label agentName;
     @FXML
+    public Label agentRoles;
+    @FXML
     public HBox hBox;
     FXMLLoader mLLoader;
 
@@ -45,6 +47,10 @@ public class AgentInfoListCell extends ListCell<AgentInfo> {
 
 
             agentName.setText(item.getName());
+            if (item.isHardwareReady)
+                agentRoles.setText("Ready");
+            else
+                agentRoles.setText("Connecting");
 
             setGraphic(hBox);
 
