@@ -15,11 +15,14 @@ import viabots.ManipulatorType;
 import viabots.messageData.MessageToGUI;
 import viabots.messageData.TopicNames;
 
+import java.io.IOException;
+
 public class GUIAgent extends Agent {
     volatile ObservableList<AgentInfo> agents = FXCollections.observableArrayList();
     ConveyorGUI conveyorGUI;
     TopicManagementHelper topicHelper = null;
     AID uiTopic;
+    AID uiCommandTopic; //from ui
     MessageTemplate uiMsgTpl;
 
     @Override
@@ -36,6 +39,7 @@ public class GUIAgent extends Agent {
         try {
             topicHelper = (TopicManagementHelper) getHelper(TopicManagementHelper.SERVICE_NAME);
             uiTopic = topicHelper.createTopic(TopicNames.GUI_TOPIC.name());
+            uiCommandTopic = topicHelper.createTopic(TopicNames.GUI_TOPIC.name());
             uiMsgTpl = MessageTemplate.MatchTopic(uiTopic);
             topicHelper.register(uiTopic);
         } catch (
@@ -45,6 +49,13 @@ public class GUIAgent extends Agent {
         addBehaviour(new GUIAgentBehaviour(this));
 
         agents.add(new AgentInfo(ManipulatorType.UNKNOWN));
+
+    }
+
+    @Override
+    protected void takeDown() {
+        super.takeDown();
+        Platform.runLater(() -> ConveyorGUI.classStage.close());
 
     }
 
@@ -86,5 +97,11 @@ public class GUIAgent extends Agent {
         conveyorGUI.controller.workingAgentsListView.refresh();
     }
 
+    void sendUImessage() {
 
+        ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
+        msg.addReceiver(uiCommandTopic);
+        send(msg);
+        System.out.println(getName() + " command msg sent");
+    }
 }

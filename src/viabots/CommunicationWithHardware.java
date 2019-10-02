@@ -20,7 +20,7 @@ public class CommunicationWithHardware extends Thread {
     DataInputStream din = null;
     DataOutputStream dout = null;
     final Integer syncLock = 1;
-
+    volatile boolean isRunning = true;
     public boolean isConnected() {
         synchronized (syncLock) {
             if (socket != null) return true;
@@ -32,8 +32,8 @@ public class CommunicationWithHardware extends Thread {
     @Override
     public void run() {
         super.run();
-        while (!isInterrupted()) {
-            while (socket == null) {
+        while (isRunning) {
+            while (socket == null && isRunning) {
                 connect();
 
                 try {
@@ -41,7 +41,6 @@ public class CommunicationWithHardware extends Thread {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-
             }
 
             try {

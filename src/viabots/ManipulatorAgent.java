@@ -19,6 +19,14 @@ public class ManipulatorAgent extends ViaBotAgent {
         addBehaviour(new S1ManipulatorBehaviour(this));
     }
 
+    @Override
+    protected void takeDown() {
+        super.takeDown();
+        if (communication != null)
+            communication.isRunning = false;
+        System.out.println(getName() + " takeDown executed");
+    }
+
     public void insertPart(PartType partType) {
         switch (partType) {
             case A:

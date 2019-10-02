@@ -2,6 +2,7 @@ package GUI;
 
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.layout.HBox;
@@ -15,7 +16,19 @@ public class AgentInfoListCell extends ListCell<AgentInfo> {
     public Label agentRoles;
     @FXML
     public HBox hBox;
+    public Label labelAgentState;
+    @FXML
+    public Button insertPartButton;
     FXMLLoader mLLoader;
+    static GUIAgent guiAgent;
+
+    void initButton() {// TODO when to call this method?
+        insertPartButton.setOnAction(event -> {
+            if (guiAgent != null) {
+                guiAgent.sendUImessage();
+            }
+        });
+    }
 
 
     @Override
@@ -48,9 +61,9 @@ public class AgentInfoListCell extends ListCell<AgentInfo> {
 
             agentName.setText(item.getName());
             if (item.isHardwareReady)
-                agentRoles.setText("Ready");
+                labelAgentState.setText("Ready");
             else
-                agentRoles.setText("Connecting");
+                labelAgentState.setText("Connecting");
 
             setGraphic(hBox);
 

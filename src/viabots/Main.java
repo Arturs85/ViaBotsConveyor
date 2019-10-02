@@ -20,7 +20,12 @@ public class Main {
     ContainerController startJade() {
         // Get a hold on JADE runtime
         Runtime rt = Runtime.instance();
-
+        rt.invokeOnTermination(new Runnable() {
+            @Override
+            public void run() {
+                System.out.println(getClass().getName() + " runtimeTermination");
+            }
+        });
         // Create a default profile
         Profile p = new ProfileImpl();
         p.setParameter(Profile.GUI, "true");
