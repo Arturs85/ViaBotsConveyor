@@ -81,27 +81,29 @@ public class GUIAgent extends Agent {
     }
 
     void receiveUImessage() {
-
-
         ACLMessage msg = receive(uiMsgTpl);
-        if (msg != null) {
 
-            //  System.out.println(" received ui broadcast");
-            MessageToGUI data;
-            try {
-                data = (MessageToGUI) msg.getContentObject();
-                if (data != null) {
-                    updateGUI(data, msg.getSender().getName());
-                    //   System.out.println("GUI received msg:- hardware:" + data.isHardwareReady);
+        while (msg != null) {
+            if (msg != null) {
+
+                //  System.out.println(" received ui broadcast");
+                MessageToGUI data;
+                try {
+                    data = (MessageToGUI) msg.getContentObject();
+                    if (data != null) {
+                        updateGUI(data, msg.getSender().getName());
+                        //   System.out.println("GUI received msg:- hardware:" + data.isHardwareReady);
+                    }
+                } catch (UnreadableException e) {
+                    e.printStackTrace();
                 }
-            } catch (UnreadableException e) {
-                e.printStackTrace();
+            } else {
+                //  System.out.println(getName() + " received null msg- no msg");
             }
-        } else
-            //  System.out.println(getName() + " received null msg- no msg");
 
-
-        conveyorGUI.controller.workingAgentsListView.refresh();
+            conveyorGUI.controller.workingAgentsListView.refresh();
+            msg = receive(uiMsgTpl);
+        }
     }
 
     void sendUImessage(String agentName) {
