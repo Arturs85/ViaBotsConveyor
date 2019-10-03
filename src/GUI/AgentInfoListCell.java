@@ -22,11 +22,14 @@ public class AgentInfoListCell extends ListCell<AgentInfo> {
     FXMLLoader mLLoader;
     static GUIAgent guiAgent;
 
+    boolean buttonsInitialised = false;
     void initButton() {// TODO when to call this method?
         insertPartButton.setOnAction(event -> {
             if (guiAgent != null) {
-                guiAgent.sendUImessage();
+                guiAgent.sendUImessage(getItem().agentName);
+
             }
+            buttonsInitialised = true;
         });
     }
 
@@ -57,7 +60,9 @@ public class AgentInfoListCell extends ListCell<AgentInfo> {
                     e.printStackTrace();
                 }
             }
-
+            if (!buttonsInitialised) {
+                initButton();
+            }
 
             agentName.setText(item.getName());
             if (item.isHardwareReady)

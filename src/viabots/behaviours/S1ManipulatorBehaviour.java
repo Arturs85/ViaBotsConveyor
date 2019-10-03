@@ -39,6 +39,7 @@ public class S1ManipulatorBehaviour extends TickerBehaviour {
     @Override
     protected void onTick() {
         sendMessageToGui();
+        master.receiveUImessage();
         insertPart(PartType.A);
         try {
             master.communication.listenForReplyWTimeout();

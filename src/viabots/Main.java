@@ -8,12 +8,14 @@ import jade.wrapper.ContainerController;
 
 public class Main {
     ContainerController cc;
-
+    static int agentsCounter = 0;
     public static void main(String[] args) {
         // write your code here
         Main main = new Main();
         main.cc = main.startJade();
         main.createAgent();
+        main.createAgent();
+
         main.createGUIAgent();
     }
 
@@ -46,7 +48,7 @@ public class Main {
             Object args[] = null;//new Object[]{reference, tasks, agents, finishedTasks, initialBehaviour, this,speed,energyCons};
 
             try {
-                AgentController dummy = cc.createNewAgent("ViaBotConv ",
+                AgentController dummy = cc.createNewAgent("ViaBotConv " + (++agentsCounter),
                         "viabots.ManipulatorAgent", args);
 // Fire up the agent
                 dummy.start();

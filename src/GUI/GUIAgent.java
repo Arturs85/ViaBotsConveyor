@@ -1,5 +1,8 @@
 package GUI;
 
+import FIPA.AgentID;
+import FIPA.AgentIDHelper;
+import FIPA.AgentIDsHelper;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.ServiceException;
@@ -48,8 +51,8 @@ public class GUIAgent extends Agent {
         }
         addBehaviour(new GUIAgentBehaviour(this));
 
-        agents.add(new AgentInfo(ManipulatorType.UNKNOWN));
-
+        //agents.add(new AgentInfo(ManipulatorType.UNKNOWN));
+        AgentInfoListCell.guiAgent = this;
     }
 
     @Override
@@ -67,12 +70,14 @@ public class GUIAgent extends Agent {
         return null;
     }
 
-    void updateGUI(MessageToGUI msg) {
-        AgentInfo ai = findAgentInfoByName(msg.manipulatorType.name());
+    void updateGUI(MessageToGUI msg, String agentName) {
+        AgentInfo ai = findAgentInfoByName(agentName);
         if (ai != null) {
             ai.isHardwareReady = msg.isHardwareReady;
-        }
+        } else {
 // else create new AgentInfo entry -td
+            Platform.runLater(() -> agents.add(new AgentInfo(agentName, msg.manipulatorType)));
+        }
     }
 
     void receiveUImessage() {
@@ -86,21 +91,23 @@ public class GUIAgent extends Agent {
             try {
                 data = (MessageToGUI) msg.getContentObject();
                 if (data != null) {
-                    updateGUI(data);
-                    System.out.println("GUI received msg:- hardware:" + data.isHardwareReady);
+                    updateGUI(data, msg.getSender().getName());
+                    //   System.out.println("GUI received msg:- hardware:" + data.isHardwareReady);
                 }
             } catch (UnreadableException e) {
                 e.printStackTrace();
             }
         } else
-            System.out.println(getName() + " received null msg-no msg");
+            //  System.out.println(getName() + " received null msg- no msg");
+
+
         conveyorGUI.controller.workingAgentsListView.refresh();
     }
 
-    void sendUImessage() {
+    void sendUImessage(String agentName) {
 
         ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
-        msg.addReceiver(uiCommandTopic);
+        msg.addReceiver(new AID(agentName, true));
         send(msg);
         System.out.println(getName() + " command msg sent");
     }

@@ -62,7 +62,7 @@ public class CommunicationWithHardware extends Thread {
                 System.out.println(getClass().getName() + ": connected");
             } catch (IOException e) {
                 //e.printStackTrace();
-                System.out.println(getClass().getName() + " :unable to connect to server");
+                // System.out.println(getClass().getName() + " :unable to connect to server");
                 socket = null;// if any of streams were not created
             }
         }
@@ -81,7 +81,7 @@ public class CommunicationWithHardware extends Thread {
                     socket = null;
                 }
             } else {
-                System.out.println(getClass().getCanonicalName() + ": socket  null");
+                // System.out.println(getClass().getCanonicalName() + ": socket  null");
             }
         }
     }

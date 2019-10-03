@@ -6,14 +6,19 @@ public class AgentInfo {
 
     ManipulatorType type;
     boolean isHardwareReady = false;
+    String agentName;
 
-    AgentInfo(ManipulatorType type) {
+    AgentInfo(String name, ManipulatorType type) {
+        this.agentName = name;
         this.type = type;
 
     }
 
     String getName() {
-        return type.name();
+        return agentName;
     }
 
+    public ManipulatorType getType() {
+        return type;
+    }
 }

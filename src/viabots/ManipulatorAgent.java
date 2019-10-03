@@ -1,8 +1,10 @@
 package viabots;
 
+import jade.lang.acl.ACLMessage;
+import jade.lang.acl.UnreadableException;
 import viabots.behaviours.PartType;
 import viabots.behaviours.S1ManipulatorBehaviour;
-import viabots.behaviours.TestCommunicationBehaviour;
+import viabots.messageData.MessageToGUI;
 
 ;
 
@@ -17,6 +19,7 @@ public class ManipulatorAgent extends ViaBotAgent {
         communication.start();// tries to connect to server in new thread
         // addBehaviour(new TestCommunicationBehaviour(this));
         addBehaviour(new S1ManipulatorBehaviour(this));
+
     }
 
     @Override
@@ -45,5 +48,13 @@ public class ManipulatorAgent extends ViaBotAgent {
         }
     }
 
+    public void receiveUImessage() {
+        ACLMessage msg = receive(requestTamplate);
+        if (msg != null) {
+
+            System.out.println("request msg from gui received msg:-button move : " + getName());
+
+        } //else
+    }
 
 }
