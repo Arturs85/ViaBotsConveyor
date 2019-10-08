@@ -7,12 +7,19 @@ import jade.core.ServiceException;
 import jade.core.messaging.TopicManagementHelper;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import viabots.behaviours.GuiInteractionBehaviour;
 import viabots.messageData.TopicNames;
 
 public class ViaBotAgent extends Agent {
     TopicManagementHelper topicHelper = null;
     public AID uiTopic;
     MessageTemplate requestTamplate;
+    public static final int tickerPeriod = 1000;//ms
+    public ManipulatorType type;
+
+    public boolean isConnected() {
+        return false;
+    }
     @Override
     protected void setup() {
         super.setup();
@@ -25,6 +32,6 @@ public class ViaBotAgent extends Agent {
                 ServiceException e) {
             e.printStackTrace();
         }
-
+        addBehaviour(new GuiInteractionBehaviour(this));
     }
 }

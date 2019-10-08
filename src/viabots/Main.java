@@ -16,7 +16,7 @@ public class Main {
         main.cc = main.startJade();
         main.createAgent();
         // main.createAgent();
-
+        main.createConveyorAgent();
         main.createGUIAgent();
     }
 
@@ -85,6 +85,21 @@ public class Main {
             try {
                 AgentController dummy = cc.createNewAgent("ConveyorGUIAgent",
                         "GUI.GUIAgent", args);
+                dummy.start();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    void createConveyorAgent() {
+        if (cc != null) {
+            Object reference = new Object();
+            Object args[] = null;//new Object[]{reference, tasks, agents, finishedTasks, initialBehaviour, this,speed,energyCons};
+
+            try {
+                AgentController dummy = cc.createNewAgent("ConveyorAgent",
+                        "viabots.ConveyorAgent", args);
                 dummy.start();
             } catch (Exception e) {
                 e.printStackTrace();

@@ -8,13 +8,13 @@ import java.io.IOException;
 public class ConveyorAgent extends ViaBotAgent {
     char commandStart = 'g';
     char commandStop = 's';
-    ManipulatorType type;
     TwoWaySerialComm serialComm;
 
     @Override
     protected void setup() {
         super.setup();
         type = ManipulatorType.CONVEYOR;
+        serialComm = new TwoWaySerialComm();
         try {
             serialComm.connectToFirstPort();
         } catch (Exception e) {
@@ -39,8 +39,13 @@ public class ConveyorAgent extends ViaBotAgent {
         }
     }
 
+    @Override
+    public boolean isConnected() {
+        return serialComm.isConnected;
+    }
+
     void sendMessageToGui() {
-        MessageToGUI data = new MessageToGUI(serialComm.isConnected, type);
+        MessageToGUI data = new MessageToGUI(serialComm.isConnected, type);//impl in GuiInteractions behaviour
         ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
         try {
             msg.setContentObject(data);

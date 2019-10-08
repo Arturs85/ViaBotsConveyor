@@ -4,6 +4,9 @@
       <root url="jar:///usr/share/java/RXTXcomm.jar!/" />
     </CLASSES>
     <JAVADOC />
+    <NATIVE>
+      <root url="file:///usr/lib/jni" />
+    </NATIVE>
     <SOURCES />
   </library>
 </component>
