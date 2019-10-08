@@ -21,7 +21,6 @@ public class AgentInfoListCell extends ListCell<AgentInfo> {
     public Button insertPartButton;
     FXMLLoader mLLoader;
     static GUIAgent guiAgent;
-
     boolean buttonsInitialised = false;
     void initButton() {// TODO when to call this method?
         insertPartButton.setOnAction(event -> {

@@ -19,6 +19,7 @@ public class S1ManipulatorBehaviour extends TickerBehaviour {
 
     void sendMessageToGui() {
         MessageToGUI data = new MessageToGUI(master.communication.isConnected(), master.type);
+        //System.out.println("is connected: "+master.communication.isConnected());
         ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
         try {
             msg.setContentObject(data);

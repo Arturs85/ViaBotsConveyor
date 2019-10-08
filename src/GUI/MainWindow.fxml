@@ -1,22 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
 
-<AnchorPane xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml"
-            fx:controller="GUI.MainWindow"
-            prefHeight="400.0" prefWidth="600.0">
-    <HBox prefHeight="528.0" prefWidth="700">
+<AnchorPane xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="GUI.MainWindow">
+    <HBox>
         <children>
 
-            <SplitPane dividerPositions="0.1196319018404908" orientation="VERTICAL">
+            <SplitPane dividerPositions="0.1196319018404908" orientation="VERTICAL" prefWidth="1000.0">
                 <items>
                     <Label prefHeight="25.0" text="Agents" textAlignment="CENTER"/>
-                    <ListView fx:id="workingAgentsListView" prefWidth="650.0"/>
+                    <ListView fx:id="workingAgentsListView"/>
                 </items>
             </SplitPane>
 

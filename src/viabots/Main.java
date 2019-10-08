@@ -9,15 +9,17 @@ import jade.wrapper.ContainerController;
 public class Main {
     ContainerController cc;
     static int agentsCounter = 0;
+    final static String mainContainerHostName = "vnpc-Precision-T1700";
     public static void main(String[] args) {
         // write your code here
         Main main = new Main();
         main.cc = main.startJade();
         main.createAgent();
-        main.createAgent();
+        // main.createAgent();
 
         main.createGUIAgent();
     }
+
 
     ContainerController startJade() {
         // Get a hold on JADE runtime
@@ -37,6 +39,20 @@ public class Main {
         // Create a new non-main container, connecting to the default
 // main container (i.e. on this host, port 1099)
         ContainerController cc = rt.createMainContainer(p);
+        return cc;
+    }
+
+    ContainerController startPeripherialContainer() {//wont be needed if agents would be started from commandline
+        Runtime rt = Runtime.instance();
+        Profile p = new ProfileImpl();
+        // p.setParameter(Profile.GUI, "true");
+        p.setParameter(Profile.SERVICES, "jade.core.messaging.TopicManagementService;jade.core.event.NotificationService");
+        p.setParameter(Profile.EXPORT_HOST, mainContainerHostName);
+        p.setParameter(Profile.EXPORT_PORT, "1099");
+        //p.setParameter(Profile.SERVICES,"TopicManagement");
+        // Create a new non-main container, connecting to the default
+// main container (i.e. on this host, port 1099)
+        ContainerController cc = rt.createAgentContainer(p);
         return cc;
     }
 
