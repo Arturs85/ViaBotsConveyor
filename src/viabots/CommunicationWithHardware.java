@@ -44,6 +44,21 @@ public class CommunicationWithHardware extends Thread {
             }
 
             try {
+
+                byte[] reply = new byte[MAX_MSG_LENGTH];
+                int len = 0;
+                if (socket != null) {
+                    try {
+                        len = din.read(reply);
+                    } catch (IOException e) {
+
+                    }
+                }
+                if (len > 0) {
+                    String res = new String(reply, 0, len);
+                    System.out.println(getName() + " received: " + res);
+                }
+
                 sleep(100);
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -76,6 +91,7 @@ public class CommunicationWithHardware extends Thread {
             if (socket != null) {
                 try {
                     dout.write(bytes);
+                    System.out.println(getName() + " sent: " + new String(bytes));
                 } catch (IOException e) {
                     //e.printStackTrace();
                     socket = null;

@@ -54,6 +54,7 @@ public class ManipulatorAgent extends ViaBotAgent {
         return communication.isConnected();
     }
 
+    @Override
     public void receiveUImessage() {
         ACLMessage msg = receive(requestTamplate);
         if (msg != null) {

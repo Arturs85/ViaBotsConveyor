@@ -13,7 +13,7 @@ import viabots.messageData.TopicNames;
 public class ViaBotAgent extends Agent {
     TopicManagementHelper topicHelper = null;
     public AID uiTopic;
-    MessageTemplate requestTamplate;
+    public MessageTemplate requestTamplate;
     public static final int tickerPeriod = 1000;//ms
     public ManipulatorType type;
 
@@ -33,5 +33,15 @@ public class ViaBotAgent extends Agent {
             e.printStackTrace();
         }
         addBehaviour(new GuiInteractionBehaviour(this));
+    }
+
+    @Override
+    protected void takeDown() {
+        super.takeDown();
+        GuiInteractionBehaviour.sendTakeDownMessageToGui(this);
+    }
+
+    public void receiveUImessage() {
+
     }
 }

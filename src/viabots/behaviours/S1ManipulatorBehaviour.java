@@ -26,15 +26,24 @@ public class S1ManipulatorBehaviour extends TickerBehaviour {
 
     @Override
     protected void onTick() {
-        master.receiveUImessage();
-        insertPart(PartType.A);
-        try {
-            master.communication.listenForReplyWTimeout();
-            System.out.println(getBehaviourName() + "insertion ok");
+        receiveUImessage();
 
-        } catch (IOException e) {
-            //e.printStackTrace();
-            // System.out.println(getBehaviourName() + "did not receive  insertion ok msg within timeout");
-        }
+//        try {
+//            master.communication.listenForReplyWTimeout();
+//            System.out.println(getBehaviourName() + " insertion ok");
+//
+//        } catch (IOException e) {
+//            //e.printStackTrace();
+//            // System.out.println(getBehaviourName() + "did not receive  insertion ok msg within timeout");
+//        }
+    }
+
+    public void receiveUImessage() {//for testing insertion
+        ACLMessage msg = master.receive(master.requestTamplate);
+        if (msg != null) {
+            master.insertPart(PartType.A);
+            System.out.println("request msg from gui received msg:-button move : " + master.getName());
+
+        } //else
     }
 }

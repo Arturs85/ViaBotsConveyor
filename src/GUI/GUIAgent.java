@@ -74,6 +74,8 @@ public class GUIAgent extends Agent {
         AgentInfo ai = findAgentInfoByName(agentName);
         if (ai != null) {
             ai.isHardwareReady = msg.isHardwareReady;
+            if (msg.isTakenDown)
+                Platform.runLater(() -> agents.remove(ai));
         } else {
 // else create new AgentInfo entry -td
             Platform.runLater(() -> agents.add(new AgentInfo(agentName, msg.manipulatorType)));
@@ -106,9 +108,12 @@ public class GUIAgent extends Agent {
         }
     }
 
-    void sendUImessage(String agentName) {
+    void sendUImessage(String agentName, String content) {
 
         ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
+        if (content != null) {
+            msg.setContent(content);
+        }
         msg.addReceiver(new AID(agentName, true));
         send(msg);
         System.out.println(getName() + " command msg sent");

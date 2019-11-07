@@ -33,6 +33,20 @@ public class GuiInteractionBehaviour extends TickerBehaviour {
         // System.out.println(getBehaviourName()+" sent msg to gui-----------");
     }
 
+    public static void sendTakeDownMessageToGui(ViaBotAgent master) {
+        MessageToGUI data = new MessageToGUI(master.isConnected(), master.type, true);
+        // System.out.println("is connected: "+master.communication.isConnected());
+        ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+        try {
+            msg.setContentObject(data);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        msg.addReceiver(master.uiTopic);
+
+        master.send(msg);
+        // System.out.println(getBehaviourName()+" sent msg to gui-----------");
+    }
     @Override
     protected void onTick() {
         sendMessageToGui();
