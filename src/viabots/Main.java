@@ -1,23 +1,67 @@
 package viabots;
 
 import jade.core.Profile;
+import jade.core.ProfileException;
 import jade.core.ProfileImpl;
 import jade.core.Runtime;
 import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
 public class Main {
     ContainerController cc;
     static int agentsCounter = 0;
-    final static String mainContainerHostName = "vnpc-Precision-T1700";
+    static String localHost = "vnpc-Precision-T1700";
+    final static int CONNECTING_INTERVAL = 4000;
+
+    /**
+     * arg[0] hostname of main container- needed only if this is peripherial container
+     * arg[1] manipulator type name as in enum {@link ManipulatorType}
+     */
     public static void main(String[] args) {
-        // write your code here
+
+        try {
+            localHost = InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
+        System.out.println("hostname: " + localHost);
         Main main = new Main();
-        main.cc = main.startJade();
-        main.createAgent();
-        // main.createAgent();
-        main.createConveyorAgent();
-        main.createGUIAgent();
+
+        if (args.length > 0) {
+            System.out.println("main launched with arguments: ");
+
+            for (String s : args) {
+                System.out.println(s);
+            }
+            // presence of arguments means that this is pheripherial container
+            ManipulatorType desiredType = null;
+            try {
+                desiredType = ManipulatorType.valueOf(args[1]);
+            } catch (IllegalArgumentException iae) {
+                System.out.println("unable to find requested type: " + args[1] + "...terminating");
+                return;
+            }
+            main.cc = null;
+            while (main.cc == null) {
+                main.cc = main.startPeripherialContainer(args[0]);
+                try {
+                    Thread.sleep(CONNECTING_INTERVAL);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            main.createAgent(desiredType);
+
+        } else {// no arguments mean that this is main container
+            main.cc = main.startJade();
+            // main.createAgent();
+            main.createGUIAgent();
+        }
+
+
     }
 
 
@@ -42,30 +86,37 @@ public class Main {
         return cc;
     }
 
-    ContainerController startPeripherialContainer() {//wont be needed if agents would be started from commandline
+    ContainerController startPeripherialContainer(String mainContainerHostName) {//wont be needed if agents would be started from commandline
         Runtime rt = Runtime.instance();
         Profile p = new ProfileImpl();
         // p.setParameter(Profile.GUI, "true");
         p.setParameter(Profile.SERVICES, "jade.core.messaging.TopicManagementService;jade.core.event.NotificationService");
-        p.setParameter(Profile.EXPORT_HOST, mainContainerHostName);
+        p.setParameter(Profile.MAIN_HOST, mainContainerHostName);
+
         p.setParameter(Profile.EXPORT_PORT, "1099");
-        //p.setParameter(Profile.SERVICES,"TopicManagement");
         // Create a new non-main container, connecting to the default
 // main container (i.e. on this host, port 1099)
         ContainerController cc = rt.createAgentContainer(p);
+
+
         return cc;
     }
 
-    void createAgent() {
+    void createAgent(ManipulatorType type) {
         if (cc != null) {
             // Create a new agent, a DummyAgent
 // and pass it a reference to an Object
             Object reference = new Object();
-            Object args[] = null;//new Object[]{reference, tasks, agents, finishedTasks, initialBehaviour, this,speed,energyCons};
+            Object args[] = new Object[]{reference, type};
+            AgentController dummy;
 
             try {
-                AgentController dummy = cc.createNewAgent("ViaBotConv " + (++agentsCounter),
-                        "viabots.ManipulatorAgent", args);
+                if (type.equals(ManipulatorType.CONVEYOR)) {
+                    dummy = cc.createNewAgent("Conveyor",
+                            "viabots.ConveyorAgent", args);
+                } else
+                    dummy = cc.createNewAgent("ViaBotManipulator " + (++agentsCounter),
+                            "viabots.ManipulatorAgent", args);
 // Fire up the agent
                 dummy.start();
 

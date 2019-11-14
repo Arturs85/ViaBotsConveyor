@@ -3,6 +3,7 @@ package viabots.behaviours;
 import jade.core.behaviours.TickerBehaviour;
 import jade.lang.acl.ACLMessage;
 import viabots.ManipulatorAgent;
+import viabots.messageData.MessageContent;
 import viabots.messageData.MessageToGUI;
 
 import java.io.IOException;
@@ -41,9 +42,15 @@ public class S1ManipulatorBehaviour extends TickerBehaviour {
     public void receiveUImessage() {//for testing insertion
         ACLMessage msg = master.receive(master.requestTamplate);
         if (msg != null) {
-            master.insertPart(PartType.A);
-            System.out.println("request msg from gui received msg:-button move : " + master.getName());
+            String cont = msg.getContent();
+            if (cont != null) {
+                if (msg.getContent().equals(MessageContent.INSERT_PART_A.name()))
+                    master.insertPart(PartType.A);
+                else if (msg.getContent().equals(MessageContent.INSERT_PART_B.name()))
+                    master.insertPart(PartType.B);
 
+                System.out.println("request msg from gui received msg:" + cont + ": " + master.getName());
+            }
         } //else
     }
 }

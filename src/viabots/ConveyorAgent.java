@@ -31,6 +31,7 @@ public class ConveyorAgent extends ViaBotAgent {
     protected void takeDown() {
         super.takeDown();
         System.out.println(getLocalName() + " was taken down----");
+        serialComm.commPort.close();
     }
 
     void stopBelt() {
@@ -83,16 +84,16 @@ public class ConveyorAgent extends ViaBotAgent {
         ACLMessage msg = receive(requestTamplate);
         if (msg != null) {
             String content = msg.getContent();
-            if (content != null)
+            if (content != null) {
                 System.out.println("request msg from gui received msg:" + content + "   " + getName());
 
-            if (content.equalsIgnoreCase(MessageContent.TOGGLE_BELT.name())) {
-                if (beltIsOn) stopBelt();
-                else startBelt();
-            } else if (content.equalsIgnoreCase(MessageContent.INSERT_PART.name())) {//common message type to all agents on the list, interpret as needed
-                placeBox();
+                if (content.equalsIgnoreCase(MessageContent.TOGGLE_BELT.name())) {
+                    if (beltIsOn) stopBelt();
+                    else startBelt();
+                } else if (content.equalsIgnoreCase(MessageContent.PLACE_BOX.name())) {//
+                    placeBox();
+                }
             }
-
         } //else
     }
 

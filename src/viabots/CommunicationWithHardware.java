@@ -15,7 +15,7 @@ public class CommunicationWithHardware extends Thread {
     static final int SO_READ_TIMEOUT_MS = 10000;
     static final int MAX_MSG_LENGTH = 100;
 
-    byte[] commandInsertPartA = new byte[]{56, 67, 68};//short version
+    // byte[] commandInsertPartA = new byte[]{56, 67, 68};//short version
     Socket socket = null;
     DataInputStream din = null;
     DataOutputStream dout = null;

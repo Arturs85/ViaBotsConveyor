@@ -74,8 +74,10 @@ public class GUIAgent extends Agent {
         AgentInfo ai = findAgentInfoByName(agentName);
         if (ai != null) {
             ai.isHardwareReady = msg.isHardwareReady;
-            if (msg.isTakenDown)
+            if (msg.isTakenDown) {
                 Platform.runLater(() -> agents.remove(ai));
+                System.out.println("takedown request received");
+            }
         } else {
 // else create new AgentInfo entry -td
             Platform.runLater(() -> agents.add(new AgentInfo(agentName, msg.manipulatorType)));

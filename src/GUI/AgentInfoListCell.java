@@ -14,24 +14,37 @@ import java.io.IOException;
 public class AgentInfoListCell extends ListCell<AgentInfo> {
     @FXML
     public Label agentName;
+
+    public Label agentType;
     @FXML
     public Label agentRoles;
     @FXML
-    public HBox hBox;
+    public HBox baseHBox;
     public Label labelAgentState;
     @FXML
-    public Button insertPartButton;
+    public Button insertPartAButton;
+    @FXML
+    public Button insertPartBButton;
+
     FXMLLoader mLLoader;
     static GUIAgent guiAgent;
     boolean buttonsInitialised = false;
     boolean additionalButtonsInitialised = false;
     public Button beltButton;
+    public Button boxButton;
+
     static int cellId = 0;
 
     void initButton() {// TODO when to call this method?
-        insertPartButton.setOnAction(event -> {
+        insertPartAButton.setOnAction(event -> {
             if (guiAgent != null) {
-                guiAgent.sendUImessage(getItem().agentName, MessageContent.INSERT_PART.name());
+                guiAgent.sendUImessage(getItem().agentName, MessageContent.INSERT_PART_A.name());
+
+            }
+        });
+        insertPartBButton.setOnAction(event -> {
+            if (guiAgent != null) {
+                guiAgent.sendUImessage(getItem().agentName, MessageContent.INSERT_PART_B.name());
 
             }
         });
@@ -68,7 +81,10 @@ public class AgentInfoListCell extends ListCell<AgentInfo> {
             }
             if (!item.getType().equals(ManipulatorType.CONVEYOR)) {
                 if (beltButton != null) {
-                    hBox.getChildren().remove(beltButton);
+                    baseHBox.getChildren().remove(beltButton);
+                    if (boxButton != null) {
+                        baseHBox.getChildren().remove(boxButton);
+                    }
                     //beltButton=null;
                     additionalButtonsInitialised = false;
                 }
@@ -87,12 +103,13 @@ public class AgentInfoListCell extends ListCell<AgentInfo> {
 
 
             agentName.setText(item.getName());
+            agentType.setText(item.getType().name());
             if (item.isHardwareReady)
                 labelAgentState.setText("Ready");
             else
                 labelAgentState.setText("Connecting");
 
-            setGraphic(hBox);
+            setGraphic(baseHBox);
 
         }
 
@@ -102,9 +119,18 @@ public class AgentInfoListCell extends ListCell<AgentInfo> {
         if (beltButton == null) {
             beltButton = new Button("Belt");
             beltButton.setOnAction(event -> guiAgent.sendUImessage(getItem().agentName, MessageContent.TOGGLE_BELT.name()));
-            hBox.getChildren().add(beltButton);
+            baseHBox.getChildren().add(beltButton);
         } else {
-            hBox.getChildren().add(beltButton);
+            baseHBox.getChildren().add(beltButton);
         }
+
+        if (boxButton == null) {
+            boxButton = new Button("Box");
+            boxButton.setOnAction(event -> guiAgent.sendUImessage(getItem().agentName, MessageContent.PLACE_BOX.name()));
+            baseHBox.getChildren().add(boxButton);
+        } else {
+            baseHBox.getChildren().add(boxButton);
+        }
+
     }
 }

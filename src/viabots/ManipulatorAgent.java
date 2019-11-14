@@ -16,7 +16,7 @@ public class ManipulatorAgent extends ViaBotAgent {
     @Override
     protected void setup() {
         super.setup();
-        type = ManipulatorType.UNKNOWN;//for testing
+        // type = ManipulatorType.UNKNOWN;//for testing
         communication.start();// tries to connect to server in new thread
         // addBehaviour(new TestCommunicationBehaviour(this));
         addBehaviour(new S1ManipulatorBehaviour(this));

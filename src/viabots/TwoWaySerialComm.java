@@ -12,7 +12,7 @@ public class TwoWaySerialComm {
     InputStream in;
     OutputStream out;
     boolean isConnected = false;
-
+    CommPort commPort;
     public TwoWaySerialComm() {
         super();
     }
@@ -33,7 +33,7 @@ public class TwoWaySerialComm {
         if (portIdentifier.isCurrentlyOwned()) {
             System.out.println("Error: Port is currently in use");
         } else {
-            CommPort commPort = portIdentifier.open(this.getClass().getName(), 2000);
+            commPort = portIdentifier.open(this.getClass().getName(), 2000);
 
             if (commPort instanceof SerialPort) {
                 SerialPort serialPort = (SerialPort) commPort;

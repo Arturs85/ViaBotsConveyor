@@ -32,6 +32,10 @@ public class ViaBotAgent extends Agent {
                 ServiceException e) {
             e.printStackTrace();
         }
+
+        if (getArguments() != null)
+            type = (ManipulatorType) getArguments()[1];
+
         addBehaviour(new GuiInteractionBehaviour(this));
     }
 

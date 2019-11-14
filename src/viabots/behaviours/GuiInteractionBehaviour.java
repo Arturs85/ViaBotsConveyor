@@ -15,8 +15,24 @@ public class GuiInteractionBehaviour extends TickerBehaviour {
     public GuiInteractionBehaviour(ViaBotAgent a) {
         super(a, ViaBotAgent.tickerPeriod);
         master = a;
+        initShutdownHook();
     }
 
+    void initShutdownHook() {
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            public void run() {
+                try {
+                    Thread.sleep(200);
+                    System.out.println("Shutting down ...");
+                    //some cleaning up code...
+                    sendTakeDownMessageToGui(master);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
 
     void sendMessageToGui() {
         MessageToGUI data = new MessageToGUI(master.isConnected(), master.type);
@@ -45,7 +61,7 @@ public class GuiInteractionBehaviour extends TickerBehaviour {
         msg.addReceiver(master.uiTopic);
 
         master.send(msg);
-        // System.out.println(getBehaviourName()+" sent msg to gui-----------");
+        System.out.println(" -------sent takedown msg to gui-----------");
     }
     @Override
     protected void onTick() {
