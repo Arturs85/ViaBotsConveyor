@@ -12,12 +12,13 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
+<?import javafx.scene.control.CheckBox?>
 <HBox fx:id="baseHBox" alignment="CENTER_LEFT" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity"
       minWidth="-Infinity" prefHeight="50.0" xmlns="http://javafx.com/javafx/8.0.121"
       xmlns:fx="http://javafx.com/fxml/1">
     <children>
         <VBox alignment="CENTER" fx:id="namesVBox">
-            <Label id="agentName" fx:id="agentName" text="Label"/>
+            <Label id="agentName" fx:id="agentName" text="Label" prefWidth="300"/>
             <Label id="agentType" fx:id="agentType" text="type"/>
 
         </VBox>
@@ -62,24 +63,17 @@
                 <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
             </rowConstraints>
             <children>
+                <CheckBox fx:id="checkBoxA" GridPane.columnIndex="1" GridPane.rowIndex="2"></CheckBox>
+                <CheckBox fx:id="checkBoxB" GridPane.columnIndex="2" GridPane.rowIndex="2"></CheckBox>
+                <CheckBox fx:id="checkBoxC" GridPane.columnIndex="3" GridPane.rowIndex="2"></CheckBox>
 
-                <TextField fx:id="textSpeedB" GridPane.columnIndex="2" GridPane.rowIndex="2">
-                    <font>
-                        <Font size="9.0"/>
-                    </font>
-                </TextField>
-                <TextField fx:id="textSpeedC" GridPane.columnIndex="3" GridPane.rowIndex="2">
-                    <font>
-                        <Font size="9.0"/>
-                    </font>
-                </TextField>
                 <Label text="Part" GridPane.columnIndex="0" GridPane.rowIndex="0">
                     <GridPane.margin>
                         <Insets/>
                     </GridPane.margin>
                 </Label>
                 <Label prefHeight="17.0" text="Finished" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-                <Label text="Speed" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                <Label text="Enable" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
                 <Label text="A" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="0"/>
                 <Label text="B" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="0"/>
                 <Label text="C" GridPane.columnIndex="3" GridPane.halignment="CENTER" GridPane.rowIndex="0"/>
