@@ -74,13 +74,14 @@ public class GUIAgent extends Agent {
         AgentInfo ai = findAgentInfoByName(agentName);
         if (ai != null) {
             ai.isHardwareReady = msg.isHardwareReady;
+            ai.currentRoles = msg.currentRoles;
             if (msg.isTakenDown) {
                 Platform.runLater(() -> agents.remove(ai));
                 System.out.println("takedown request received");
             }
         } else {
 // else create new AgentInfo entry -td
-            Platform.runLater(() -> agents.add(new AgentInfo(agentName, msg.manipulatorType)));
+            Platform.runLater(() -> agents.add(new AgentInfo(agentName, msg.manipulatorType)));// todo- add other info on record creation time
         }
     }
 
@@ -120,4 +121,20 @@ public class GUIAgent extends Agent {
         send(msg);
         System.out.println(getName() + " command msg sent");
     }
+
+    void sendUImessage(String agentName, MessageToGUI messageToGUI) {
+
+        ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+        if (messageToGUI != null) {
+            try {
+                msg.setContentObject(messageToGUI);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        msg.addReceiver(new AID(agentName, true));
+        send(msg);
+        System.out.println(getName() + "checkbox info msg sent");
+    }
+
 }

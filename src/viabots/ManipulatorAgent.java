@@ -1,16 +1,20 @@
 package viabots;
 
+import jade.domain.DFService;
+import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.UnreadableException;
 import viabots.behaviours.GuiInteractionBehaviour;
 import viabots.behaviours.PartType;
+import viabots.behaviours.RoleCheckingBehaviour;
 import viabots.behaviours.S1ManipulatorBehaviour;
 import viabots.messageData.MessageToGUI;
 
-;
+;import java.util.EnumSet;
 
 public class ManipulatorAgent extends ViaBotAgent {
     public CommunicationWithHardware communication = new CommunicationWithHardware();
+    public EnumSet<VSMRoles> currentRoles;
 
 
     @Override
@@ -20,12 +24,21 @@ public class ManipulatorAgent extends ViaBotAgent {
         communication.start();// tries to connect to server in new thread
         // addBehaviour(new TestCommunicationBehaviour(this));
         addBehaviour(new S1ManipulatorBehaviour(this));
+        addBehaviour(new RoleCheckingBehaviour(this));
+        currentRoles = EnumSet.noneOf(VSMRoles.class);
 
     }
 
     @Override
     protected void takeDown() {
         super.takeDown();
+// Deregister from the yellow pages
+        try {
+            DFService.deregister(this);
+        } catch (FIPAException fe) {
+            fe.printStackTrace();
+        }
+
         if (communication != null)
             communication.isRunning = false;
         System.out.println(getName() + " takeDown executed");

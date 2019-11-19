@@ -14,6 +14,8 @@ public class ViaBotAgent extends Agent {
     TopicManagementHelper topicHelper = null;
     public AID uiTopic;
     public MessageTemplate requestTamplate;
+    public MessageTemplate informTamplate;
+
     public static final int tickerPeriod = 1000;//ms
     public ManipulatorType type;
 
@@ -28,6 +30,8 @@ public class ViaBotAgent extends Agent {
             topicHelper = (TopicManagementHelper) getHelper(TopicManagementHelper.SERVICE_NAME);
             uiTopic = topicHelper.createTopic(TopicNames.GUI_TOPIC.name());
             requestTamplate = MessageTemplate.MatchPerformative(ACLMessage.REQUEST);
+            informTamplate = MessageTemplate.MatchPerformative(ACLMessage.INFORM);
+
         } catch (
                 ServiceException e) {
             e.printStackTrace();
@@ -43,6 +47,7 @@ public class ViaBotAgent extends Agent {
     protected void takeDown() {
         super.takeDown();
         GuiInteractionBehaviour.sendTakeDownMessageToGui(this);
+
     }
 
     public void receiveUImessage() {

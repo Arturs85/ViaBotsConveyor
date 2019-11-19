@@ -2,19 +2,24 @@ package viabots.behaviours;
 
 import jade.core.behaviours.TickerBehaviour;
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.UnreadableException;
 import viabots.ManipulatorAgent;
+import viabots.VSMRoles;
 import viabots.messageData.MessageContent;
 import viabots.messageData.MessageToGUI;
 
 import java.io.IOException;
+import java.util.EnumSet;
 
 public class S1ManipulatorBehaviour extends TickerBehaviour {
     ManipulatorAgent master;
+    EnumSet<PartType> enabledParts;
 
     public S1ManipulatorBehaviour(ManipulatorAgent manipulatorAgent) {
         super(manipulatorAgent, 1000);
 
         master = manipulatorAgent;
+        enabledParts = EnumSet.noneOf(PartType.class);
 
     }
 
@@ -28,7 +33,7 @@ public class S1ManipulatorBehaviour extends TickerBehaviour {
     @Override
     protected void onTick() {
         receiveUImessage();
-
+        receiveEnabledPartsMsg();
 //        try {
 //            master.communication.listenForReplyWTimeout();
 //            System.out.println(getBehaviourName() + " insertion ok");
@@ -52,5 +57,22 @@ public class S1ManipulatorBehaviour extends TickerBehaviour {
                 System.out.println("request msg from gui received msg:" + cont + ": " + master.getName());
             }
         } //else
+    }
+
+    void receiveEnabledPartsMsg() {
+        ACLMessage msg = master.receive(master.informTamplate);
+        if (msg != null) {
+            MessageToGUI messageObj = null;
+            try {
+                messageObj = (MessageToGUI) msg.getContentObject();
+            } catch (UnreadableException e) {
+                e.printStackTrace();
+            }
+            if (messageObj != null) {
+                if (messageObj.enabledParts != null)
+                    enabledParts = messageObj.enabledParts;
+                System.out.println(enabledParts.toString());
+            }
+        }
     }
 }

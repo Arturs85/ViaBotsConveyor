@@ -19,6 +19,7 @@ public class Main {
     /**
      * arg[0] hostname of main container- needed only if this is peripherial container
      * arg[1] manipulator type name as in enum {@link ManipulatorType}
+     * arg[2] agent name
      */
     public static void main(String[] args) {
 
@@ -53,11 +54,15 @@ public class Main {
                     e.printStackTrace();
                 }
             }
-            main.createAgent(desiredType);
+            String agName = null;
+            if (args.length >= 3) agName = args[2];
+            main.createAgent(desiredType, agName);
 
         } else {// no arguments mean that this is main container
             main.cc = main.startJade();
-            // main.createAgent();
+            main.createAgent(ManipulatorType.BAXTER);
+            main.createAgent(ManipulatorType.SMALL_ONE);
+
             main.createGUIAgent();
         }
 
@@ -103,19 +108,23 @@ public class Main {
     }
 
     void createAgent(ManipulatorType type) {
+        createAgent(type, null);
+    }
+
+    void createAgent(ManipulatorType type, String agentName) {
         if (cc != null) {
             // Create a new agent, a DummyAgent
 // and pass it a reference to an Object
             Object reference = new Object();
             Object args[] = new Object[]{reference, type};
             AgentController dummy;
-
+            if (agentName == null) agentName = "ViaBotManipulator";
             try {
                 if (type.equals(ManipulatorType.CONVEYOR)) {
                     dummy = cc.createNewAgent("Conveyor",
                             "viabots.ConveyorAgent", args);
                 } else
-                    dummy = cc.createNewAgent("ViaBotManipulator " + (++agentsCounter),
+                    dummy = cc.createNewAgent(agentName + (++agentsCounter),
                             "viabots.ManipulatorAgent", args);
 // Fire up the agent
                 dummy.start();

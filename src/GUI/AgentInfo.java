@@ -1,6 +1,7 @@
 package GUI;
 
 import viabots.ManipulatorType;
+import viabots.VSMRoles;
 import viabots.behaviours.PartType;
 
 import java.util.EnumSet;
@@ -12,12 +13,16 @@ public class AgentInfo {
     ManipulatorType type;
     boolean isHardwareReady = false;
     String agentName;
-    final Set<PartType> enabledParts; 
+    EnumSet<PartType> enabledParts;
+    EnumSet<VSMRoles> currentRoles;
+
     AgentInfo(String name, ManipulatorType type) {
         this.agentName = name;
         this.type = type;
 
         enabledParts = EnumSet.noneOf(PartType.class);
+        currentRoles = EnumSet.noneOf(VSMRoles.class);
+
     }
 
     String getName() {
