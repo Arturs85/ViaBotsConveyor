@@ -1,9 +1,11 @@
 package viabots;
 
+import jade.core.AID;
 import jade.lang.acl.ACLMessage;
 import viabots.behaviours.ConveyorAgentBehaviour;
 import viabots.messageData.MessageContent;
 import viabots.messageData.MessageToGUI;
+import viabots.messageData.TopicNames;
 
 import java.io.IOException;
 
@@ -11,19 +13,30 @@ public class ConveyorAgent extends ViaBotAgent {
     char commandStart = 'g';
     char commandStop = 's';
     char commandPlaceBox = 'p';
+    char commansStopAt1 = '1';
+    char commansStopAt2 = '2';
+    char commansStopAt3 = '3';
+    char commansStopAt4 = '4';
+    char commansStopAt5 = '5';
+    char commansStopAt6 = '6';
+
+    public AID conveyorTopic;
     boolean beltIsOn = false;
     TwoWaySerialComm serialComm;
+    static String triggerAt = "triggerAt";
 
     @Override
     protected void setup() {
         super.setup();
         type = ManipulatorType.CONVEYOR;
-        serialComm = new TwoWaySerialComm();
+        serialComm = new TwoWaySerialComm(this);
         try {
             serialComm.connectToFirstPort();
         } catch (Exception e) {
             e.printStackTrace();
         }
+        conveyorTopic = topicHelper.createTopic(TopicNames.CONVEYOR_TOPIC.name());
+
         addBehaviour(new ConveyorAgentBehaviour(this));
     }
 
@@ -32,6 +45,15 @@ public class ConveyorAgent extends ViaBotAgent {
         super.takeDown();
         System.out.println(getLocalName() + " was taken down----");
         serialComm.commPort.close();
+    }
+
+    void requestStopBeltAt(int position) {
+        try {
+            serialComm.out.write((char) position);
+            //  beltIsOn = false;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     void stopBelt() {
@@ -63,6 +85,31 @@ public class ConveyorAgent extends ViaBotAgent {
     @Override
     public boolean isConnected() {
         return serialComm.isConnected;
+    }
+
+    void onSerialInput(char data) {
+        switch (data) {
+            case '1':
+            case '2':
+            case '3':
+            case '4':
+            case '5':
+            case '6':
+            case '7':
+                sendConveyorTriggerAtMessage(data);
+                break;
+            default:
+                break;
+        }
+
+    }
+
+    void sendConveyorTriggerAtMessage(char sensorPosition) {
+        ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+        msg.setContent(triggerAt + sensorPosition);
+        msg.addReceiver(conveyorTopic);
+        send(msg);
+        System.out.println("sent triggerAt " + sensorPosition);
     }
 
     void sendMessageToGui() {

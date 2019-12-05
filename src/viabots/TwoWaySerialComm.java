@@ -13,8 +13,11 @@ public class TwoWaySerialComm {
     OutputStream out;
     boolean isConnected = false;
     CommPort commPort;
-    public TwoWaySerialComm() {
+    ConveyorAgent owner;
+
+    public TwoWaySerialComm(ConveyorAgent conveyorAgent) {
         super();
+        owner = conveyorAgent;
     }
 
     void connectToFirstPort() throws Exception {
@@ -52,7 +55,7 @@ public class TwoWaySerialComm {
     }
 
     /** */
-    public static class SerialReader implements Runnable {
+    public class SerialReader implements Runnable {
         InputStream in;
 
         public SerialReader(InputStream in) {
@@ -68,7 +71,10 @@ public class TwoWaySerialComm {
 //                        System.out.print((Byte.toUnsignedInt(buffer[i]))+" ");
 //
 //                    }
-                    System.out.print(new String(buffer, 0, len));
+                    String recData = new String(buffer, 0, len);
+
+                    owner.onSerialInput(recData.charAt(0));
+                    System.out.print(recData);
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -98,7 +104,7 @@ public class TwoWaySerialComm {
 
     public static void main(String[] args) {
         try {
-            (new TwoWaySerialComm()).connect("/dev/ttyUSB1");
+            //(new TwoWaySerialComm()).connect("/dev/ttyUSB1");
         } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();

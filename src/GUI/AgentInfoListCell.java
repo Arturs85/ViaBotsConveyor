@@ -1,5 +1,7 @@
 package GUI;
 
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Button;
@@ -98,6 +100,9 @@ public class AgentInfoListCell extends ListCell<AgentInfo> {
             //remove all bidirectional bindings and listeners
 
             // getItem().speedAProperty().removeListener(textListener);
+            checkBoxA.selectedProperty().unbindBidirectional(getItem().isAEnabledProperty);
+            checkBoxB.selectedProperty().unbindBidirectional(getItem().isBEnabledProperty);
+            checkBoxC.selectedProperty().unbindBidirectional(getItem().isCEnabledProperty);
 
         }
         super.updateItem(item, empty);
@@ -119,6 +124,10 @@ public class AgentInfoListCell extends ListCell<AgentInfo> {
                     e.printStackTrace();
                 }
             }
+            checkBoxA.selectedProperty().bindBidirectional(item.isAEnabledProperty);
+            checkBoxB.selectedProperty().bindBidirectional(item.isBEnabledProperty);
+            checkBoxC.selectedProperty().bindBidirectional(item.isCEnabledProperty);
+
             if (!item.getType().equals(ManipulatorType.CONVEYOR)) {
                 if (beltButton != null) {
                     baseHBox.getChildren().remove(beltButton);

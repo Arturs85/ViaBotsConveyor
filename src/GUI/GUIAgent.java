@@ -26,7 +26,10 @@ public class GUIAgent extends Agent {
     TopicManagementHelper topicHelper = null;
     AID uiTopic;
     AID uiCommandTopic; //from ui
+    public AID conveyorTopic;
+
     MessageTemplate uiMsgTpl;
+    MessageTemplate convMsgTpl;
 
     @Override
     protected void setup() {
@@ -37,6 +40,7 @@ public class GUIAgent extends Agent {
 
             conveyorGUI.start(ConveyorGUI.classStage);
             conveyorGUI.controller.workingAgentsListView.setItems(agents);
+
         });
 
         try {
@@ -45,6 +49,8 @@ public class GUIAgent extends Agent {
             uiCommandTopic = topicHelper.createTopic(TopicNames.GUI_TOPIC.name());
             uiMsgTpl = MessageTemplate.MatchTopic(uiTopic);
             topicHelper.register(uiTopic);
+            conveyorTopic = topicHelper.createTopic(TopicNames.CONVEYOR_TOPIC.name());
+            convMsgTpl = MessageTemplate.MatchTopic(conveyorTopic);
         } catch (
                 ServiceException e) {
             e.printStackTrace();
@@ -82,6 +88,14 @@ public class GUIAgent extends Agent {
         } else {
 // else create new AgentInfo entry -td
             Platform.runLater(() -> agents.add(new AgentInfo(agentName, msg.manipulatorType)));// todo- add other info on record creation time
+        }
+    }
+
+    void receiveConvMsg() {
+        ACLMessage msg = receive(convMsgTpl);
+        if (msg != null) {
+            conveyorGUI.controller.logTextArea.appendText("Msg from conveyor: " + msg.getContent());
+            System.out.println("Msg from conveyor: " + msg.getContent());
         }
     }
 

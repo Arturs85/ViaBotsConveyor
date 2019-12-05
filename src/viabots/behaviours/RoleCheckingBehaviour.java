@@ -21,11 +21,11 @@ public class RoleCheckingBehaviour extends TickerBehaviour {
 
     @Override
     protected void onTick() {
-        AID[] s3 = getS3AgentNames();
+        AID[] s3 = getSubsystemAgentNames(VSMRoles.S3);
         if (s3 != null && s3.length > 0) {
 
         } else
-            applyAsS3();
+            applyAs(VSMRoles.S3);
     }
 
     /**
@@ -33,42 +33,43 @@ public class RoleCheckingBehaviour extends TickerBehaviour {
      *
      * @return array of agent names that carries out this role (there should not be more than one)
      */
-    AID[] getS3AgentNames() {
+    AID[] getSubsystemAgentNames(VSMRoles role) {
 
         DFAgentDescription template = new DFAgentDescription();
         ServiceDescription sd = new ServiceDescription();
-        sd.setType(VSMRoles.S3.name());
+        sd.setType(role.name());
         template.addServices(sd);
-        AID[] s3List = null;
+        AID[] agentsList = null;
         try {
             DFAgentDescription[] result = DFService.search(myAgent, template);
-            s3List = new AID[result.length];
+            agentsList = new AID[result.length];
             for (int i = 0; i < result.length; ++i) {
-                s3List[i] = result[i].getName();
+                agentsList[i] = result[i].getName();
             }
         } catch (FIPAException fe) {
             fe.printStackTrace();
         }
 
-        return s3List;
+        return agentsList;
     }
 
 
-    void applyAsS3() {
+    void applyAs(VSMRoles role) {// TODO: 19.19.11 multiple agents can register to same unique role e.g. S3
 
         DFAgentDescription dfd = new DFAgentDescription();
         dfd.setName(myAgent.getAID());
         ServiceDescription sd = new ServiceDescription();
-        sd.setType(VSMRoles.S3.name());
-        sd.setName(VSMRoles.S3.name());
+        sd.setType(role.name());
+        sd.setName(role.name());
         dfd.addServices(sd);
         try {
             DFService.register(myAgent, dfd);
         } catch (FIPAException fe) {
             fe.printStackTrace();
         }
-        master.currentRoles.add(VSMRoles.S3);
+        master.currentRoles.add(role);
     }
+
 
 }
 
