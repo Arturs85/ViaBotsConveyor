@@ -24,6 +24,7 @@ public class ConveyorAgent extends ViaBotAgent {
     boolean beltIsOn = false;
     TwoWaySerialComm serialComm;
     static String triggerAt = "triggerAt";
+    static String stoppedAt = "stoppedAt";
 
     @Override
     protected void setup() {
@@ -96,20 +97,32 @@ public class ConveyorAgent extends ViaBotAgent {
             case '5':
             case '6':
             case '7':
-                sendConveyorTriggerAtMessage(data);
+                sendConveyorMessage(triggerAt + data);
+                break;
+            case 'A':
+            case 'B':
+            case 'C':
+            case 'D':
+            case 'E':
+            case 'F':
+            case 'G':
+                sendConveyorMessage(stoppedAt + data);
                 break;
             default:
+                sendConveyorMessage("uninterpreted: " + data);
+
                 break;
         }
 
     }
 
-    void sendConveyorTriggerAtMessage(char sensorPosition) {
+
+    void sendConveyorMessage(String content) {
         ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
-        msg.setContent(triggerAt + sensorPosition);
+        msg.setContent(content);
         msg.addReceiver(conveyorTopic);
         send(msg);
-        System.out.println("sent triggerAt " + sensorPosition);
+        System.out.println(content);
     }
 
     void sendMessageToGui() {
