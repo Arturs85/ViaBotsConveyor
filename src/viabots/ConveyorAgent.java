@@ -2,6 +2,7 @@ package viabots;
 
 import jade.core.AID;
 import jade.lang.acl.ACLMessage;
+import javafx.application.Platform;
 import viabots.behaviours.ConveyorAgentBehaviour;
 import viabots.messageData.MessageContent;
 import viabots.messageData.MessageToGUI;
@@ -45,7 +46,10 @@ public class ConveyorAgent extends ViaBotAgent {
     protected void takeDown() {
         super.takeDown();
         System.out.println(getLocalName() + " was taken down----");
-        serialComm.commPort.close();
+        serialComm.disconect();
+
+        System.exit(1);
+
     }
 
     void requestStopBeltAt(int position) {

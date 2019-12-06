@@ -54,6 +54,18 @@ public class TwoWaySerialComm {
         }
     }
 
+    public void disconect() {
+
+        try {
+            if (in != null) in.close();
+            if (out != null) out.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if (commPort != null & isConnected) commPort.close();
+
+    }
+
     /** */
     public class SerialReader implements Runnable {
         InputStream in;
