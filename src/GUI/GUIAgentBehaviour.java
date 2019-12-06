@@ -13,5 +13,6 @@ public class GUIAgentBehaviour extends TickerBehaviour {
     @Override
     protected void onTick() {
         owner.receiveUImessage();
+        owner.receiveConvMsg();
     }
 }

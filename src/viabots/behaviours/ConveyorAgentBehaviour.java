@@ -17,5 +17,6 @@ public class ConveyorAgentBehaviour extends TickerBehaviour {
     @Override
     protected void onTick() {
         master.receiveUImessage();
+
     }
 }

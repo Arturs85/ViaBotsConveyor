@@ -51,6 +51,7 @@ public class GUIAgent extends Agent {
             topicHelper.register(uiTopic);
             conveyorTopic = topicHelper.createTopic(TopicNames.CONVEYOR_TOPIC.name());
             convMsgTpl = MessageTemplate.MatchTopic(conveyorTopic);
+            topicHelper.register(conveyorTopic);
         } catch (
                 ServiceException e) {
             e.printStackTrace();
@@ -82,7 +83,10 @@ public class GUIAgent extends Agent {
             ai.isHardwareReady = msg.isHardwareReady;
             ai.currentRoles = msg.currentRoles;
             if (msg.isTakenDown) {
-                Platform.runLater(() -> agents.remove(ai));
+                Platform.runLater(() -> {
+                    agents.remove(ai);
+                    conveyorGUI.controller.logTextArea.appendText("Msg from conveyor: " + ai.agentName + " takedown notification received\n");
+                });
                 System.out.println("takedown request received");
             }
         } else {
@@ -94,7 +98,7 @@ public class GUIAgent extends Agent {
     void receiveConvMsg() {
         ACLMessage msg = receive(convMsgTpl);
         if (msg != null) {
-            conveyorGUI.controller.logTextArea.appendText("Msg from conveyor: " + msg.getContent());
+            Platform.runLater(() -> conveyorGUI.controller.logTextArea.appendText("Msg from conveyor: " + msg.getContent() + "\n"));
             System.out.println("Msg from conveyor: " + msg.getContent());
         }
     }
