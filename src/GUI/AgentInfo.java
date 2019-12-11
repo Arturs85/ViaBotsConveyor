@@ -1,59 +1,56 @@
 package GUI;
 
-import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import viabots.ManipulatorType;
 import viabots.VSMRoles;
-import viabots.behaviours.PartType;
+import viabots.behaviours.ConeType;
 
 import java.util.EnumSet;
-import java.util.Iterator;
-import java.util.Set;
 
 public class AgentInfo {
 
     ManipulatorType type;
     boolean isHardwareReady = false;
     String agentName;
-    EnumSet<PartType> enabledParts;
+    EnumSet<ConeType> enabledParts;
     EnumSet<VSMRoles> currentRoles;
 
     SimpleBooleanProperty isAEnabledProperty = new SimpleBooleanProperty(this, "isAEnabledProperty", false);
 
     public boolean getIsAEnabledProperty() {
-        if (enabledParts.contains(PartType.A)) return true;
+        if (enabledParts.contains(ConeType.A)) return true;
         else return false;
     }
 
     public void setIsAEnabledProperty(boolean value) {
-        if (value) enabledParts.add(PartType.A);
-        else enabledParts.remove(PartType.A);
+        if (value) enabledParts.add(ConeType.A);
+        else enabledParts.remove(ConeType.A);
 
     }
 
     SimpleBooleanProperty isBEnabledProperty = new SimpleBooleanProperty(this, "isBEnabledProperty", false);
 
     public boolean getIsBEnabledProperty() {
-        if (enabledParts.contains(PartType.B)) return true;
+        if (enabledParts.contains(ConeType.B)) return true;
         else return false;
     }
 
     public void setIsBEnabledProperty(boolean value) {
-        if (value) enabledParts.add(PartType.B);
-        else enabledParts.remove(PartType.B);
+        if (value) enabledParts.add(ConeType.B);
+        else enabledParts.remove(ConeType.B);
 
     }
 
     SimpleBooleanProperty isCEnabledProperty = new SimpleBooleanProperty(this, "isCEnabledProperty", false);
 
     public boolean getIsCEnabledProperty() {
-        if (enabledParts.contains(PartType.C)) return true;
+        if (enabledParts.contains(ConeType.C)) return true;
         else return false;
     }
 
     public void setIsCEnabledProperty(boolean value) {
-        if (value) enabledParts.add(PartType.C);
-        else enabledParts.remove(PartType.C);
+        if (value) enabledParts.add(ConeType.C);
+        else enabledParts.remove(ConeType.C);
 
     }
 
@@ -61,7 +58,7 @@ public class AgentInfo {
         this.agentName = name;
         this.type = type;
 
-        enabledParts = EnumSet.noneOf(PartType.class);
+        enabledParts = EnumSet.noneOf(ConeType.class);
         currentRoles = EnumSet.noneOf(VSMRoles.class);
 
     }

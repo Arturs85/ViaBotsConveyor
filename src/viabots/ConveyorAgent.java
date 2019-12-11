@@ -26,6 +26,9 @@ public class ConveyorAgent extends ViaBotAgent {
     TwoWaySerialComm serialComm;
     static String triggerAt = "triggerAt";
     static String stoppedAt = "stoppedAt";
+    public static String boxArrived = "boxArrived";
+    public boolean previousHasLeft = true;// true when there is no box in new box placement area
+
 
     @Override
     protected void setup() {
@@ -61,6 +64,7 @@ public class ConveyorAgent extends ViaBotAgent {
         }
     }
 
+
     void stopBelt() {
         try {
             serialComm.out.write(commandStop);
@@ -79,12 +83,20 @@ public class ConveyorAgent extends ViaBotAgent {
         }
     }
 
-    void placeBox() {
+    public void placeBox() {
         try {
             serialComm.out.write(commandPlaceBox);
         } catch (IOException e) {
             e.printStackTrace();
         }
+        previousHasLeft = false;
+    }
+
+    /**
+     * determine box type according to the model and puts it on the conveyor (put it in the queue if previous box has not left jet)
+     */
+    void generateBox() {
+
     }
 
     @Override
@@ -95,6 +107,7 @@ public class ConveyorAgent extends ViaBotAgent {
     void onSerialInput(char data) {
         switch (data) {
             case '1':
+                previousHasLeft = true;
             case '2':
             case '3':
             case '4':
@@ -104,6 +117,8 @@ public class ConveyorAgent extends ViaBotAgent {
                 sendConveyorMessage(triggerAt + data);
                 break;
             case 'A':
+                previousHasLeft = true;
+
             case 'B':
             case 'C':
             case 'D':
@@ -121,7 +136,7 @@ public class ConveyorAgent extends ViaBotAgent {
     }
 
 
-    void sendConveyorMessage(String content) {
+    public void sendConveyorMessage(String content) {
         ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
         msg.setContent(content);
         msg.addReceiver(conveyorTopic);

@@ -4,29 +4,23 @@
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.TextArea?>
-<?import javafx.scene.layout.AnchorPane?>
-<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="GUI.MainWindow">
-    <HBox>
-        <children>
-            <VBox prefHeight="800.0" prefWidth="1000.0">
-                <children>
-                    <Label prefHeight="25.0" text="Agents" textAlignment="CENTER"/>
 
-                    <SplitPane dividerPositions="0.6" orientation="VERTICAL" prefWidth="1000.0" VBox.vgrow="ALWAYS">
-                        <items>
-                            <ListView fx:id="workingAgentsListView"/>
-                            <TextArea fx:id="logTextArea" prefHeight="200.0"/>
-                        </items>
-                    </SplitPane>
-                </children>
-            </VBox>
+<VBox alignment="CENTER" prefWidth="1000.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="GUI.MainWindow">
+    <children>
+        <Label prefHeight="25.0" text="Agents" textAlignment="CENTER" VBox.vgrow="ALWAYS"/>
 
-
-        </children>
-    </HBox>
-
-
-</AnchorPane>
+        <SplitPane dividerPositions="0.6" orientation="VERTICAL" prefWidth="1000.0" VBox.vgrow="ALWAYS">
+            <items>
+                <ListView fx:id="workingAgentsListView"/>
+                <VBox>
+                    <children>
+                        <TextArea fx:id="logTextArea" VBox.vgrow="ALWAYS"/>
+                    </children>
+                </VBox>
+            </items>
+        </SplitPane>
+    </children>
+</VBox>

@@ -60,8 +60,8 @@ public class Main {
 
         } else {// no arguments mean that this is main container
             main.cc = main.startJade();
-            main.createAgent(ManipulatorType.BAXTER);
-            main.createAgent(ManipulatorType.SMALL_ONE);
+            // main.createAgent(ManipulatorType.BAXTER);
+            // main.createAgent(ManipulatorType.SMALL_ONE);
 
             main.createGUIAgent();
         }

@@ -2,17 +2,16 @@ package viabots.messageData;
 
 import viabots.ManipulatorType;
 import viabots.VSMRoles;
-import viabots.behaviours.PartType;
+import viabots.behaviours.ConeType;
 
 import java.io.Serializable;
 import java.util.EnumSet;
-import java.util.Set;
 
 public class MessageToGUI implements Serializable {
     public boolean isHardwareReady = false;
     public ManipulatorType manipulatorType;
     public boolean isTakenDown = false;
-    public EnumSet<PartType> enabledParts;
+    public EnumSet<ConeType> enabledParts;
     public EnumSet<VSMRoles> currentRoles;
 
     public MessageToGUI(boolean isHardwareReady, ManipulatorType type, EnumSet<VSMRoles> roles) {
@@ -31,7 +30,7 @@ public class MessageToGUI implements Serializable {
         this.isTakenDown = isTakenDown;
     }
 
-    public MessageToGUI(EnumSet<PartType> enabledParts) {//
+    public MessageToGUI(EnumSet<ConeType> enabledParts) {//
         this.enabledParts = enabledParts;
     }
 }

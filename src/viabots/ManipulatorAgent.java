@@ -3,12 +3,9 @@ package viabots;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
-import jade.lang.acl.UnreadableException;
-import viabots.behaviours.GuiInteractionBehaviour;
-import viabots.behaviours.PartType;
+import viabots.behaviours.ConeType;
 import viabots.behaviours.RoleCheckingBehaviour;
 import viabots.behaviours.S1ManipulatorBehaviour;
-import viabots.messageData.MessageToGUI;
 
 ;import java.util.EnumSet;
 
@@ -44,8 +41,8 @@ public class ManipulatorAgent extends ViaBotAgent {
         System.out.println(getName() + " takeDown executed");
     }
 
-    public void insertPart(PartType partType) {
-        switch (partType) {
+    public void insertPart(ConeType coneType) {
+        switch (coneType) {
             case A:
                 communication.sendString(InterProcessCommands.insertPartA);
                 break;
