@@ -24,8 +24,8 @@ public class ConveyorAgent extends ViaBotAgent {
     public AID conveyorTopic;
     boolean beltIsOn = false;
     TwoWaySerialComm serialComm;
-    static String triggerAt = "triggerAt";
-    static String stoppedAt = "stoppedAt";
+    public static String triggerAt = "triggerAt";
+    public static String stoppedAt = "stoppedAt";
     public static String boxArrived = "boxArrived";
     public boolean previousHasLeft = true;// true when there is no box in new box placement area
 

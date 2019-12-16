@@ -60,10 +60,18 @@ public class Main {
 
         } else {// no arguments mean that this is main container
             main.cc = main.startJade();
-            // main.createAgent(ManipulatorType.BAXTER);
-            // main.createAgent(ManipulatorType.SMALL_ONE);
 
             main.createGUIAgent();
+            main.createAgent(ManipulatorType.BAXTER);//for testing
+
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            main.createAgent(ManipulatorType.SMALL_ONE);
+
         }
 
 

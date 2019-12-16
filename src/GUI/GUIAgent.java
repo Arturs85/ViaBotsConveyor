@@ -14,11 +14,15 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.embed.swing.JFXPanel;
+import viabots.Box;
 import viabots.ManipulatorType;
+import viabots.messageData.ConvModelingMsgToUI;
 import viabots.messageData.MessageToGUI;
 import viabots.messageData.TopicNames;
 
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
 
 public class GUIAgent extends Agent {
     volatile ObservableList<AgentInfo> agents = FXCollections.observableArrayList();
@@ -27,10 +31,11 @@ public class GUIAgent extends Agent {
     AID uiTopic;
     AID uiCommandTopic; //from ui
     public AID conveyorTopic;
+    public AID modelerToGuiTopic;
 
     MessageTemplate uiMsgTpl;
     MessageTemplate convMsgTpl;
-
+    MessageTemplate modelerToGuiTpl;
     @Override
     protected void setup() {
         super.setup();
@@ -52,6 +57,11 @@ public class GUIAgent extends Agent {
             conveyorTopic = topicHelper.createTopic(TopicNames.CONVEYOR_TOPIC.name());
             convMsgTpl = MessageTemplate.MatchTopic(conveyorTopic);
             topicHelper.register(conveyorTopic);
+
+            modelerToGuiTopic = topicHelper.createTopic(TopicNames.MODELER_GUI.name());// register to receive msgs from convModelingBehaviour
+            modelerToGuiTpl = MessageTemplate.MatchTopic(modelerToGuiTopic);
+            topicHelper.register(modelerToGuiTopic);
+
         } catch (
                 ServiceException e) {
             e.printStackTrace();
@@ -101,6 +111,36 @@ public class GUIAgent extends Agent {
             Platform.runLater(() -> conveyorGUI.controller.logTextArea.appendText("Msg from conveyor: " + msg.getContent() + "\n"));
             System.out.println("Msg from conveyor: " + msg.getContent());
         }
+    }
+
+    void receiveModelerMsg() {
+        ACLMessage msg = receive(modelerToGuiTpl);
+        if (msg != null) {
+            List<LinkedList<Box>> boxQueues = null;
+            try {
+                boxQueues = ((ConvModelingMsgToUI) msg.getContentObject()).boxQueues;
+            } catch (UnreadableException e) {
+                e.printStackTrace();
+            }
+            //display conveyor model
+            String data = getModelAsString(boxQueues);
+            Platform.runLater(() -> conveyorGUI.controller.logTextArea.appendText("Msg from modeler: " + data + "\n"));
+            //System.out.println("Msg from conveyor: " + msg.getContent());
+        }
+    }
+
+    String getModelAsString(List<LinkedList<Box>> boxQueues) {
+        StringBuilder str = new StringBuilder("-->");
+
+        for (int i = 0; i < boxQueues.size(); i++) {
+            LinkedList<Box> queue = boxQueues.get(i);
+
+            for (Box box : queue) {
+                str.append(" [" + box.boxType.name() + box.id + "] ");
+            }
+            str.append(" || ");
+        }
+        return str.toString();
     }
 
     void receiveUImessage() {

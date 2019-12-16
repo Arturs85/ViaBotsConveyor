@@ -4,6 +4,7 @@ import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
 import viabots.behaviours.ConeType;
+import viabots.behaviours.ConveyorModelingBehaviour;
 import viabots.behaviours.RoleCheckingBehaviour;
 import viabots.behaviours.S1ManipulatorBehaviour;
 
@@ -23,7 +24,7 @@ public class ManipulatorAgent extends ViaBotAgent {
         addBehaviour(new S1ManipulatorBehaviour(this));
         addBehaviour(new RoleCheckingBehaviour(this));
         currentRoles = EnumSet.noneOf(VSMRoles.class);
-
+//addBehaviour(new ConveyorModelingBehaviour(this,2000));//for testing----------------------------------!!!
     }
 
     @Override

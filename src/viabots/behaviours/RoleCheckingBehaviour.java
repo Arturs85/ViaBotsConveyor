@@ -9,6 +9,7 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import viabots.ManipulatorAgent;
 import viabots.VSMRoles;
+import viabots.ViaBotAgent;
 
 public class RoleCheckingBehaviour extends TickerBehaviour {
     public static final int ROLE_CHECKING_INTERVAL = 5000;
@@ -21,11 +22,21 @@ public class RoleCheckingBehaviour extends TickerBehaviour {
 
     @Override
     protected void onTick() {
-        AID[] s3 = getSubsystemAgentNames(VSMRoles.S3);
-        if (s3 != null && s3.length > 0) {
+        testRole(VSMRoles.S_MODELER);
+    }
+
+    void testRole(VSMRoles role) {// check if role is filled, and take it, if needed
+        AID[] filled = getSubsystemAgentNames(role);
+        if (filled != null && filled.length > 0) {
 
         } else
-            applyAs(VSMRoles.S3);
+            filled = getSubsystemAgentNames(role);// double check before apply
+        if (filled != null && filled.length > 0) {
+
+        } else if (filled != null && filled.length == 0) {
+            applyAs(role);
+        }
+
     }
 
     /**
@@ -68,8 +79,15 @@ public class RoleCheckingBehaviour extends TickerBehaviour {
             fe.printStackTrace();
         }
         master.currentRoles.add(role);
+        addBehaviour(role);
     }
 
+    void addBehaviour(VSMRoles role) {//for adding actual behaviour, that coresponds to the role
+        if (role.equals(VSMRoles.S_MODELER)) {
+            master.addBehaviour(new ConveyorModelingBehaviour(master, ViaBotAgent.tickerPeriod));
+        }
+
+    }
 
 }
 

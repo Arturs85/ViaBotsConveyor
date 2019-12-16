@@ -50,6 +50,22 @@ public class ViaBotAgent extends Agent {
 
     }
 
+    public AID createTopicForBehaviour(String name) {
+        if (topicHelper == null) return null;
+
+        return topicHelper.createTopic(name);
+    }
+
+    public void registerBehaviourToTopic(AID topic) {
+        if (topicHelper == null) return;
+
+        try {
+            topicHelper.register(topic);
+        } catch (ServiceException e) {
+            e.printStackTrace(); // what to do here?
+        }
+    }
+
     public void receiveUImessage() {
 
     }
