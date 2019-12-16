@@ -137,7 +137,7 @@ public class ConveyorAgent extends ViaBotAgent {
 
 
     public void sendConveyorMessage(String content) {
-        ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+        ACLMessage msg = new ACLMessage(ACLMessage.UNKNOWN);
         msg.setContent(content);
         msg.addReceiver(conveyorTopic);
         send(msg);

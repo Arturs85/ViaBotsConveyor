@@ -16,6 +16,7 @@ import javafx.collections.ObservableList;
 import javafx.embed.swing.JFXPanel;
 import viabots.Box;
 import viabots.ManipulatorType;
+import viabots.ViaBotAgent;
 import viabots.messageData.ConvModelingMsgToUI;
 import viabots.messageData.MessageToGUI;
 import viabots.messageData.TopicNames;
@@ -23,6 +24,7 @@ import viabots.messageData.TopicNames;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 
 public class GUIAgent extends Agent {
     volatile ObservableList<AgentInfo> agents = FXCollections.observableArrayList();
@@ -32,10 +34,13 @@ public class GUIAgent extends Agent {
     AID uiCommandTopic; //from ui
     public AID conveyorTopic;
     public AID modelerToGuiTopic;
+    public AID logTopic;
 
     MessageTemplate uiMsgTpl;
     MessageTemplate convMsgTpl;
     MessageTemplate modelerToGuiTpl;
+    MessageTemplate logTopicTpl;
+
     @Override
     protected void setup() {
         super.setup();
@@ -61,6 +66,10 @@ public class GUIAgent extends Agent {
             modelerToGuiTopic = topicHelper.createTopic(TopicNames.MODELER_GUI.name());// register to receive msgs from convModelingBehaviour
             modelerToGuiTpl = MessageTemplate.MatchTopic(modelerToGuiTopic);
             topicHelper.register(modelerToGuiTopic);
+
+            logTopic = topicHelper.createTopic(TopicNames.LOG_TOPIC.name());
+            logTopicTpl = MessageTemplate.MatchTopic(logTopic);
+            topicHelper.register(logTopic);
 
         } catch (
                 ServiceException e) {
@@ -113,6 +122,16 @@ public class GUIAgent extends Agent {
         }
     }
 
+    void receiveLogMsg() {// read all log messages
+        ACLMessage msg = receive(logTopicTpl);
+        while (msg != null) {
+            String cont = msg.getContent();
+            Platform.runLater(() -> conveyorGUI.controller.logTextArea.appendText("-----LOG---: " + cont + "\n"));
+            // System.out.println("Msg from conveyor: " + msg.getContent());
+            msg = receive(logTopicTpl);
+        }
+    }
+
     void receiveModelerMsg() {
         ACLMessage msg = receive(modelerToGuiTpl);
         if (msg != null) {
@@ -135,9 +154,16 @@ public class GUIAgent extends Agent {
         for (int i = 0; i < boxQueues.size(); i++) {
             LinkedList<Box> queue = boxQueues.get(i);
 
-            for (Box box : queue) {
-                str.append(" [" + box.boxType.name() + box.id + "] ");
+            ListIterator li = queue.listIterator(queue.size());
+
+// Iterate in reverse.
+
+            while (li.hasPrevious()) {
+                Box b = (Box) li.previous();
+                str.append(" [" + b.boxType.name() + b.id + "] ");
             }
+
+
             str.append(" || ");
         }
         return str.toString();

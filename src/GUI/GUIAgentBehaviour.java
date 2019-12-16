@@ -15,5 +15,6 @@ public class GUIAgentBehaviour extends TickerBehaviour {
         owner.receiveUImessage();
         owner.receiveConvMsg();
         owner.receiveModelerMsg();
+        owner.receiveLogMsg();
     }
 }

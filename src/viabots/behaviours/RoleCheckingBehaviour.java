@@ -78,8 +78,9 @@ public class RoleCheckingBehaviour extends TickerBehaviour {
         } catch (FIPAException fe) {
             fe.printStackTrace();
         }
-        master.currentRoles.add(role);
         addBehaviour(role);
+        master.currentRoles.add(role);
+
     }
 
     void addBehaviour(VSMRoles role) {//for adding actual behaviour, that coresponds to the role

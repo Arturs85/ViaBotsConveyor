@@ -22,6 +22,12 @@ public class Main {
      * arg[2] agent name
      */
     public static void main(String[] args) {
+//test
+        BoxType type = BoxType.B;
+        String content = ConveyorAgent.stoppedAt + type.name();
+        char position = content.charAt(ConveyorAgent.stoppedAt.length());
+        System.out.println("char: " + position);
+        //end test
 
         try {
             localHost = InetAddress.getLocalHost().getHostName();

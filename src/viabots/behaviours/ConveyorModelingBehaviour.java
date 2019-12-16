@@ -31,9 +31,9 @@ public class ConveyorModelingBehaviour extends TickerBehaviour {
         for (int i = 0; i < numberOfSensors; i++) {// initialize conveyor model - list of queues of Boxes
             boxQueues.add(new LinkedList<Box>());
         }
-        boxQueues.get(0).add(new Box(BoxType.C));//for testing
-        boxQueues.get(2).add(new Box(BoxType.B));//for testing
-        boxQueues.get(2).add(new Box(BoxType.C));//for testing
+        //  boxQueues.get(0).add(new Box(BoxType.C));//for testing
+        //  boxQueues.get(2).add(new Box(BoxType.B));//for testing
+        //  boxQueues.get(2).add(new Box(BoxType.C));//for testing
 
         subscribeToMessages();
 
@@ -55,6 +55,7 @@ public class ConveyorModelingBehaviour extends TickerBehaviour {
     void processMessages(MessageTemplate template) {// reads all available messages of coresponding template
         ACLMessage msg = owner.receive(template);
         while (msg != null) {
+            owner.sendLogMsgToGui(getBehaviourName() + " received conv msg: " + msg.getContent());
 
             if (msg.getContent().contains(ConveyorAgent.boxArrived)) {// add new bo to first queue
                 String boxTypeString = msg.getContent().substring(ConveyorAgent.boxArrived.length() + 1);
@@ -62,9 +63,11 @@ public class ConveyorModelingBehaviour extends TickerBehaviour {
                 boxQueues.get(0).add(new Box(type));
 
             } else if (msg.getContent().contains(ConveyorAgent.stoppedAt)) {
-                char position = msg.getContent().charAt(ConveyorAgent.stoppedAt.length() + 1);
+                char position = msg.getContent().charAt(ConveyorAgent.stoppedAt.length());
+                owner.sendLogMsgToGui(getBehaviourName() + " received sopped at, read char: " + position);
                 switch (position) {
                     case 'A':
+
                         toTheNext(0);
                         break;
                     case 'B':
@@ -99,9 +102,11 @@ public class ConveyorModelingBehaviour extends TickerBehaviour {
      * moves first box of queue before this sensor to next queue, or removes it if there are no more queues
      */
     void toTheNext(int sensorNumber) {
+        owner.sendLogMsgToGui(getBehaviourName() + " toTheNextCalled with sensor nr:" + sensorNumber);
+
         Box box = boxQueues.get(sensorNumber).removeFirst();// todo add queues size check
 
-        if (sensorNumber + 1 >= boxQueues.size()) {//no more queues, erease box(do nothing)
+        if ((sensorNumber + 1) >= boxQueues.size()) {//no more queues, erease box(do nothing)
 
         } else {
             boxQueues.get(sensorNumber + 1).add(box);

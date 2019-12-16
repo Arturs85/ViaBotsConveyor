@@ -13,6 +13,8 @@ import viabots.messageData.TopicNames;
 public class ViaBotAgent extends Agent {
     TopicManagementHelper topicHelper = null;
     public AID uiTopic;
+    public AID logTopic;
+
     public MessageTemplate requestTamplate;
     public MessageTemplate informTamplate;
 
@@ -31,6 +33,7 @@ public class ViaBotAgent extends Agent {
             uiTopic = topicHelper.createTopic(TopicNames.GUI_TOPIC.name());
             requestTamplate = MessageTemplate.MatchPerformative(ACLMessage.REQUEST);
             informTamplate = MessageTemplate.MatchPerformative(ACLMessage.INFORM);
+            logTopic = topicHelper.createTopic(TopicNames.LOG_TOPIC.name());
 
         } catch (
                 ServiceException e) {
@@ -66,6 +69,13 @@ public class ViaBotAgent extends Agent {
         }
     }
 
+    public void sendLogMsgToGui(String content) {
+        ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+        msg.setContent(content);
+        msg.addReceiver(logTopic);
+        send(msg);
+        //  System.out.println(content);
+    }
     public void receiveUImessage() {
 
     }
