@@ -55,7 +55,7 @@ public class ConveyorModelingBehaviour extends TickerBehaviour {
     void processMessages(MessageTemplate template) {// reads all available messages of coresponding template
         ACLMessage msg = owner.receive(template);
         while (msg != null) {
-            owner.sendLogMsgToGui(getBehaviourName() + " received conv msg: " + msg.getContent());
+            //  owner.sendLogMsgToGui(getBehaviourName() + " received conv msg: " + msg.getContent());
 
             if (msg.getContent().contains(ConveyorAgent.boxArrived)) {// add new bo to first queue
                 String boxTypeString = msg.getContent().substring(ConveyorAgent.boxArrived.length() + 1);
@@ -64,7 +64,7 @@ public class ConveyorModelingBehaviour extends TickerBehaviour {
 
             } else if (msg.getContent().contains(ConveyorAgent.stoppedAt)) {
                 char position = msg.getContent().charAt(ConveyorAgent.stoppedAt.length());
-                owner.sendLogMsgToGui(getBehaviourName() + " received sopped at, read char: " + position);
+                //    owner.sendLogMsgToGui(getBehaviourName() + " received sopped at, read char: " + position);
                 switch (position) {
                     case 'A':
 
@@ -102,7 +102,7 @@ public class ConveyorModelingBehaviour extends TickerBehaviour {
      * moves first box of queue before this sensor to next queue, or removes it if there are no more queues
      */
     void toTheNext(int sensorNumber) {
-        owner.sendLogMsgToGui(getBehaviourName() + " toTheNextCalled with sensor nr:" + sensorNumber);
+        // owner.sendLogMsgToGui(getBehaviourName() + " toTheNextCalled with sensor nr:" + sensorNumber);
 
         Box box = boxQueues.get(sensorNumber).removeFirst();// todo add queues size check
 

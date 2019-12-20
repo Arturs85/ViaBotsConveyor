@@ -3,6 +3,7 @@ package viabots.behaviours;
 import jade.core.behaviours.TickerBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.UnreadableException;
+import viabots.ConveyorAgent;
 import viabots.ManipulatorAgent;
 import viabots.messageData.MessageContent;
 import viabots.messageData.MessageToGUI;
@@ -41,6 +42,24 @@ public class S1ManipulatorBehaviour extends TickerBehaviour {
 //        }
     }
 
+    /**
+     * call this after processing all topic messages, because this call will empty msg queue
+     */
+    public void receiveDirectlyAdressedMsgs() {// further needs update to receive box id
+        ACLMessage msg = master.receive();
+        while (msg != null) {
+            if (msg.getContent().contains(MessageContent.INSERT_CONE.name())) {
+
+                String posString = msg.getContent().substring(MessageContent.INSERT_CONE.name().length());
+                int pos = Integer.parseInt(posString);
+                // TODO: 19.19.12    //prepeare to insert part when box arrives
+
+            }
+
+            msg = master.receive();
+        }
+    }
+    
     public void receiveUImessage() {//for testing insertion
         ACLMessage msg = master.receive(master.requestTamplate);
         if (msg != null) {

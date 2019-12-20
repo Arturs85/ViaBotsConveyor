@@ -59,6 +59,7 @@ public class ViaBotAgent extends Agent {
         return topicHelper.createTopic(name);
     }
 
+
     public void registerBehaviourToTopic(AID topic) {
         if (topicHelper == null) return;
 
