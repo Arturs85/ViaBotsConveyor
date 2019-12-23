@@ -35,6 +35,10 @@ public class Box implements Serializable {
         this.boxType = boxType;
     }
 
+    public Box(int id, BoxType boxType) {
+        this.id = id;
+        this.boxType = boxType;
+    }
 
     /**
      * @param coneType
@@ -55,5 +59,6 @@ public class Box implements Serializable {
         return getPositions(coneType, boxType);
 
     }
+
 
 }

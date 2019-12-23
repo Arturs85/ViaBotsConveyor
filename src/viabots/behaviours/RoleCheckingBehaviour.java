@@ -85,7 +85,7 @@ public class RoleCheckingBehaviour extends TickerBehaviour {
 
     void addBehaviour(VSMRoles role) {//for adding actual behaviour, that coresponds to the role
         if (role.equals(VSMRoles.S_MODELER)) {
-            master.addBehaviour(new ConveyorModelingBehaviour(master, ViaBotAgent.tickerPeriod));
+            master.addBehaviour(new ConveyorModelingBehaviour(master));
         }
 
     }

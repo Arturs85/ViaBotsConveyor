@@ -1,0 +1,7 @@
+package viabots.messageData;
+
+public enum ConveyorOntologies {
+    NewBoxWithID,
+    TaskAssignmentToS1,
+    S1TaskConfirmation,
+}
