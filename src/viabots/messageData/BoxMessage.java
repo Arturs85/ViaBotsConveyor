@@ -1,5 +1,6 @@
 package viabots.messageData;
 
+import jade.core.AID;
 import viabots.BoxType;
 import viabots.behaviours.ConeType;
 
@@ -8,8 +9,9 @@ import java.io.Serializable;
 public class BoxMessage implements Serializable {
     public int boxID;
     public BoxType boxType;
-    public int positionInBox = 0;
+    public int positionInBox = 0;// can be used as sensor position of conveyor
     public ConeType coneType;
+    public AID subscriber;
 
     public BoxMessage(int boxID, BoxType boxType, ConeType coneType) {
         this.boxID = boxID;

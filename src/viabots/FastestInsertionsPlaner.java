@@ -11,6 +11,10 @@ import java.util.TreeMap;
 public class FastestInsertionsPlaner {
     Map<String, ManipulatorModel> s1ModelsList;// = new TreeMap<>();
 
+    public FastestInsertionsPlaner(Map<String, ManipulatorModel> s1ModelsList) {
+        this.s1ModelsList = s1ModelsList;
+    }
+
     /**
      * @param positionList positions where cones are needed to be inserted
      * @param coneType

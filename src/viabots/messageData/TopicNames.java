@@ -9,5 +9,5 @@ public enum TopicNames {
     S1_TO_S2_TOPIC,
     MODELER_NEW_BOX_TOPIC,
     S2_TO_S3_TOPIC,
-
+    REQUESTS_TO_MODELER
 }

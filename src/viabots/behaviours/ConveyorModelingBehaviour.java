@@ -5,6 +5,7 @@ import jade.core.Agent;
 import jade.core.behaviours.TickerBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import jade.lang.acl.UnreadableException;
 import viabots.*;
 import viabots.messageData.BoxMessage;
 import viabots.messageData.ConvModelingMsgToUI;
@@ -12,9 +13,7 @@ import viabots.messageData.ConveyorOntologies;
 import viabots.messageData.TopicNames;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 public class ConveyorModelingBehaviour extends BaseTopicBasedTickerBehaviour {
     static int numberOfSensors = 4; // there will be as much queues as there is sensors
@@ -23,10 +22,11 @@ public class ConveyorModelingBehaviour extends BaseTopicBasedTickerBehaviour {
     ManipulatorAgent owner;
     public AID conveyorMsgTopic;
     public AID modelerToGuiTopic;
-
+    ArrayList<BoxMessage> stopRequests = new ArrayList<>();
     MessageTemplate convMsgTpl;
+    ArrayList<Box> currentBoxes = new ArrayList<>(); // this box should be valid from moment when message "boxStoppedAt" is sent till "moveOn is received"
 
-
+    //normally there should be only one box in this list, but if two sensors has fired nearly same time there can be more than one box
     public ConveyorModelingBehaviour(ManipulatorAgent a) {
         super(a);
         owner = a;
@@ -43,8 +43,10 @@ public class ConveyorModelingBehaviour extends BaseTopicBasedTickerBehaviour {
 
     void subscribeToMessages() {
         createAndRegisterReceivingTopics(TopicNames.CONVEYOR_TOPIC);
+        createAndRegisterReceivingTopics(TopicNames.REQUESTS_TO_MODELER);
         createSendingTopic(TopicNames.MODELER_GUI);
         createSendingTopic(TopicNames.MODELER_NEW_BOX_TOPIC);
+
 //        conveyorMsgTopic = owner.createTopicForBehaviour(TopicNames.CONVEYOR_TOPIC.name());
 //        convMsgTpl = MessageTemplate.MatchTopic(conveyorMsgTopic);
 //        owner.registerBehaviourToTopic(conveyorMsgTopic);
@@ -119,6 +121,59 @@ public class ConveyorModelingBehaviour extends BaseTopicBasedTickerBehaviour {
             boxQueues.get(sensorNumber + 1).add(box);
 
         }
+// check if there is someone subscribed at this sensor position for current box
+        AID subscriber = getSubscriber(box.id, sensorNumber);
+        if (subscriber != null) {
+            // at this point box is awaiting at the sensor
+            sendBoxStoppedAt(box.id, subscriber);
+            currentBoxes.add(box);
+        }
+    }
+
+    AID getSubscriber(int boxId, int sensorNumber) {
+        for (BoxMessage request : stopRequests) {
+            if (request.positionInBox == sensorNumber && request.boxID == boxId) {
+                return request.subscriber;
+            }
+        }
+        return null;
+    }
+
+    public void receiveStopOrMoveOnRequestMessage() {// from s1
+        ACLMessage msg = owner.receive(templates[TopicNames.REQUESTS_TO_MODELER.ordinal()]);
+        if (msg != null) {
+            BoxMessage boxMessage = null;
+            try {
+                boxMessage = (BoxMessage) msg.getContentObject();
+            } catch (UnreadableException e) {
+                e.printStackTrace();
+            }
+
+
+            if (msg.getPerformative() == ACLMessage.REQUEST) {
+
+                // add requested stop position of this box and store subscribers AID
+                boxMessage.subscriber = msg.getSender();// in case subscriber has not filled this field
+                stopRequests.add(boxMessage);//positionId means sensor position
+
+                System.out.println("request   " + owner.getName());
+            } else if (msg.getPerformative() == ACLMessage.CONFIRM) {// belt can continue to move
+//remove this box from current list
+
+
+                Iterator<Box> i = currentBoxes.iterator();
+                while (i.hasNext()) {
+                    Box b = i.next(); // must be called before you can call i.remove()
+                    if (b.id == boxMessage.boxID) {
+                        i.remove();
+                    }
+                }
+// if currentBox list is empty conv can move on
+                if (currentBoxes.isEmpty()) {
+                    //todo send message to conveyor to move on
+                }
+            }
+        }
 
     }
 
@@ -136,6 +191,19 @@ public class ConveyorModelingBehaviour extends BaseTopicBasedTickerBehaviour {
         owner.send(msg);
         System.out.println("modeling queue msg object sent");
 
+    }
+
+    void sendBoxStoppedAt(int boxId, AID subscriber) {
+        ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+        msg.setOntology(ConveyorOntologies.BoxAtSatation.name());
+        msg.addReceiver(subscriber);
+        BoxMessage contObj = new BoxMessage(boxId, null);
+        try {
+            msg.setContentObject(contObj);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        owner.send(msg);
     }
 
     public void sendNewBoxMessage(Box box) {

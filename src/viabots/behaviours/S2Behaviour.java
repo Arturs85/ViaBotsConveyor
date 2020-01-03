@@ -1,7 +1,6 @@
 package viabots.behaviours;
 
 import jade.core.AID;
-import jade.core.behaviours.TickerBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
@@ -22,9 +21,12 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
     MessageTemplate s1toS2Tpl;
     MessageTemplate taskAssignmentToS1OntTpl = MessageTemplate.MatchOntology(ConveyorOntologies.S1TaskConfirmation.name());
 
-    Map<String, S1ToS2Message> s1List = new TreeMap<>();
+    Map<String, ManipulatorModel> s1List = new TreeMap<>();
     TreeMap<Integer, BoxWInserters> insertersList = new TreeMap<>();
-
+    S2States state = S2States.IDLE;
+    static int infoWaitingTimeout = 5000;// ms
+    int waitingCounter = 0;
+    BoxMessage currentBoxMessage = null;// message of box for which inserters are currently requested or planned dont receive other messages of this type until plan for current is made
     public S2Behaviour(ViaBotAgent a, ConeType coneType) {
         super(a);
         owner = a;
@@ -35,6 +37,59 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
 
     @Override
     protected void onTick() {
+// look through all new messages
+        processMessages(templates[TopicNames.S1_TO_S2_TOPIC.ordinal()]);
+
+        switch (state) {
+            case IDLE:
+                break;
+            case WAITING_S1_INFO:
+
+                waitingCounter--;
+                if (waitingCounter <= 0) {// waiting time is over, try to make plan using received manipulatorModels
+                    boolean hasPlan = makePlan(currentBoxMessage);
+                    if (hasPlan) {//plan has been made and requests according to the plan has been sent
+                        enterState(S2States.WAITING_S1_CONFIRM_PREPEARED);
+                    } else {// plan could not be made- start again with requests
+                        enterState(S2States.WAITING_S1_INFO);
+                    }
+
+                }
+                break;
+            case WAITING_S1_CONFIRM_PREPEARED:
+                if (insertersList.get(currentBoxMessage.boxID).hasAllInserters(coneType)) {// all inserters ready, send ready msg to S3
+                    sendInsertersReady(currentBoxMessage.boxID, coneType);
+                    enterState(S2States.IDLE);
+                }
+                break;
+
+            default:
+                break;
+        }
+
+    }
+
+    void enterState(S2States nextState) {
+        switch (state) {
+            case IDLE:
+
+                state = S2States.IDLE;
+                break;
+            case WAITING_S1_INFO:
+
+                s1List.clear();
+                sendInfoRequestMessagesToS1(currentBoxMessage);
+                waitingCounter = infoWaitingTimeout / ViaBotAgent.tickerPeriod;
+                state = S2States.WAITING_S1_INFO;
+                break;
+            case WAITING_S1_CONFIRM_PREPEARED:
+
+                state = S2States.WAITING_S1_CONFIRM_PREPEARED;
+                break;
+
+            default:
+                break;
+        }
 
     }
 
@@ -57,59 +112,70 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
 
     }
 
+    /**
+     * @return true if plan has been made
+     */
+    boolean makePlan(BoxMessage boxMessage) {
+        BoxType type = boxMessage.boxType;
+        //get numerical positions of this cone type for new box
+        ArrayList<Integer> positionList = Box.getPositions(coneType, type);
+        //get name of agent for every required position of the new box
+        FastestInsertionsPlaner planer = new FastestInsertionsPlaner(s1List);
+        Map<Integer, String> plan = planer.makePlan(positionList, coneType);
+
+        if (plan == null) return false;
+        //send task for every manipulator according the plan
+
+        Iterator<Map.Entry<Integer, String>> itr = plan.entrySet().iterator();
+
+        //send message to every manipulator in the plan
+        while (itr.hasNext()) {
+            Map.Entry<Integer, String> entry = itr.next();
+            sendInsertionRequestToS1(entry.getValue(), entry.getKey(), boxMessage.boxID);
+
+        }
+        insertersList.put(boxMessage.boxID, new BoxWInserters(boxMessage.boxID, boxMessage.boxType));
+        return true;
+    }
 
     void processMessages(MessageTemplate template) {// reads all available messages of corresponding template
         ACLMessage msg = owner.receive(template);
         while (msg != null) {
             if (template.equals(templates[TopicNames.S1_TO_S2_TOPIC.ordinal()])) {
-                try {
-                    S1ToS2Message incomingMsg = (S1ToS2Message) (msg.getContentObject());
-                    s1List.put(msg.getSender().getName(), incomingMsg);
+                if (msg.getPerformative() == ACLMessage.INFORM) {// this should be reply to info request
+                    try {
+                        ManipulatorModel incomingMsg = (ManipulatorModel) (msg.getContentObject());
+                        s1List.put(msg.getSender().getName(), incomingMsg);
 
-                } catch (UnreadableException e) {
-                    e.printStackTrace();
-                }
+                    } catch (UnreadableException e) {
+                        e.printStackTrace();
+                    }
+                } else// this should be ready confirmation from s1
+                    //should receice confirmation of assignment
+                    if (msg.getPerformative() == ACLMessage.ACCEPT_PROPOSAL) {
+                        BoxMessage reply = null;
+                        try {
+                            reply = (BoxMessage) msg.getContentObject();
+                        } catch (UnreadableException e) {
+                            e.printStackTrace();
+                        }
+                        insertersList.get(reply.boxID).setInserter(msg.getSender(), reply.positionInBox);//mark insertion request accepted
+
+
+                    }
+
             } else if (template.equals(templates[TopicNames.MODELER_NEW_BOX_TOPIC.ordinal()])) {//further read messages from modeling behaviour, so that we have id of the box
                 if (msg.getOntology().contains(ConveyorOntologies.NewBoxWithID.name())) {// make plan for this box
                     BoxMessage boxMessage = null;
                     try {
-                        boxMessage = (BoxMessage) msg.getContentObject();
+                        currentBoxMessage = (BoxMessage) msg.getContentObject();
                     } catch (UnreadableException e) {
                         e.printStackTrace();
                     }
                     String boxTypeString = msg.getContent().substring(ConveyorAgent.boxArrived.length() + 1);
-                    BoxType type = boxMessage.boxType;
-                    //get numerical positions of this cone type for new box
-                    ArrayList<Integer> positionList = Box.getPositions(coneType, type);
-                    //get name of agent for every required position of the new box
-                    FastestInsertionsPlaner planer = new FastestInsertionsPlaner();
-                    Map<Integer, String> plan = planer.makePlan(positionList, coneType);
-                    //send task for every manipulator according the plan
 
-                    Iterator<Map.Entry<Integer, String>> itr = plan.entrySet().iterator();
-
-                    //send message to every manipulator in the plan
-                    while (itr.hasNext()) {
-                        Map.Entry<Integer, String> entry = itr.next();
-                        sendInsertionRequestToS1(entry.getValue(), entry.getKey(), boxMessage.boxID);
-
-                    }
-                    insertersList.put(boxMessage.boxID, new BoxWInserters(boxMessage.boxID, boxMessage.boxType));
                 }
 
-            } else if (template.equals(taskAssignmentToS1OntTpl)) {//should receice confirmation of assignment
-                if (msg.getPerformative() == ACLMessage.ACCEPT_PROPOSAL) {
-                    BoxMessage reply = null;
-                    try {
-                        reply = (BoxMessage) msg.getContentObject();
-                    } catch (UnreadableException e) {
-                        e.printStackTrace();
-                    }
-                    insertersList.get(reply.boxID).setInserter(msg.getSender(), reply.positionInBox);//mark insertion request accepted
-                    if (insertersList.get(reply.boxID).hasAllInserters(coneType)) {// all inserters ready, send ready msg to S3
-                        sendInsertersReady(reply.boxID, coneType);
-                    }
-                }
             }
 
             msg = owner.receive(template);
@@ -118,9 +184,18 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
     }
 
 
-    void sendMessageToS1(String content) {
+
+    /**
+     * forward boxMessage to coresponding s1 so they can reply with speeds for that particular box
+     */
+    void sendInfoRequestMessagesToS1(BoxMessage boxMessage) {
         ACLMessage msg = new ACLMessage(ACLMessage.UNKNOWN);
-        msg.setContent(content);
+        msg.setOntology(ConveyorOntologies.NewBoxWithID.name());
+        try {
+            msg.setContentObject(boxMessage);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         msg.addReceiver(sendingTopics[TopicNames.S2_TO_S1_TOPIC.ordinal()]);
         owner.send(msg);
 

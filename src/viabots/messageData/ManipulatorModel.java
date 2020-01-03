@@ -2,11 +2,14 @@ package viabots.messageData;
 
 import viabots.behaviours.ConeType;
 
-public class ManipulatorModel {
+import java.io.Serializable;
+
+public class ManipulatorModel implements Serializable {
     String agentName;
-    int[] conesAvailable;
-    int[] timesForFirstInsertion;
-    int[] timesForNextInsertion;
+    int coneTypesCount = ConeType.values().length;
+    int[] conesAvailable = new int[coneTypesCount];
+    int[] timesForFirstInsertion = new int[coneTypesCount];
+    int[] timesForNextInsertion = new int[coneTypesCount];
     ConeType currentCone;
 
     boolean isFirstInsertionDone = false;

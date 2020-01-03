@@ -1,25 +1,34 @@
 package viabots.behaviours;
 
-import jade.core.behaviours.TickerBehaviour;
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
-import viabots.ConveyorAgent;
 import viabots.ManipulatorAgent;
-import viabots.messageData.MessageContent;
-import viabots.messageData.MessageToGUI;
+import viabots.messageData.*;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.TreeMap;
 
-public class S1ManipulatorBehaviour extends TickerBehaviour {
+public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
     ManipulatorAgent master;
     EnumSet<ConeType> enabledParts;
+    ManipulatorModel manipulatorModel;// manipulator specific properties- ready for sending as msg object
+    S1States state = S1States.IDLE;
+    TreeMap<Integer, ArrayList<Integer>> toDoList = new TreeMap<>();//key- boxId, value- list of Positions to insert cone
+    Integer currentBoxId = null;
+    MessageTemplate boxAtStationTpl;
+    int stationPosition = 0; // box sensor number
 
     public S1ManipulatorBehaviour(ManipulatorAgent manipulatorAgent) {
-        super(manipulatorAgent, 1000);
+        super(manipulatorAgent);
 
         master = manipulatorAgent;
         enabledParts = EnumSet.noneOf(ConeType.class);
-
+        createAndRegisterReceivingTopics(TopicNames.S2_TO_S1_TOPIC);
+        manipulatorModel = new ManipulatorModel();
+        boxAtStationTpl = MessageTemplate.MatchOntology(ConveyorOntologies.BoxAtSatation.name());
     }
 
 
@@ -32,6 +41,28 @@ public class S1ManipulatorBehaviour extends TickerBehaviour {
     protected void onTick() {
         receiveUImessage();
         receiveEnabledPartsMsg();
+        switch (state) {
+            case IDLE:
+
+                break;
+
+            case INSERTING:
+                //wait for reply from hardware
+                try {
+                    master.communication.listenForReplyWTimeout();
+                    //replay received , this means, that operation is done
+                    // send message to conv modeler to move on, if there are no more jobs for this box at this station
+
+                    state = S1States.IDLE;
+                } catch (IOException e) {
+                    //e.printStackTrace();
+                    // most likely timeout occured -continue to wait for reply
+                }
+                break;
+
+        }
+
+
 //        try {
 //            master.communication.listenForReplyWTimeout();
 //            System.out.println(getBehaviourName() + " insertion ok");
@@ -59,7 +90,106 @@ public class S1ManipulatorBehaviour extends TickerBehaviour {
             msg = master.receive();
         }
     }
-    
+
+    public void receiveBoxArrivedMessage() {//from conv modeling
+        ACLMessage msg = master.receive(boxAtStationTpl);
+        if (msg != null) {
+            BoxMessage boxMessage = null;
+            try {
+                boxMessage = (BoxMessage) msg.getContentObject();
+            } catch (UnreadableException e) {
+                e.printStackTrace();
+            }
+            // insert cones according to the toDoList
+
+            System.out.println("box stopped at station received  " + master.getName());
+
+        }
+    }
+
+    public void receiveInfoRequestMessage() {//from s2
+        ACLMessage msg = master.receive(templates[TopicNames.S2_TO_S1_TOPIC.ordinal()]);
+        if (msg != null) {
+            if (msg.getOntology().equals(ConveyorOntologies.NewBoxWithID.name())) {
+                BoxMessage boxMessage = null;
+                try {
+                    boxMessage = (BoxMessage) msg.getContentObject();
+                } catch (UnreadableException e) {
+                    e.printStackTrace();
+                }
+                // form the ansver to this info request of this box id
+                ManipulatorModel model = makeModel(boxMessage.boxID);
+                System.out.println("request info msg from s2 received  " + master.getName());
+            }
+        } //else
+    }
+
+    public void receiveInsertionRequestMessage() {//from s2
+        ACLMessage msg = master.receive(templates[TopicNames.S2_TO_S1_TOPIC.ordinal()]);
+        if (msg != null) {
+            if (msg.getOntology().equals(ConveyorOntologies.TaskAssignmentToS1.name())) {
+                BoxMessage boxMessage = null;
+                try {
+                    boxMessage = (BoxMessage) msg.getContentObject();
+                } catch (UnreadableException e) {
+                    e.printStackTrace();
+                }
+                // add job to the list
+                addJobToTheList(boxMessage.boxID, boxMessage.positionInBox);
+                System.out.println("request insertion msg from s2 received  " + master.getName());
+            }
+        } //else
+    }
+
+    void addJobToTheList(int boxId, int conePosition) {
+        ArrayList<Integer> positions = toDoList.get(boxId);
+        if (positions == null) {
+            positions = new ArrayList<>(4);
+            toDoList.put(boxId, positions);
+        }
+        positions.add(conePosition);
+
+    }
+
+    ManipulatorModel makeModel(int boxId) {
+        return manipulatorModel;// needs to be extended to update speeds according  if the requested box id is already on  the agents work list
+    }
+
+    void sendinfoToS2(ManipulatorModel model) {
+        ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+        try {
+            msg.setContentObject(model);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        msg.addReceiver(sendingTopics[TopicNames.S2_TO_S1_TOPIC.ordinal()]);
+        owner.send(msg);
+    }
+
+    void sendStopBoxAtStation(BoxMessage boxMessage) {
+        ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
+        boxMessage.positionInBox = stationPosition;// this case positioninBox is actually used to inform conv modeler of position number of sensor
+        try {
+            msg.setContentObject(boxMessage);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        msg.addReceiver(sendingTopics[TopicNames.REQUESTS_TO_MODELER.ordinal()]);
+        owner.send(msg);
+    }
+
+    void sendInsertionCompleteAtStation(BoxMessage boxMessage) {
+        ACLMessage msg = new ACLMessage(ACLMessage.CONFIRM);
+        boxMessage.positionInBox = stationPosition;// this case positioninBox is actually used to inform conv modeler of position number of sensor
+        try {
+            msg.setContentObject(boxMessage);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        msg.addReceiver(sendingTopics[TopicNames.REQUESTS_TO_MODELER.ordinal()]);
+        owner.send(msg);
+    }
+
     public void receiveUImessage() {//for testing insertion
         ACLMessage msg = master.receive(master.requestTamplate);
         if (msg != null) {
