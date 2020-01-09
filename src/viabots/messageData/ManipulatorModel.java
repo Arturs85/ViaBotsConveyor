@@ -3,6 +3,7 @@ package viabots.messageData;
 import viabots.behaviours.ConeType;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 public class ManipulatorModel implements Serializable {
     String agentName;
@@ -10,7 +11,16 @@ public class ManipulatorModel implements Serializable {
     int[] conesAvailable = new int[coneTypesCount];
     int[] timesForFirstInsertion = new int[coneTypesCount];
     int[] timesForNextInsertion = new int[coneTypesCount];
-    ConeType currentCone;
+    public ConeType currentCone;
+
+    public ManipulatorModel(String agentName, ConeType currentCone) {
+        this.agentName = agentName;
+        this.currentCone = currentCone;
+        Arrays.fill(conesAvailable, 10);// for testing
+        Arrays.fill(timesForFirstInsertion, 1000);// for testing
+        Arrays.fill(timesForNextInsertion, 5000);// for testing
+
+    }
 
     boolean isFirstInsertionDone = false;
 

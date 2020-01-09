@@ -27,6 +27,7 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
     static int infoWaitingTimeout = 5000;// ms
     int waitingCounter = 0;
     BoxMessage currentBoxMessage = null;// message of box for which inserters are currently requested or planned dont receive other messages of this type until plan for current is made
+
     public S2Behaviour(ViaBotAgent a, ConeType coneType) {
         super(a);
         owner = a;
@@ -39,6 +40,7 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
     protected void onTick() {
 // look through all new messages
         processMessages(templates[TopicNames.S1_TO_S2_TOPIC.ordinal()]);
+        processMessages(templates[TopicNames.MODELER_NEW_BOX_TOPIC.ordinal()]);
 
         switch (state) {
             case IDLE:
@@ -58,7 +60,7 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
                 break;
             case WAITING_S1_CONFIRM_PREPEARED:
                 if (insertersList.get(currentBoxMessage.boxID).hasAllInserters(coneType)) {// all inserters ready, send ready msg to S3
-                    sendInsertersReady(currentBoxMessage.boxID, coneType);
+                    sendInsertersReady(currentBoxMessage.boxID, currentBoxMessage.boxType, coneType);
                     enterState(S2States.IDLE);
                 }
                 break;
@@ -70,7 +72,7 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
     }
 
     void enterState(S2States nextState) {
-        switch (state) {
+        switch (nextState) {
             case IDLE:
 
                 state = S2States.IDLE;
@@ -78,6 +80,7 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
             case WAITING_S1_INFO:
 
                 s1List.clear();
+                currentBoxMessage.coneType = coneType;// sets own cone type, so receivers can only select messages with appropriate cone type
                 sendInfoRequestMessagesToS1(currentBoxMessage);
                 waitingCounter = infoWaitingTimeout / ViaBotAgent.tickerPeriod;
                 state = S2States.WAITING_S1_INFO;
@@ -164,7 +167,7 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
 
                     }
 
-            } else if (template.equals(templates[TopicNames.MODELER_NEW_BOX_TOPIC.ordinal()])) {//further read messages from modeling behaviour, so that we have id of the box
+            } else if (template.equals(templates[TopicNames.MODELER_NEW_BOX_TOPIC.ordinal()])) {
                 if (msg.getOntology().contains(ConveyorOntologies.NewBoxWithID.name())) {// make plan for this box
                     BoxMessage boxMessage = null;
                     try {
@@ -172,6 +175,7 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
                     } catch (UnreadableException e) {
                         e.printStackTrace();
                     }
+                    enterState(S2States.WAITING_S1_INFO);// sends info requests and waits time
                     String boxTypeString = msg.getContent().substring(ConveyorAgent.boxArrived.length() + 1);
 
                 }
@@ -196,18 +200,18 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        msg.addReceiver(sendingTopics[TopicNames.S2_TO_S1_TOPIC.ordinal()]);
+        msg.addReceiver(sendingTopics[TopicNames.S2_TO_S1_TOPIC.ordinal()]);// should this be sent to all s1 or just ones with same cone type as sender?
         owner.send(msg);
 
     }
 
-    void sendInsertersReady(int boxID, ConeType coneType) {
+    void sendInsertersReady(int boxID, BoxType boxType, ConeType coneType) {
         ACLMessage msg = new ACLMessage(ACLMessage.UNKNOWN);
         msg.addReceiver(sendingTopics[TopicNames.S2_TO_S3_TOPIC.ordinal()]);
         msg.setOntology(ConveyorOntologies.TaskAssignmentToS1.name());
         msg.setPerformative(ACLMessage.CONFIRM);
         try {
-            msg.setContentObject(new BoxMessage(boxID, null, coneType));
+            msg.setContentObject(new BoxMessage(boxID, boxType, coneType));
         } catch (IOException e) {
             e.printStackTrace();
         }

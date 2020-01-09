@@ -4,6 +4,7 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
 import viabots.ManipulatorAgent;
+import viabots.ViaBotAgent;
 import viabots.messageData.*;
 
 import java.io.IOException;
@@ -18,7 +19,9 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
     S1States state = S1States.IDLE;
     TreeMap<Integer, ArrayList<Integer>> toDoList = new TreeMap<>();//key- boxId, value- list of Positions to insert cone
     Integer currentBoxId = null;
+    Integer currentPosition = null;
     MessageTemplate boxAtStationTpl;
+    MessageTemplate taskAssignmentTpl;
     int stationPosition = 0; // box sensor number
 
     public S1ManipulatorBehaviour(ManipulatorAgent manipulatorAgent) {
@@ -27,10 +30,15 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
         master = manipulatorAgent;
         enabledParts = EnumSet.noneOf(ConeType.class);
         createAndRegisterReceivingTopics(TopicNames.S2_TO_S1_TOPIC);
-        manipulatorModel = new ManipulatorModel();
+        manipulatorModel = new ManipulatorModel(owner.getLocalName(), ConeType.A);//default cone type is set here!!!
         boxAtStationTpl = MessageTemplate.MatchOntology(ConveyorOntologies.BoxAtSatation.name());
+        taskAssignmentTpl = MessageTemplate.MatchOntology(ConveyorOntologies.TaskAssignmentToS1.name());
+        createAndRegisterReceivingTopics(TopicNames.UI_TO_MANIPULATOR);
     }
 
+    void setCurentConeType(ConeType coneType) {//for changing cone type that robot currently is set to insert
+        manipulatorModel.currentCone = coneType;
+    }
 
     void insertPart(ConeType coneType) {
         master.insertPart(coneType);
@@ -39,8 +47,11 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
 
     @Override
     protected void onTick() {
+        receiveInfoRequestMessage();
+        receiveInsertionRequestMessage();
+        receiveBoxArrivedMessage();
         receiveUImessage();
-        receiveEnabledPartsMsg();
+
         switch (state) {
             case IDLE:
 
@@ -52,8 +63,18 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
                     master.communication.listenForReplyWTimeout();
                     //replay received , this means, that operation is done
                     // send message to conv modeler to move on, if there are no more jobs for this box at this station
+                    toDoList.get(currentBoxId).remove(currentPosition);// removes position of newly inserted cone from the todolist
+                    currentPosition = null;
+                    if (toDoList.get(currentBoxId).isEmpty()) {
+                        sendInsertionCompleteAtStation(new BoxMessage(currentBoxId, null));
+                        currentBoxId = null;
+                        state = S1States.IDLE;
+                    } else {// there still is some position on the list
 
-                    state = S1States.IDLE;
+                        currentPosition = toDoList.get(currentBoxId).get(toDoList.get(currentBoxId).size() - 1);// get next position
+                        master.insertPartInPosition(currentPosition);
+
+                    }
                 } catch (IOException e) {
                     //e.printStackTrace();
                     // most likely timeout occured -continue to wait for reply
@@ -101,7 +122,10 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
                 e.printStackTrace();
             }
             // insert cones according to the toDoList
-
+            currentBoxId = boxMessage.boxID;
+            currentPosition = toDoList.get(currentBoxId).get(toDoList.get(currentBoxId).size() - 1);// get first position
+            master.insertPartInPosition(currentPosition);
+            state = S1States.INSERTING;
             System.out.println("box stopped at station received  " + master.getName());
 
         }
@@ -117,26 +141,33 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
                 } catch (UnreadableException e) {
                     e.printStackTrace();
                 }
+                if (!manipulatorModel.currentCone.equals(boxMessage.coneType)) {//do nothing if receive request from other s2
+                    return;
+                }
                 // form the ansver to this info request of this box id
                 ManipulatorModel model = makeModel(boxMessage.boxID);
+                sendinfoToS2(model);
+
                 System.out.println("request info msg from s2 received  " + master.getName());
             }
         } //else
     }
 
     public void receiveInsertionRequestMessage() {//from s2
-        ACLMessage msg = master.receive(templates[TopicNames.S2_TO_S1_TOPIC.ordinal()]);
+        ACLMessage msg = master.receive(taskAssignmentTpl);
         if (msg != null) {
-            if (msg.getOntology().equals(ConveyorOntologies.TaskAssignmentToS1.name())) {
+            if (msg.getOntology().equals(ConveyorOntologies.TaskAssignmentToS1.name())) {//remove double check
                 BoxMessage boxMessage = null;
                 try {
                     boxMessage = (BoxMessage) msg.getContentObject();
                 } catch (UnreadableException e) {
                     e.printStackTrace();
                 }
+                sendStopBoxAtStation(boxMessage);
                 // add job to the list
                 addJobToTheList(boxMessage.boxID, boxMessage.positionInBox);
                 System.out.println("request insertion msg from s2 received  " + master.getName());
+                sendAcceptAssignmentToS2();
             }
         } //else
     }
@@ -162,7 +193,14 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        msg.addReceiver(sendingTopics[TopicNames.S2_TO_S1_TOPIC.ordinal()]);
+        msg.addReceiver(sendingTopics[TopicNames.S1_TO_S2_TOPIC.ordinal()]);
+        owner.send(msg);
+    }
+
+    void sendAcceptAssignmentToS2() {
+        ACLMessage msg = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
+
+        msg.addReceiver(sendingTopics[TopicNames.S1_TO_S2_TOPIC.ordinal()]);//should send reply only to assigner
         owner.send(msg);
     }
 
@@ -191,34 +229,35 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
     }
 
     public void receiveUImessage() {//for testing insertion
-        ACLMessage msg = master.receive(master.requestTamplate);
+        ACLMessage msg = master.receive();// takes all msgs out of list, call as lasst recieve in iteration
         if (msg != null) {
-            String cont = msg.getContent();
-            if (cont != null) {
-                if (msg.getContent().equals(MessageContent.INSERT_PART_A.name()))
-                    master.insertPart(ConeType.A);
-                else if (msg.getContent().equals(MessageContent.INSERT_PART_B.name()))
-                    master.insertPart(ConeType.B);
+            if (msg.getPerformative() == ACLMessage.REQUEST) {
+                String cont = msg.getContent();
+                if (cont != null) {
+                    if (msg.getContent().equals(MessageContent.INSERT_PART_A.name()))
+                        master.insertPart(ConeType.A);
+                    else if (msg.getContent().equals(MessageContent.INSERT_PART_B.name()))
+                        master.insertPart(ConeType.B);
 
-                System.out.println("request msg from gui received msg:" + cont + ": " + master.getName());
+                    System.out.println("request msg from gui received msg:" + cont + ": " + master.getName());
+                }
+            } else if (msg.getPerformative() == ACLMessage.INFORM) {// this is part enable msg
+                MessageToGUI messageObj = null;
+                try {
+                    messageObj = (MessageToGUI) msg.getContentObject();
+                } catch (UnreadableException e) {
+                    e.printStackTrace();
+                }
+                if (messageObj != null) {
+                    if (messageObj.enabledParts != null)
+                        enabledParts = messageObj.enabledParts;
+                    System.out.println(enabledParts.toString());
+                }
+
             }
+
+
         } //else
     }
 
-    void receiveEnabledPartsMsg() {
-        ACLMessage msg = master.receive(master.informTamplate);
-        if (msg != null) {
-            MessageToGUI messageObj = null;
-            try {
-                messageObj = (MessageToGUI) msg.getContentObject();
-            } catch (UnreadableException e) {
-                e.printStackTrace();
-            }
-            if (messageObj != null) {
-                if (messageObj.enabledParts != null)
-                    enabledParts = messageObj.enabledParts;
-                System.out.println(enabledParts.toString());
-            }
-        }
-    }
 }

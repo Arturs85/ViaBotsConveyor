@@ -3,24 +3,31 @@ package viabots.behaviours;
 import GUI.ConveyorGUI;
 import jade.core.Agent;
 import jade.core.behaviours.TickerBehaviour;
+import jade.lang.acl.ACLMessage;
+import jade.lang.acl.UnreadableException;
 import viabots.BoxGenerationModel;
 import viabots.BoxType;
 import viabots.ConveyorAgent;
 import viabots.ViaBotAgent;
+import viabots.messageData.BoxMessage;
+import viabots.messageData.TopicNames;
 
-public class ConveyorAgentBehaviour extends TickerBehaviour {
+public class ConveyorAgentBehaviour extends BaseTopicBasedTickerBehaviour {
     ConveyorAgent master;
     BoxGenerationModel boxGenerationModel;
 
     public ConveyorAgentBehaviour(ConveyorAgent a) {
-        super(a, ViaBotAgent.tickerPeriod);
+        super(a);
         master = a;
         boxGenerationModel = new BoxGenerationModel();
+        createAndRegisterReceivingTopics(TopicNames.CONVEYOR_IN_TOPIC);
+        createSendingTopic(TopicNames.CONVEYOR_OUT_TOPIC);
     }
 
     @Override
     protected void onTick() {
         master.receiveUImessage();
+        receiveIncomingTopicMsgs();
 
         placeBoxOnBelt();// tries to put new box on the belt every tick
 
@@ -33,8 +40,38 @@ public class ConveyorAgentBehaviour extends TickerBehaviour {
 
             BoxType type = boxGenerationModel.getNextFromPattern();
             master.placeBox();
-            master.sendConveyorMessage(ConveyorAgent.boxArrived + " " + type.name());
+            sendConveyorMessage(ConveyorAgent.boxArrived + " " + type.name());
         }
+    }
+
+    void receiveIncomingTopicMsgs() {
+        ACLMessage msg = master.receive(templates[TopicNames.CONVEYOR_IN_TOPIC.ordinal()]);
+        if (msg != null) {
+            if (msg.getPerformative() == ACLMessage.REQUEST) {// this should be stopBeltOnSensor x message
+                BoxMessage boxMessage = null;
+                try {
+                    boxMessage = (BoxMessage) msg.getContentObject();
+                } catch (UnreadableException e) {
+                    e.printStackTrace();
+                }
+                master.requestStopBeltAt(boxMessage.positionInBox);
+
+
+                System.out.println("box stopped at station received  " + master.getName());
+
+            } else if (msg.getPerformative() == ACLMessage.INFORM) {// this should be moveOn message
+                master.startBelt();
+            }
+
+        }
+    }
+
+    public void sendConveyorMessage(String content) {
+        ACLMessage msg = new ACLMessage(ACLMessage.UNKNOWN);
+        msg.setContent(content);
+        msg.addReceiver(sendingTopics[TopicNames.CONVEYOR_OUT_TOPIC.ordinal()]);
+        master.send(msg);
+        System.out.println(content);
     }
 
 

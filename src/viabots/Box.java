@@ -4,6 +4,7 @@ import viabots.behaviours.ConeType;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.EnumSet;
 
 public class Box implements Serializable {
     static int idCounter = 0;
@@ -11,14 +12,14 @@ public class Box implements Serializable {
     static final ConeType[] baseBoxModel = new ConeType[]{ConeType.A, ConeType.B, ConeType.B, ConeType.B, ConeType.B, ConeType.A};//cone types for each position
 /*
      ____
-    |1 2 |
-    |3 4 |
-    |5 6 |
+    |0 1 |
+    |2 3 |
+    |4 5 |
      ----
        |
        V
     front
- 1,6 = big cones- type A
+ 0,5 = big cones- type A
  */
 
 
@@ -58,6 +59,16 @@ public class Box implements Serializable {
     public ArrayList<Integer> getPositions(ConeType coneType) {
         return getPositions(coneType, boxType);
 
+    }
+
+    public static EnumSet<ConeType> getConeTypes(BoxType boxType) {
+        EnumSet<ConeType> res = EnumSet.noneOf(ConeType.class);
+        for (int i = 0; i < baseBoxModel.length; i++) {
+            if (boxContents[boxType.ordinal()][i] != 0) {
+                res.add(baseBoxModel[i]);
+            }
+        }
+        return res;
     }
 
 

@@ -42,10 +42,11 @@ public class ConveyorModelingBehaviour extends BaseTopicBasedTickerBehaviour {
     }
 
     void subscribeToMessages() {
-        createAndRegisterReceivingTopics(TopicNames.CONVEYOR_TOPIC);
+        createAndRegisterReceivingTopics(TopicNames.CONVEYOR_OUT_TOPIC);
         createAndRegisterReceivingTopics(TopicNames.REQUESTS_TO_MODELER);
         createSendingTopic(TopicNames.MODELER_GUI);
         createSendingTopic(TopicNames.MODELER_NEW_BOX_TOPIC);
+        createSendingTopic(TopicNames.CONVEYOR_IN_TOPIC);
 
 //        conveyorMsgTopic = owner.createTopicForBehaviour(TopicNames.CONVEYOR_TOPIC.name());
 //        convMsgTpl = MessageTemplate.MatchTopic(conveyorMsgTopic);
@@ -128,6 +129,10 @@ public class ConveyorModelingBehaviour extends BaseTopicBasedTickerBehaviour {
             sendBoxStoppedAt(box.id, subscriber);
             currentBoxes.add(box);
         }
+        if (sensorNumber == 0) {//new box arrived at sensor 0, add it to current boxes until inserters fo it are planed
+            currentBoxes.add(box);// s3 can attempt to clear this box before it is in this list
+        }
+
     }
 
     AID getSubscriber(int boxId, int sensorNumber) {
@@ -142,6 +147,7 @@ public class ConveyorModelingBehaviour extends BaseTopicBasedTickerBehaviour {
     public void receiveStopOrMoveOnRequestMessage() {// from s1
         ACLMessage msg = owner.receive(templates[TopicNames.REQUESTS_TO_MODELER.ordinal()]);
         if (msg != null) {
+
             BoxMessage boxMessage = null;
             try {
                 boxMessage = (BoxMessage) msg.getContentObject();
@@ -157,6 +163,7 @@ public class ConveyorModelingBehaviour extends BaseTopicBasedTickerBehaviour {
                 stopRequests.add(boxMessage);//positionId means sensor position
 
                 System.out.println("request   " + owner.getName());
+
             } else if (msg.getPerformative() == ACLMessage.CONFIRM) {// belt can continue to move
 //remove this box from current list
 
@@ -170,9 +177,10 @@ public class ConveyorModelingBehaviour extends BaseTopicBasedTickerBehaviour {
                 }
 // if currentBox list is empty conv can move on
                 if (currentBoxes.isEmpty()) {
-                    //todo send message to conveyor to move on
+                    sendMoveOnMessage();
                 }
             }
+
         }
 
     }
@@ -193,6 +201,12 @@ public class ConveyorModelingBehaviour extends BaseTopicBasedTickerBehaviour {
 
     }
 
+    void sendMoveOnMessage() {// to conveyor
+        ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+        msg.addReceiver(sendingTopics[TopicNames.CONVEYOR_IN_TOPIC.ordinal()]);
+// no content is needed for this message
+        owner.send(msg);
+    }
     void sendBoxStoppedAt(int boxId, AID subscriber) {
         ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
         msg.setOntology(ConveyorOntologies.BoxAtSatation.name());
@@ -221,7 +235,7 @@ public class ConveyorModelingBehaviour extends BaseTopicBasedTickerBehaviour {
 
     @Override
     protected void onTick() {
-        processMessages(templates[TopicNames.CONVEYOR_TOPIC.ordinal()]);
+        processMessages(templates[TopicNames.CONVEYOR_OUT_TOPIC.ordinal()]);
         sendConvModelMsgToGUI();
     }
 }

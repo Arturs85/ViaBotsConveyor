@@ -68,15 +68,17 @@ public class Main {
             main.cc = main.startJade();
 
             main.createGUIAgent();
-            main.createAgent(ManipulatorType.BAXTER);//for testing
+            main.createAgent(null);// creates vsm role agent
 
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-            main.createAgent(ManipulatorType.SMALL_ONE);
+//            main.createAgent(ManipulatorType.BAXTER);//for testing
+//
+//            try {
+//                Thread.sleep(1000);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+//
+//            main.createAgent(ManipulatorType.SMALL_ONE);
 
         }
 
@@ -125,6 +127,7 @@ public class Main {
         createAgent(type, null);
     }
 
+    //type = null for vsmRoles agent
     void createAgent(ManipulatorType type, String agentName) {
         if (cc != null) {
             // Create a new agent, a DummyAgent
@@ -134,7 +137,10 @@ public class Main {
             AgentController dummy;
             if (agentName == null) agentName = "ViaBotManipulator";
             try {
-                if (type.equals(ManipulatorType.CONVEYOR)) {
+                if (type == null) {
+                    dummy = cc.createNewAgent("ManagementRoleKeeper",
+                            "viabots.ViaBotAgent", args);
+                } else if (type.equals(ManipulatorType.CONVEYOR)) {
                     dummy = cc.createNewAgent("Conveyor",
                             "viabots.ConveyorAgent", args);
                 } else
@@ -165,6 +171,7 @@ public class Main {
             }
         }
     }
+
 
     void createConveyorAgent() {
         if (cc != null) {

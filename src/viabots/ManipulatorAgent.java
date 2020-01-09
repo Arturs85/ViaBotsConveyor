@@ -12,7 +12,6 @@ import viabots.behaviours.S1ManipulatorBehaviour;
 
 public class ManipulatorAgent extends ViaBotAgent {
     public CommunicationWithHardware communication = new CommunicationWithHardware();
-    public EnumSet<VSMRoles> currentRoles;
 
 
     @Override
@@ -60,6 +59,30 @@ public class ManipulatorAgent extends ViaBotAgent {
         }
     }
 
+    public void insertPartInPosition(int position) {//positions in box(As shown in Box) is mapped to string commands to manipulator process
+        switch (position) {
+            case 0:
+                communication.sendString(InterProcessCommands.insertPartA);
+                break;
+            case 1:
+                communication.sendString(InterProcessCommands.insertPartB);
+                break;
+            case 2:
+                communication.sendString(InterProcessCommands.insertPartC);
+                break;
+            case 3:
+                communication.sendString(InterProcessCommands.insertPartD);
+                break;
+            case 4:
+                communication.sendString(InterProcessCommands.insertPartE);
+                break;
+            case 6:
+                communication.sendString(InterProcessCommands.insertPartF);
+                break;
+
+        }
+    }
+
     @Override
     public boolean isConnected() {
         return communication.isConnected();
@@ -67,12 +90,12 @@ public class ManipulatorAgent extends ViaBotAgent {
 
     @Override
     public void receiveUImessage() {
-        ACLMessage msg = receive(requestTamplate);
-        if (msg != null) {
-
-            System.out.println("request msg from gui received msg:-button move : " + getName());
-
-        } //else
+//        ACLMessage msg = receive(requestTamplate);
+//        if (msg != null) {
+//
+//            System.out.println("request msg from gui received msg:-button move : " + getName());
+//
+//        } //else
     }
 
 }

@@ -7,19 +7,25 @@ import jade.core.ServiceException;
 import jade.core.messaging.TopicManagementHelper;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import viabots.behaviours.ConeType;
 import viabots.behaviours.GuiInteractionBehaviour;
+import viabots.behaviours.S2Behaviour;
+import viabots.behaviours.S3Behaviour;
 import viabots.messageData.TopicNames;
+
+import java.util.EnumSet;
 
 public class ViaBotAgent extends Agent {
     TopicManagementHelper topicHelper = null;
     public AID uiTopic;
     public AID logTopic;
 
-    public MessageTemplate requestTamplate;
-    public MessageTemplate informTamplate;
+    // public MessageTemplate requestTamplate;
+    // public MessageTemplate informTamplate;
 
     public static final int tickerPeriod = 1000;//ms
     public ManipulatorType type;
+    public EnumSet<VSMRoles> currentRoles;
 
     public boolean isConnected() {
         return false;
@@ -31,8 +37,8 @@ public class ViaBotAgent extends Agent {
         try {
             topicHelper = (TopicManagementHelper) getHelper(TopicManagementHelper.SERVICE_NAME);
             uiTopic = topicHelper.createTopic(TopicNames.GUI_TOPIC.name());
-            requestTamplate = MessageTemplate.MatchPerformative(ACLMessage.REQUEST);
-            informTamplate = MessageTemplate.MatchPerformative(ACLMessage.INFORM);
+            //     requestTamplate = MessageTemplate.MatchPerformative(ACLMessage.REQUEST);
+            //    informTamplate = MessageTemplate.MatchPerformative(ACLMessage.INFORM);
             logTopic = topicHelper.createTopic(TopicNames.LOG_TOPIC.name());
 
         } catch (
@@ -43,9 +49,35 @@ public class ViaBotAgent extends Agent {
         if (getArguments() != null)
             type = (ManipulatorType) getArguments()[1];
 
+        if (type == null) {// this is vsm role agent
+            currentRoles = EnumSet.noneOf(VSMRoles.class);
+
+            addVsmRole(VSMRoles.S2_A);
+            addVsmRole(VSMRoles.S2_B);
+            addVsmRole(VSMRoles.S3);
+
+
+            type = ManipulatorType.UNKNOWN;
+        }
+
         addBehaviour(new GuiInteractionBehaviour(this));
     }
 
+    void addVsmRole(VSMRoles vsmRole) {// duplicate of RoleCheckingBehaviour function, temporary
+        currentRoles.add(vsmRole);
+
+        switch (vsmRole) {
+            case S3:
+                addBehaviour(new S3Behaviour(this));
+                break;
+            case S2_A:
+                addBehaviour(new S2Behaviour(this, ConeType.A));
+                break;
+            case S2_B:
+                addBehaviour(new S2Behaviour(this, ConeType.B));
+                break;
+        }
+    }
     @Override
     protected void takeDown() {
         super.takeDown();

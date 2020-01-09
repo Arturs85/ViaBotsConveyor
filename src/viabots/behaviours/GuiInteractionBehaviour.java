@@ -74,10 +74,10 @@ public class GuiInteractionBehaviour extends TickerBehaviour {
     }
     @Override
     protected void onTick() {
-        if (master.getClass().equals(ManipulatorAgent.class))
-            sendMessageToGui(((ManipulatorAgent) master).currentRoles);
-        else
-            sendMessageToGui(null);
+        //  if (master.getClass().equals(ManipulatorAgent.class))
+        sendMessageToGui(master.currentRoles);
+        //else
+        //  sendMessageToGui(null);
 
     }
 }

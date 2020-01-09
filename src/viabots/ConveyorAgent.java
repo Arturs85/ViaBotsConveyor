@@ -40,7 +40,7 @@ public class ConveyorAgent extends ViaBotAgent {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        conveyorTopic = topicHelper.createTopic(TopicNames.CONVEYOR_TOPIC.name());
+        conveyorTopic = topicHelper.createTopic(TopicNames.CONVEYOR_OUT_TOPIC.name());
 
         addBehaviour(new ConveyorAgentBehaviour(this));
     }
@@ -55,7 +55,7 @@ public class ConveyorAgent extends ViaBotAgent {
 
     }
 
-    void requestStopBeltAt(int position) {
+    public void requestStopBeltAt(int position) {
         try {
             serialComm.out.write((char) position);
             //  beltIsOn = false;
@@ -74,7 +74,7 @@ public class ConveyorAgent extends ViaBotAgent {
         }
     }
 
-    void startBelt() {
+    public void startBelt() {
         try {
             serialComm.out.write(commandStart);
             beltIsOn = true;
@@ -134,8 +134,6 @@ public class ConveyorAgent extends ViaBotAgent {
         }
 
     }
-
-
     public void sendConveyorMessage(String content) {
         ACLMessage msg = new ACLMessage(ACLMessage.UNKNOWN);
         msg.setContent(content);
@@ -143,6 +141,7 @@ public class ConveyorAgent extends ViaBotAgent {
         send(msg);
         System.out.println(content);
     }
+
 
     void sendMessageToGui() {
         MessageToGUI data = new MessageToGUI(serialComm.isConnected, type);//impl in GuiInteractions behaviour
@@ -160,7 +159,7 @@ public class ConveyorAgent extends ViaBotAgent {
 
     @Override
     public void receiveUImessage() {
-        ACLMessage msg = receive(requestTamplate);
+        ACLMessage msg = receive();
         if (msg != null) {
             String content = msg.getContent();
             if (content != null) {
