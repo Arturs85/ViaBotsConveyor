@@ -69,12 +69,14 @@ public class ConveyorModelingBehaviour extends BaseTopicBasedTickerBehaviour {
                 String boxTypeString = msg.getContent().substring(ConveyorAgent.boxArrived.length() + 1);
                 BoxType type = BoxType.valueOf(boxTypeString);// make this with ontologie and message object
                 Box b = new Box(type);
+                System.out.println("Modeler received box arrived, type : " + type);
                 boxQueues.get(0).add(b);
 // send new box information on own topic
                 sendNewBoxMessage(b);
             } else if (msg.getContent().contains(ConveyorAgent.stoppedAt)) {
                 char position = msg.getContent().charAt(ConveyorAgent.stoppedAt.length());
-                //    owner.sendLogMsgToGui(getBehaviourName() + " received sopped at, read char: " + position);
+                owner.sendLogMsgToGui(getBehaviourName() + " received sopped at, read char: " + position);
+
                 switch (position) {
                     case 'A':
 
@@ -113,7 +115,10 @@ public class ConveyorModelingBehaviour extends BaseTopicBasedTickerBehaviour {
      */
     void toTheNext(int sensorNumber) {
         // owner.sendLogMsgToGui(getBehaviourName() + " toTheNextCalled with sensor nr:" + sensorNumber);
-
+        if (boxQueues.get(sensorNumber).isEmpty()) {
+            System.out.println("Modeler -err- queue empty, qnr : " + sensorNumber);
+            return;// if there is no box, than there was unauthorized triggering of this sensor
+        }
         Box box = boxQueues.get(sensorNumber).removeFirst();// todo add queues size check
 
         if ((sensorNumber + 1) >= boxQueues.size()) {//no more queues, erease box(do nothing)
@@ -144,7 +149,7 @@ public class ConveyorModelingBehaviour extends BaseTopicBasedTickerBehaviour {
         return null;
     }
 
-    public void receiveStopOrMoveOnRequestMessage() {// from s1
+    public void receiveStopOrMoveOnRequestMessage() {// from s1 or s3
         ACLMessage msg = owner.receive(templates[TopicNames.REQUESTS_TO_MODELER.ordinal()]);
         if (msg != null) {
 
@@ -178,7 +183,10 @@ public class ConveyorModelingBehaviour extends BaseTopicBasedTickerBehaviour {
 // if currentBox list is empty conv can move on
                 if (currentBoxes.isEmpty()) {
                     sendMoveOnMessage();
+                    System.out.println(getBehaviourName() + " move on msg to conveyor sent");
                 }
+                System.out.println(getBehaviourName() + " confirm move on received " + owner.getName());
+
             }
 
         }
@@ -197,7 +205,7 @@ public class ConveyorModelingBehaviour extends BaseTopicBasedTickerBehaviour {
 
         msg.addReceiver(modelerToGuiTopic);
         owner.send(msg);
-        System.out.println("modeling queue msg object sent");
+        // System.out.println("modeling queue msg object sent");
 
     }
 
@@ -237,5 +245,6 @@ public class ConveyorModelingBehaviour extends BaseTopicBasedTickerBehaviour {
     protected void onTick() {
         processMessages(templates[TopicNames.CONVEYOR_OUT_TOPIC.ordinal()]);
         sendConvModelMsgToGUI();
+        receiveStopOrMoveOnRequestMessage();
     }
 }

@@ -9,6 +9,7 @@ import viabots.messageData.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.TreeMap;
 
@@ -34,6 +35,7 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
         boxAtStationTpl = MessageTemplate.MatchOntology(ConveyorOntologies.BoxAtSatation.name());
         taskAssignmentTpl = MessageTemplate.MatchOntology(ConveyorOntologies.TaskAssignmentToS1.name());
         createAndRegisterReceivingTopics(TopicNames.UI_TO_MANIPULATOR);
+        createSendingTopic(TopicNames.S1_TO_S2_TOPIC);
     }
 
     void setCurentConeType(ConeType coneType) {//for changing cone type that robot currently is set to insert
@@ -141,6 +143,7 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
                 } catch (UnreadableException e) {
                     e.printStackTrace();
                 }
+                System.out.println(getBehaviourName() + " received info request with cone type: " + boxMessage.coneType + " behaviours cur cone: " + manipulatorModel.currentCone);
                 if (!manipulatorModel.currentCone.equals(boxMessage.coneType)) {//do nothing if receive request from other s2
                     return;
                 }
@@ -163,11 +166,13 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
                 } catch (UnreadableException e) {
                     e.printStackTrace();
                 }
-                sendStopBoxAtStation(boxMessage);
+
+                sendStopBoxAtStation(new BoxMessage(boxMessage.boxID, boxMessage.boxType, boxMessage.coneType));
                 // add job to the list
                 addJobToTheList(boxMessage.boxID, boxMessage.positionInBox);
-                System.out.println("request insertion msg from s2 received  " + master.getName());
-                sendAcceptAssignmentToS2();
+                System.out.println("request insertion msg from s2 received  " + master.getName() + " for position " + boxMessage.positionInBox);
+
+                sendAcceptAssignmentToS2(boxMessage);
             }
         } //else
     }
@@ -187,18 +192,27 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
     }
 
     void sendinfoToS2(ManipulatorModel model) {
-        ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+        ACLMessage msg = new ACLMessage(ACLMessage.INFORM);//inform
         try {
             msg.setContentObject(model);
         } catch (IOException e) {
             e.printStackTrace();
         }
+
         msg.addReceiver(sendingTopics[TopicNames.S1_TO_S2_TOPIC.ordinal()]);
+        owner.sendLogMsgToGui("manip sends to topic: " + sendingTopics[TopicNames.S1_TO_S2_TOPIC.ordinal()].toString());
         owner.send(msg);
+        System.out.println(getBehaviourName() + model.currentCone + " info Msg sent to s2 topic");
     }
 
-    void sendAcceptAssignmentToS2() {
+    void sendAcceptAssignmentToS2(BoxMessage boxMessage) {
         ACLMessage msg = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
+        boxMessage.coneType = manipulatorModel.currentCone;
+        try {
+            msg.setContentObject(boxMessage);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         msg.addReceiver(sendingTopics[TopicNames.S1_TO_S2_TOPIC.ordinal()]);//should send reply only to assigner
         owner.send(msg);
@@ -251,9 +265,12 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
                 if (messageObj != null) {
                     if (messageObj.enabledParts != null)
                         enabledParts = messageObj.enabledParts;
+                    enabledParts.forEach(coneType -> setCurentConeType(coneType));// sets last as current type- needs upgrade
                     System.out.println(enabledParts.toString());
                 }
 
+            } else {//put back message
+                owner.postMessage(msg);// chances are that this function puts back msg on the qeue
             }
 
 

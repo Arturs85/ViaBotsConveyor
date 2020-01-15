@@ -28,7 +28,7 @@ public class ConveyorAgent extends ViaBotAgent {
     public static String stoppedAt = "stoppedAt";
     public static String boxArrived = "boxArrived";
     public boolean previousHasLeft = false;// true when there is no box in new box placement area
-
+    ConveyorAgentBehaviour cab;
 
     @Override
     protected void setup() {
@@ -41,8 +41,8 @@ public class ConveyorAgent extends ViaBotAgent {
             e.printStackTrace();
         }
         conveyorTopic = topicHelper.createTopic(TopicNames.CONVEYOR_OUT_TOPIC.name());
-
-        addBehaviour(new ConveyorAgentBehaviour(this));
+        cab = new ConveyorAgentBehaviour(this);
+        addBehaviour(cab);
     }
 
     @Override
@@ -90,6 +90,8 @@ public class ConveyorAgent extends ViaBotAgent {
             e.printStackTrace();
         }
         previousHasLeft = false;
+        cab.sendConveyorMessage(ConveyorAgent.boxArrived + " " + BoxType.A.name());//for testing
+
     }
 
     /**
@@ -170,9 +172,11 @@ public class ConveyorAgent extends ViaBotAgent {
                     else startBelt();
                 } else if (content.equalsIgnoreCase(MessageContent.PLACE_BOX.name())) {//
                     placeBox();
+
                 }
             }
         } //else
     }
+
 
 }

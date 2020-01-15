@@ -1,5 +1,7 @@
 package GUI;
 
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Button;
@@ -41,16 +43,16 @@ public class AgentInfoListCell extends ListCell<AgentInfo> {
 
     static int cellId = 0;
 
-    void initButton(AgentInfo info) {// TODO when to call this method?
+    void initButton() {// TODO when to call this method?
         insertPartAButton.setOnAction(event -> {
             if (guiAgent != null) {
-                guiAgent.sendUImessage(info.agentName, MessageContent.INSERT_PART_A.name());
+                guiAgent.sendUImessage(getItem().agentName, MessageContent.INSERT_PART_A.name());
 
             }
         });
         insertPartBButton.setOnAction(event -> {
             if (guiAgent != null) {
-                guiAgent.sendUImessage(info.agentName, MessageContent.INSERT_PART_B.name());
+                guiAgent.sendUImessage(getItem().agentName, MessageContent.INSERT_PART_B.name());
 
             }
         });
@@ -135,17 +137,15 @@ public class AgentInfoListCell extends ListCell<AgentInfo> {
                     //beltButton=null;
                     additionalButtonsInitialised = false;
                 }
-            } else {// jaunā šūna ir konveijera
+            } else {
                 if (!additionalButtonsInitialised) {
-                    addConveyorButtons(item);
+                    addConveyorButtons();
                     additionalButtonsInitialised = true;
                 }
             }
-            if (getItem() != item)
-                buttonsInitialised = false;
 
             if (!buttonsInitialised) {
-                initButton(item);
+                initButton();
                 initCheckBoxes();
                 buttonsInitialised = true;
 
@@ -169,10 +169,10 @@ public class AgentInfoListCell extends ListCell<AgentInfo> {
 
     }
 
-    void addConveyorButtons(AgentInfo info) {
+    void addConveyorButtons() {
         if (beltButton == null) {
             beltButton = new Button("Belt");
-            beltButton.setOnAction(event -> guiAgent.sendUImessage(info.agentName, MessageContent.TOGGLE_BELT.name()));
+            beltButton.setOnAction(event -> guiAgent.sendUImessage(getItem().agentName, MessageContent.TOGGLE_BELT.name()));
             baseHBox.getChildren().add(beltButton);
         } else {
             baseHBox.getChildren().add(beltButton);
@@ -180,7 +180,7 @@ public class AgentInfoListCell extends ListCell<AgentInfo> {
 
         if (boxButton == null) {
             boxButton = new Button("Box");
-            boxButton.setOnAction(event -> guiAgent.sendUImessage(info.agentName, MessageContent.PLACE_BOX.name()));
+            boxButton.setOnAction(event -> guiAgent.sendUImessage(getItem().agentName, MessageContent.PLACE_BOX.name()));
             baseHBox.getChildren().add(boxButton);
         } else {
             baseHBox.getChildren().add(boxButton);

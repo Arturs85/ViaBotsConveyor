@@ -18,9 +18,10 @@ public class BoxWInserters extends Box implements Comparable {
 
     public boolean hasAllInserters(ConeType coneType) {
         for (int i = 0; i < baseBoxModel.length; i++) {
-            if (baseBoxModel[i].equals(coneType) && inserters[i] != null) {
-
-            } else return false;// there is no inserter for i position
+            if (boxContents[boxType.ordinal()][i] == 0) continue;
+            if (!baseBoxModel[i].equals(coneType)) continue;
+            if (inserters[i] == null)
+                return false;// there is no inserter for i position
         }
         return true;
     }

@@ -59,7 +59,7 @@ public class GUIAgent extends Agent {
             uiCommandTopic = topicHelper.createTopic(TopicNames.GUI_TOPIC.name());
             uiMsgTpl = MessageTemplate.MatchTopic(uiTopic);
             topicHelper.register(uiTopic);
-            conveyorTopic = topicHelper.createTopic(TopicNames.CONVEYOR_IN_TOPIC.name());
+            conveyorTopic = topicHelper.createTopic(TopicNames.CONVEYOR_OUT_TOPIC.name());
             convMsgTpl = MessageTemplate.MatchTopic(conveyorTopic);
             topicHelper.register(conveyorTopic);
 

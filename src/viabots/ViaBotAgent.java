@@ -14,6 +14,7 @@ import viabots.behaviours.S3Behaviour;
 import viabots.messageData.TopicNames;
 
 import java.util.EnumSet;
+import java.util.TreeMap;
 
 public class ViaBotAgent extends Agent {
     TopicManagementHelper topicHelper = null;
@@ -26,10 +27,28 @@ public class ViaBotAgent extends Agent {
     public static final int tickerPeriod = 1000;//ms
     public ManipulatorType type;
     public EnumSet<VSMRoles> currentRoles;
+    int s2RolesCount = 0;//shows how many different s2 behaviours is added to this agent
+    TreeMap<Integer, Integer> unannouncedBoxes = new TreeMap<>(); //key boxid, value - number of s2roles that has processed this newbox msg
+
+    public boolean s2MustPostNewBoxMsg(int boxId) {// called after receiving newBox msg, shows whether to post back to queue this msg
+        if (unannouncedBoxes.get(boxId) == null) {
+            unannouncedBoxes.put(boxId, 1);//mark first reception
+        } else {//update reads count
+            unannouncedBoxes.put(boxId, unannouncedBoxes.get(boxId) + 1);
+        }
+        //check whether all s2 has read this newbox msg
+        if (unannouncedBoxes.get(boxId) >= s2RolesCount) {
+            unannouncedBoxes.remove(boxId);
+            return false;
+        } else
+            return true;
+    }
 
     public boolean isConnected() {
         return false;
-    }
+    }//remove this?
+
+
     @Override
     protected void setup() {
         super.setup();
@@ -72,9 +91,12 @@ public class ViaBotAgent extends Agent {
                 break;
             case S2_A:
                 addBehaviour(new S2Behaviour(this, ConeType.A));
+                s2RolesCount++;
                 break;
             case S2_B:
                 addBehaviour(new S2Behaviour(this, ConeType.B));
+                s2RolesCount++;
+
                 break;
         }
     }

@@ -28,7 +28,8 @@ public class Main {
         char position = content.charAt(ConveyorAgent.stoppedAt.length());
         System.out.println("char: " + position);
         //end test
-
+        String libPathProperty = System.getProperty("java.library.path");
+        System.out.println(libPathProperty);
         try {
             localHost = InetAddress.getLocalHost().getHostName();
         } catch (UnknownHostException e) {
@@ -70,7 +71,7 @@ public class Main {
             main.createGUIAgent();
             main.createAgent(null);// creates vsm role agent
 
-//            main.createAgent(ManipulatorType.BAXTER);//for testing
+//           main.createAgent(ManipulatorType.BAXTER);//for testing
 //
 //            try {
 //                Thread.sleep(1000);
@@ -78,7 +79,8 @@ public class Main {
 //                e.printStackTrace();
 //            }
 //
-//            main.createAgent(ManipulatorType.SMALL_ONE);
+            //
+            main.createAgent(ManipulatorType.CONVEYOR);
 
         }
 

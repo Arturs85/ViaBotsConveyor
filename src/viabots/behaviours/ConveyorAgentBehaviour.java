@@ -10,6 +10,7 @@ import viabots.BoxType;
 import viabots.ConveyorAgent;
 import viabots.ViaBotAgent;
 import viabots.messageData.BoxMessage;
+import viabots.messageData.MessageContent;
 import viabots.messageData.TopicNames;
 
 public class ConveyorAgentBehaviour extends BaseTopicBasedTickerBehaviour {
@@ -26,8 +27,8 @@ public class ConveyorAgentBehaviour extends BaseTopicBasedTickerBehaviour {
 
     @Override
     protected void onTick() {
-        master.receiveUImessage();
         receiveIncomingTopicMsgs();
+        master.receiveUImessage();// this should be last call to message reception, for it is receiving msgs wo template
 
         placeBoxOnBelt();// tries to put new box on the belt every tick
 
@@ -60,6 +61,7 @@ public class ConveyorAgentBehaviour extends BaseTopicBasedTickerBehaviour {
                 System.out.println("box stopped at station received  " + master.getName());
 
             } else if (msg.getPerformative() == ACLMessage.INFORM) {// this should be moveOn message
+                System.out.println(getBehaviourName() + " received inform to move on belt");
                 master.startBelt();
             }
 
@@ -71,7 +73,7 @@ public class ConveyorAgentBehaviour extends BaseTopicBasedTickerBehaviour {
         msg.setContent(content);
         msg.addReceiver(sendingTopics[TopicNames.CONVEYOR_OUT_TOPIC.ordinal()]);
         master.send(msg);
-        System.out.println(content);
+        System.out.println("Conv sent a message with content : " + content);
     }
 
 

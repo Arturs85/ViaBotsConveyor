@@ -48,6 +48,7 @@ public class FastestInsertionsPlaner {
             workersToPositionsMap.put(positionList.get(coneCount), fastestName);// order of inserters is not relevant this case
 //carry on with next position
         }
+        System.out.println("plan has been made from nr of models: " + s1ModelsList.size());
         return workersToPositionsMap;
     }
 
