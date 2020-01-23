@@ -263,10 +263,21 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
                     e.printStackTrace();
                 }
                 if (messageObj != null) {
-                    if (messageObj.enabledParts != null)
+                    if (messageObj.enabledParts != null) {
                         enabledParts = messageObj.enabledParts;
-                    enabledParts.forEach(coneType -> setCurentConeType(coneType));// sets last as current type- needs upgrade
-                    System.out.println(enabledParts.toString());
+                        enabledParts.forEach(coneType -> setCurentConeType(coneType));// sets last as current type- needs upgrade
+                        System.out.println(enabledParts.toString());
+                    }
+                    if (messageObj.coneCount != null) {//update available cone count, received from ui
+                        for (int i = 0; i < messageObj.coneCount.length; i++) {
+                            if (messageObj.coneCount[i] >= 0) {//negative values indicate no change in count
+                                master.coneCountAvailable[i] = messageObj.coneCount[i];
+                                System.out.println(master.getLocalName() + " cone count update msg received: " + master.coneCountAvailable[i]);
+
+                            }
+                        }
+                    }
+
                 }
 
             } else {//put back message

@@ -1,20 +1,21 @@
 package GUI;
 
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListCell;
+import javafx.scene.Node;
+import javafx.scene.control.*;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.util.StringConverter;
+import javafx.util.converter.BooleanStringConverter;
 import viabots.ManipulatorType;
 import viabots.behaviours.ConeType;
 import viabots.messageData.MessageContent;
 import viabots.messageData.MessageToGUI;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class AgentInfoListCell extends ListCell<AgentInfo> {
     @FXML
@@ -33,6 +34,13 @@ public class AgentInfoListCell extends ListCell<AgentInfo> {
     public CheckBox checkBoxA;
     public CheckBox checkBoxC;
     public CheckBox checkBoxB;
+    @FXML
+
+    public Spinner<Integer> spinnerConeCountA;
+    public Spinner<Integer> spinnerConeCountB;
+    public Spinner<Integer> spinnerConeCountC;
+    public GridPane gridPane;
+
 
     FXMLLoader mLLoader;
     static GUIAgent guiAgent;
@@ -40,9 +48,66 @@ public class AgentInfoListCell extends ListCell<AgentInfo> {
     boolean additionalButtonsInitialised = false;
     public Button beltButton;
     public Button boxButton;
-
+    final int initialValueSpinner = 0;
     static int cellId = 0;
+    BooleanStringConverter bsc = new BooleanStringConverter() {
+        @Override
+        public String toString(Boolean value) {
+            if (value)
+                return ("Ready");
+            else
+                return ("Connecting");
 
+        }
+    };
+    SpinnerValueFactory<Integer> valueFactory = new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 25, initialValueSpinner);
+
+    void spinnerSetup() {
+//        spinnerConeCountA.setValueFactory(valueFactory);
+//        spinnerConeCountB.setValueFactory(valueFactory);
+//        spinnerConeCountC.setValueFactory(valueFactory);
+        if (true) {//spinnerConeCountA == null) {
+            spinnerConeCountA = new Spinner<Integer>(valueFactory);
+            spinnerConeCountA.setId("spin");
+
+        }
+
+        for (Node n : gridPane.getChildren()) {
+            if (n.getId() != null && n == spinnerConeCountA) {
+                n.setDisable(false);
+                return;
+            }
+        }
+        gridPane.add(spinnerConeCountA, 1, 3);
+
+
+    }
+
+    void disableSpinners() {
+        for (Node n : gridPane.getChildren()) {
+            if (n.getId() != null && n == spinnerConeCountA) {
+                n.setDisable(true);
+            }
+        }
+    }
+
+    void spinnerRemoval() {
+        ArrayList<Node> forRemoval = new ArrayList<>();
+
+        for (Node n : gridPane.getChildren()) {
+            if (n.getId() != null && n.getId().equals("spin")) {
+                // n.setDisable(true);//test
+                forRemoval.add(n);
+
+            }
+        }
+        gridPane.getChildren().removeAll(forRemoval);
+    }
+
+    //    void addSpinnerListeners(){
+//        spinnerConeCountA.se
+//    }
+//
     void initButton() {// TODO when to call this method?
         insertPartAButton.setOnAction(event -> {
             if (guiAgent != null) {
@@ -95,21 +160,37 @@ public class AgentInfoListCell extends ListCell<AgentInfo> {
 
     @Override
     protected void updateItem(AgentInfo item, boolean empty) {
-        // super.updateItem(item, empty);
+        //   super.updateItem(item, empty);
         if (getItem() != null) { // get old item
             //remove all bidirectional bindings and listeners
 
-            // getItem().speedAProperty().removeListener(textListener);
+            //getItem().speedAProperty().removeListener(textListener);
             checkBoxA.selectedProperty().unbindBidirectional(getItem().isAEnabledProperty);
             checkBoxB.selectedProperty().unbindBidirectional(getItem().isBEnabledProperty);
             checkBoxC.selectedProperty().unbindBidirectional(getItem().isCEnabledProperty);
+            agentRoles.textProperty().unbindBidirectional(getItem().currentRolesStringProperty());
+            labelAgentState.textProperty().unbindBidirectional(getItem().isHardwareReady);
 
+            if (spinnerConeCountA != null) {
+                spinnerConeCountA.getValueFactory().valueProperty().unbindBidirectional(getItem().objectPropConeAvailA);
+
+            }
         }
+        if (spinnerConeCountA != null) {
+            spinnerConeCountA.addEventFilter(MouseEvent.ANY, event -> {
+                event.consume();
+                System.out.println("spinner event");
+            });
+        }
+
+
+        spinnerConeCountA = null;
+
         super.updateItem(item, empty);
         if (empty || item == null) {
-            setText(null);
+            //  setText(null);
             setGraphic(null);
-
+//if(item== null) System.out.println("Item null listview");
         } else {
             if (getId() == null)
                 setId(item.agentName + cellId++);
@@ -127,6 +208,8 @@ public class AgentInfoListCell extends ListCell<AgentInfo> {
             checkBoxA.selectedProperty().bindBidirectional(item.isAEnabledProperty);
             checkBoxB.selectedProperty().bindBidirectional(item.isBEnabledProperty);
             checkBoxC.selectedProperty().bindBidirectional(item.isCEnabledProperty);
+            agentRoles.textProperty().bindBidirectional(item.currentRolesStringProperty());
+            labelAgentState.textProperty().bindBidirectional(item.isHardwareReady, bsc);
 
             if (!item.getType().equals(ManipulatorType.CONVEYOR)) {
                 if (beltButton != null) {
@@ -143,6 +226,15 @@ public class AgentInfoListCell extends ListCell<AgentInfo> {
                     additionalButtonsInitialised = true;
                 }
             }
+            if (true) {//item.getType().equals(ManipulatorType.BAXTER) || item.getType().equals(ManipulatorType.IRB160) || item.getType().equals(ManipulatorType.SMALL_ONE) || item.getType().equals(ManipulatorType.PEPPER)) {
+                spinnerSetup();// right place?
+                if (spinnerConeCountA != null)
+                    spinnerConeCountA.getValueFactory().valueProperty().bindBidirectional(item.objectPropConeAvailA);
+
+            } else {
+                spinnerRemoval();
+            }
+
 
             if (!buttonsInitialised) {
                 initButton();
@@ -154,14 +246,18 @@ public class AgentInfoListCell extends ListCell<AgentInfo> {
 
             agentName.setText(item.getName());
             agentType.setText(item.getType().name());
-            if (item.currentRoles != null) {
-                agentRoles.setText(item.currentRoles.toString());
-            }
+//            if (item.currentRoles != null) {
+//                agentRoles.setText(item.currentRoles.toString());
+//            } else {
+//                agentRoles.setText("[]");
+//
+//            }
 
-            if (item.isHardwareReady)
-                labelAgentState.setText("Ready");
-            else
-                labelAgentState.setText("Connecting");
+//
+//            if (item.isHardwareReady)
+//                labelAgentState.setText("Ready");
+//            else
+//                labelAgentState.setText("Connecting");
 
             setGraphic(baseHBox);
 

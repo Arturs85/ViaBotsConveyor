@@ -12,7 +12,7 @@ import viabots.behaviours.S1ManipulatorBehaviour;
 
 public class ManipulatorAgent extends ViaBotAgent {
     public CommunicationWithHardware communication = new CommunicationWithHardware();
-
+    public int[] coneCountAvailable = new int[ConeType.values().length];
 
     @Override
     protected void setup() {

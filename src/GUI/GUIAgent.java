@@ -79,6 +79,7 @@ public class GUIAgent extends Agent {
 
         //agents.add(new AgentInfo(ManipulatorType.UNKNOWN));
         AgentInfoListCell.guiAgent = this;
+        AgentInfo.guiAgent = this;
     }
 
     @Override
@@ -99,8 +100,13 @@ public class GUIAgent extends Agent {
     void updateGUI(MessageToGUI msg, String agentName) {
         AgentInfo ai = findAgentInfoByName(agentName);
         if (ai != null) {
-            ai.isHardwareReady = msg.isHardwareReady;
+            // ai.isHardwareReady = msg.isHardwareReady;
             ai.currentRoles = msg.currentRoles;
+            Platform.runLater(() -> {
+                ai.setIsHardwareReadyProperty(msg.isHardwareReady);
+                if (ai.currentRoles != null)
+                    ai.setCurrentRolesString(ai.currentRoles.toString());
+            });
             if (msg.isTakenDown) {
                 Platform.runLater(() -> {
                     agents.remove(ai);
@@ -190,7 +196,7 @@ public class GUIAgent extends Agent {
                 //  System.out.println(getName() + " received null msg- no msg");
             }
 
-            conveyorGUI.controller.workingAgentsListView.refresh();
+            //    conveyorGUI.controller.workingAgentsListView.refresh();
             msg = receive(uiMsgTpl);
         }
     }

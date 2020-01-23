@@ -71,16 +71,18 @@ public class Main {
             main.createGUIAgent();
             main.createAgent(null);// creates vsm role agent
 
-//           main.createAgent(ManipulatorType.BAXTER);//for testing
-//
-//            try {
-//                Thread.sleep(1000);
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
-//
-            //
+            main.createAgent(ManipulatorType.BAXTER);//for testing
+
+
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+
             main.createAgent(ManipulatorType.CONVEYOR);
+            main.createAgent(ManipulatorType.IRB160);//for testing
 
         }
 

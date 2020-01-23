@@ -13,6 +13,7 @@ public class MessageToGUI implements Serializable {
     public boolean isTakenDown = false;
     public EnumSet<ConeType> enabledParts;
     public EnumSet<VSMRoles> currentRoles;
+    public int[] coneCount;// 0- A, 1-B, ...
 
     public MessageToGUI(boolean isHardwareReady, ManipulatorType type, EnumSet<VSMRoles> roles) {
         this.isHardwareReady = isHardwareReady;
@@ -32,5 +33,9 @@ public class MessageToGUI implements Serializable {
 
     public MessageToGUI(EnumSet<ConeType> enabledParts) {//
         this.enabledParts = enabledParts;
+    }
+
+    public MessageToGUI(int[] coneCount) {
+        this.coneCount = coneCount;
     }
 }
