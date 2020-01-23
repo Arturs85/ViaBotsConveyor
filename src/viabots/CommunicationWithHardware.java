@@ -12,7 +12,7 @@ import java.net.SocketException;
  */
 public class CommunicationWithHardware extends Thread {
     static final int PORT = 55555;
-    static final int SO_READ_TIMEOUT_MS = 10000;
+    public static final int SO_READ_TIMEOUT_MS = 20000;
     static final int MAX_MSG_LENGTH = 100;
 
     // byte[] commandInsertPartA = new byte[]{56, 67, 68};//short version
@@ -47,17 +47,20 @@ public class CommunicationWithHardware extends Thread {
 
                 byte[] reply = new byte[MAX_MSG_LENGTH];
                 int len = 0;
-                if (socket != null) {
-                    try {
-                        len = din.read(reply);
-                    } catch (IOException e) {
+                synchronized (syncLock) {
+                    if (socket != null) {
+                        try {
+                            System.out.println(listenForReplyWTimeout(1000));
+                            // len = din.read(reply);
+                        } catch (IOException e) {
 
+                        }
                     }
                 }
-                if (len > 0) {
-                    String res = new String(reply, 0, len);
-                    System.out.println(getName() + " received: " + res);
-                }
+//                if (len > 0) {
+//                    String res = new String(reply, 0, len);
+//                    System.out.println(getName() + " received: " + res);
+//                }
 
                 sleep(100);
             } catch (InterruptedException e) {
@@ -97,7 +100,7 @@ public class CommunicationWithHardware extends Thread {
                     socket = null;
                 }
             } else {
-                // System.out.println(getClass().getCanonicalName() + ": socket  null");
+                System.out.println(getClass().getCanonicalName() + ": socket  null");
             }
         }
     }
@@ -106,15 +109,15 @@ public class CommunicationWithHardware extends Thread {
      * data received within timeout is returned as String,
      * if timeout is reached or socket is closed than IOException is thrown
      */
-    public String listenForReplyWTimeout() throws IOException {
+    public synchronized String listenForReplyWTimeout(int timeout) throws IOException {
         if (socket == null) throw new IOException();
 
         {
-
-            socket.setSoTimeout(SO_READ_TIMEOUT_MS);
-            byte[] reply = new byte[MAX_MSG_LENGTH];
             int len = 0;
-            synchronized (syncLock) {
+            byte[] reply = new byte[MAX_MSG_LENGTH];
+
+
+            socket.setSoTimeout(timeout);
                 if (socket != null) {
                     try {
                         len = din.read(reply);
@@ -122,12 +125,13 @@ public class CommunicationWithHardware extends Thread {
 
                     }
                 }
-            }
+
             if (len <= 0) {
-                socket = null;
-                System.out.println("err: reply stream ended");
+                //socket = null;// is this needed?
+                //System.out.println("err: reply stream ended");
                 throw new IOException();
             }
+
             String res = new String(reply, 0, len);
 
             return res;

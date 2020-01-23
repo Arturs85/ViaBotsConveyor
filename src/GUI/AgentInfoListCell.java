@@ -60,25 +60,33 @@ public class AgentInfoListCell extends ListCell<AgentInfo> {
 
         }
     };
-    SpinnerValueFactory<Integer> valueFactory = new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 25, initialValueSpinner);
+    SpinnerValueFactory<Integer> valueFactoryA = new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 25, initialValueSpinner);
+    SpinnerValueFactory<Integer> valueFactoryB = new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 25, initialValueSpinner);
+    SpinnerValueFactory<Integer> valueFactoryC = new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 25, initialValueSpinner);
 
     void spinnerSetup() {
 //        spinnerConeCountA.setValueFactory(valueFactory);
 //        spinnerConeCountB.setValueFactory(valueFactory);
 //        spinnerConeCountC.setValueFactory(valueFactory);
         if (true) {//spinnerConeCountA == null) {
-            spinnerConeCountA = new Spinner<Integer>(valueFactory);
+            spinnerConeCountA = new Spinner<Integer>(valueFactoryA);
+            spinnerConeCountB = new Spinner<Integer>(valueFactoryB);
+            spinnerConeCountC = new Spinner<Integer>(valueFactoryC);
+
             spinnerConeCountA.setId("spin");
-
+            spinnerConeCountB.setId("spin");
+            spinnerConeCountC.setId("spin");
         }
 
-        for (Node n : gridPane.getChildren()) {
-            if (n.getId() != null && n == spinnerConeCountA) {
-                n.setDisable(false);
-                return;
-            }
-        }
+//        for (Node n : gridPane.getChildren()) {
+//            if (n.getId() != null && n.getId().equals("spin") == spinnerConeCountA) {
+//                n.setDisable(false);
+//                return;
+//            }
+//        }
         gridPane.add(spinnerConeCountA, 1, 3);
+        gridPane.add(spinnerConeCountB, 2, 3);
+        gridPane.add(spinnerConeCountC, 3, 3);
 
 
     }
@@ -173,18 +181,26 @@ public class AgentInfoListCell extends ListCell<AgentInfo> {
 
             if (spinnerConeCountA != null) {
                 spinnerConeCountA.getValueFactory().valueProperty().unbindBidirectional(getItem().objectPropConeAvailA);
-
             }
-        }
-        if (spinnerConeCountA != null) {
-            spinnerConeCountA.addEventFilter(MouseEvent.ANY, event -> {
-                event.consume();
-                System.out.println("spinner event");
-            });
-        }
+            if (spinnerConeCountB != null) {
+                spinnerConeCountB.getValueFactory().valueProperty().unbindBidirectional(getItem().objectPropConeAvailB);
+            }
+            if (spinnerConeCountC != null) {
+                spinnerConeCountC.getValueFactory().valueProperty().unbindBidirectional(getItem().objectPropConeAvailC);
+            }
 
+        }
+//        if (spinnerConeCountA != null) {
+//            spinnerConeCountA.addEventFilter(MouseEvent.ANY, event -> {
+//                event.consume();
+//                System.out.println("spinner event");
+//            });
+//        }
+        if (gridPane != null) spinnerRemoval();
 
         spinnerConeCountA = null;
+        spinnerConeCountB = null;
+        spinnerConeCountC = null;
 
         super.updateItem(item, empty);
         if (empty || item == null) {
@@ -226,10 +242,16 @@ public class AgentInfoListCell extends ListCell<AgentInfo> {
                     additionalButtonsInitialised = true;
                 }
             }
-            if (true) {//item.getType().equals(ManipulatorType.BAXTER) || item.getType().equals(ManipulatorType.IRB160) || item.getType().equals(ManipulatorType.SMALL_ONE) || item.getType().equals(ManipulatorType.PEPPER)) {
+            if (item.getType().equals(ManipulatorType.BAXTER) || item.getType().equals(ManipulatorType.IRB160) || item.getType().equals(ManipulatorType.SMALL_ONE) || item.getType().equals(ManipulatorType.PEPPER)) {
                 spinnerSetup();// right place?
                 if (spinnerConeCountA != null)
                     spinnerConeCountA.getValueFactory().valueProperty().bindBidirectional(item.objectPropConeAvailA);
+                if (spinnerConeCountB != null)
+                    spinnerConeCountB.getValueFactory().valueProperty().bindBidirectional(item.objectPropConeAvailB);
+                if (spinnerConeCountC != null)
+                    spinnerConeCountC.getValueFactory().valueProperty().bindBidirectional(item.objectPropConeAvailC);
+
+
 
             } else {
                 spinnerRemoval();

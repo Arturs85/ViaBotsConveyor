@@ -18,6 +18,7 @@ import viabots.Box;
 import viabots.ManipulatorType;
 import viabots.ViaBotAgent;
 import viabots.messageData.ConvModelingMsgToUI;
+import viabots.messageData.ConveyorOntologies;
 import viabots.messageData.MessageToGUI;
 import viabots.messageData.TopicNames;
 
@@ -106,6 +107,12 @@ public class GUIAgent extends Agent {
                 ai.setIsHardwareReadyProperty(msg.isHardwareReady);
                 if (ai.currentRoles != null)
                     ai.setCurrentRolesString(ai.currentRoles.toString());
+                if (msg.coneCount != null) {
+                    ai.coneAvailableCountA.setValue(msg.coneCount[0]);
+                    ai.coneAvailableCountB.setValue(msg.coneCount[1]);
+                    ai.coneAvailableCountC.setValue(msg.coneCount[2]);
+
+                }
             });
             if (msg.isTakenDown) {
                 Platform.runLater(() -> {
@@ -204,6 +211,7 @@ public class GUIAgent extends Agent {
     void sendUImessage(String agentName, String content) {
 
         ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
+        msg.setOntology(ConveyorOntologies.GuiCommands.name());
         if (content != null) {
             msg.setContent(content);
         }
@@ -215,6 +223,8 @@ public class GUIAgent extends Agent {
     void sendUImessage(String agentName, MessageToGUI messageToGUI) {
 
         ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+        msg.setOntology(ConveyorOntologies.GuiCommands.name());
+
         if (messageToGUI != null) {
             try {
                 msg.setContentObject(messageToGUI);

@@ -24,7 +24,7 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
     Map<String, ManipulatorModel> s1List = new TreeMap<>();
     TreeMap<Integer, BoxWInserters> insertersList = new TreeMap<>();
     S2States state = S2States.IDLE;
-    static int infoWaitingTimeout = 9000;// ms
+    static int infoWaitingTimeout = 6000;// ms
     int waitingCounter = 0;
     BoxMessage currentBoxMessage = null;// message of box for which inserters are currently requested or planned dont receive other messages of this type until plan for current is made
 
@@ -38,7 +38,7 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
 
     @Override
     protected void onTick() {
-        System.out.println(owner.getLocalName() + " has " + owner.getCurQueueSize() + " msgs ," + getBehaviourName());
+        //     System.out.println(owner.getLocalName() + " has " + owner.getCurQueueSize() + " msgs ," + getBehaviourName());
 // look through all new messages
         processMessages2(templates[TopicNames.S1_TO_S2_TOPIC.ordinal()]);
         processMessages2(templates[TopicNames.MODELER_NEW_BOX_TOPIC.ordinal()]);
@@ -248,8 +248,11 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
                         }
                         System.out.println("s2" + coneType + " received agree from " + msg.getSender().getLocalName());
 
-                        insertersList.get(reply.boxID).setInserter(msg.getSender(), reply.positionInBox);//mark insertion request accepted
-
+                        if (insertersList.get(reply.boxID) != null) {
+                            insertersList.get(reply.boxID).setInserter(msg.getSender(), reply.positionInBox);//mark insertion request accepted//!!!NULL POINTER ERROR
+                        } else {
+                            System.out.println(getBehaviourName() + " 254---NULL POINTER WARNING____");
+                        }
 
                     }
 

@@ -3,6 +3,7 @@ package viabots.behaviours;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
+import viabots.CommunicationWithHardware;
 import viabots.ManipulatorAgent;
 import viabots.ViaBotAgent;
 import viabots.messageData.*;
@@ -20,12 +21,12 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
     S1States state = S1States.IDLE;
     TreeMap<Integer, ArrayList<Integer>> toDoList = new TreeMap<>();//key- boxId, value- list of Positions to insert cone
     Integer currentBoxId = null;
-    Integer currentPosition = null;
+    Integer currentPosition = null;// cone position in box
     MessageTemplate boxAtStationTpl;
     MessageTemplate taskAssignmentTpl;
     int stationPosition = 0; // box sensor number
 
-    public S1ManipulatorBehaviour(ManipulatorAgent manipulatorAgent) {
+    public S1ManipulatorBehaviour(ManipulatorAgent manipulatorAgent, Integer sensorPosition) {
         super(manipulatorAgent);
 
         master = manipulatorAgent;
@@ -36,6 +37,9 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
         taskAssignmentTpl = MessageTemplate.MatchOntology(ConveyorOntologies.TaskAssignmentToS1.name());
         createAndRegisterReceivingTopics(TopicNames.UI_TO_MANIPULATOR);
         createSendingTopic(TopicNames.S1_TO_S2_TOPIC);
+        createSendingTopic(TopicNames.REQUESTS_TO_MODELER);
+        stationPosition = sensorPosition;
+        System.out.println("created agent at sensor position " + sensorPosition);
     }
 
     void setCurentConeType(ConeType coneType) {//for changing cone type that robot currently is set to insert
@@ -62,9 +66,11 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
             case INSERTING:
                 //wait for reply from hardware
                 try {
-                    master.communication.listenForReplyWTimeout();
+                    master.communication.listenForReplyWTimeout(CommunicationWithHardware.SO_READ_TIMEOUT_MS);
                     //replay received , this means, that operation is done
                     // send message to conv modeler to move on, if there are no more jobs for this box at this station
+                    //todo decrese cone count available in model
+                    System.out.println(getBehaviourName() + " received from hardware -insertion complete ");
                     toDoList.get(currentBoxId).remove(currentPosition);// removes position of newly inserted cone from the todolist
                     currentPosition = null;
                     if (toDoList.get(currentBoxId).isEmpty()) {
@@ -72,6 +78,7 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
                         currentBoxId = null;
                         state = S1States.IDLE;
                     } else {// there still is some position on the list
+                        System.out.println(getBehaviourName() + " proceeding with next cone insertion ");
 
                         currentPosition = toDoList.get(currentBoxId).get(toDoList.get(currentBoxId).size() - 1);// get next position
                         master.insertPartInPosition(currentPosition);
@@ -80,6 +87,8 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
                 } catch (IOException e) {
                     //e.printStackTrace();
                     // most likely timeout occured -continue to wait for reply
+                    System.out.println(getBehaviourName() + " did not received confirm from hardware - " + e.getClass().getName());
+
                 }
                 break;
 
@@ -128,7 +137,7 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
             currentPosition = toDoList.get(currentBoxId).get(toDoList.get(currentBoxId).size() - 1);// get first position
             master.insertPartInPosition(currentPosition);
             state = S1States.INSERTING;
-            System.out.println("box stopped at station received  " + master.getName());
+            System.out.println("box id: " + boxMessage.boxID + " stopped at station received  " + master.getName());
 
         }
     }
@@ -228,6 +237,7 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
         }
         msg.addReceiver(sendingTopics[TopicNames.REQUESTS_TO_MODELER.ordinal()]);
         owner.send(msg);
+        System.out.println(getBehaviourName() + " sent msg stopBoxAtStation to modeler, boxid " + boxMessage.boxID);
     }
 
     void sendInsertionCompleteAtStation(BoxMessage boxMessage) {
@@ -240,10 +250,12 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
         }
         msg.addReceiver(sendingTopics[TopicNames.REQUESTS_TO_MODELER.ordinal()]);
         owner.send(msg);
+        System.out.println(getBehaviourName() + " sent msg insertion complete to modeler, boxid " + boxMessage.boxID);
+
     }
 
     public void receiveUImessage() {//for testing insertion
-        ACLMessage msg = master.receive();// takes all msgs out of list, call as lasst recieve in iteration
+        ACLMessage msg = master.receive(owner.uiCommandTpl);// takes all msgs out of list, call as lasst recieve in iteration
         if (msg != null) {
             if (msg.getPerformative() == ACLMessage.REQUEST) {
                 String cont = msg.getContent();
@@ -271,7 +283,7 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
                     if (messageObj.coneCount != null) {//update available cone count, received from ui
                         for (int i = 0; i < messageObj.coneCount.length; i++) {
                             if (messageObj.coneCount[i] >= 0) {//negative values indicate no change in count
-                                master.coneCountAvailable[i] = messageObj.coneCount[i];
+                                master.coneCountAvailable[i] = messageObj.coneCount[i];//todo use manipulator model insted
                                 System.out.println(master.getLocalName() + " cone count update msg received: " + master.coneCountAvailable[i]);
 
                             }

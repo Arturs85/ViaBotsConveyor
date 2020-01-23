@@ -63,7 +63,11 @@ public class Main {
             }
             String agName = null;
             if (args.length >= 3) agName = args[2];
-            main.createAgent(desiredType, agName);
+
+            Integer sensorPosition = null;
+            if (args.length >= 4) sensorPosition = Integer.parseInt(args[3]);
+
+            main.createAgent(desiredType, agName, sensorPosition);
 
         } else {// no arguments mean that this is main container
             main.cc = main.startJade();
@@ -131,13 +135,16 @@ public class Main {
         createAgent(type, null);
     }
 
-    //type = null for vsmRoles agent
     void createAgent(ManipulatorType type, String agentName) {
+        createAgent(type, agentName, null);
+    }
+    //type = null for vsmRoles agent
+    void createAgent(ManipulatorType type, String agentName, Integer sensorPosition) {
         if (cc != null) {
             // Create a new agent, a DummyAgent
 // and pass it a reference to an Object
             Object reference = new Object();
-            Object args[] = new Object[]{reference, type};
+            Object args[] = new Object[]{reference, type, sensorPosition};
             AgentController dummy;
             if (agentName == null) agentName = "ViaBotManipulator";
             try {

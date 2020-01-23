@@ -35,7 +35,7 @@ public class ConveyorAgentBehaviour extends BaseTopicBasedTickerBehaviour {
 
     }
 
-    void placeBoxOnBelt() {
+    public void placeBoxOnBelt() {
 
         if (master.previousHasLeft) {//warning - no synchronisation between update of this value and this readout
 

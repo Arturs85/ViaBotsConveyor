@@ -71,12 +71,14 @@ public class ConveyorModelingBehaviour extends BaseTopicBasedTickerBehaviour {
                 Box b = new Box(type);
                 System.out.println("Modeler received box arrived, type : " + type);
                 boxQueues.get(0).add(b);
+                currentBoxes.add(b);// mark that this box will prevent belt from turning on, if it is stopped (belt will stop at first sensor)
+
 // send new box information on own topic
                 sendNewBoxMessage(b);
             } else if (msg.getContent().contains(ConveyorAgent.stoppedAt)) {
                 char position = msg.getContent().charAt(ConveyorAgent.stoppedAt.length());
                 owner.sendLogMsgToGui(getBehaviourName() + " received sopped at, read char: " + position);
-
+                System.out.println("sending log " + getBehaviourName() + " received sopped at, read char: " + position);
                 switch (position) {
                     case 'A':
 
@@ -134,8 +136,12 @@ public class ConveyorModelingBehaviour extends BaseTopicBasedTickerBehaviour {
             sendBoxStoppedAt(box.id, subscriber);
             currentBoxes.add(box);
         }
-        if (sensorNumber == 0) {//new box arrived at sensor 0, add it to current boxes until inserters fo it are planed
-            currentBoxes.add(box);// s3 can attempt to clear this box before it is in this list
+//        if (sensorNumber == 0) {//new box arrived at sensor 0, add it to current boxes until inserters fo it are planed
+//            currentBoxes.add(box);// s3 can attempt to clear this box before it is in this list
+//        }
+        if (currentBoxes.isEmpty()) {
+            System.out.println(" no subscribers for sensor " + sensorNumber + " for box " + box.id + " sending move on to conv");
+            sendMoveOnMessage();
         }
 
     }
@@ -152,7 +158,7 @@ public class ConveyorModelingBehaviour extends BaseTopicBasedTickerBehaviour {
     public void receiveStopOrMoveOnRequestMessage() {// from s1 or s3
         ACLMessage msg = owner.receive(templates[TopicNames.REQUESTS_TO_MODELER.ordinal()]);
         if (msg != null) {
-
+            receiveStopOrMoveOnRequestMessage();
             BoxMessage boxMessage = null;
             try {
                 boxMessage = (BoxMessage) msg.getContentObject();
@@ -167,7 +173,7 @@ public class ConveyorModelingBehaviour extends BaseTopicBasedTickerBehaviour {
                 boxMessage.subscriber = msg.getSender();// in case subscriber has not filled this field
                 stopRequests.add(boxMessage);//positionId means sensor position
 
-                System.out.println("request   " + owner.getName());
+                System.out.println("-------request from " + boxMessage.subscriber.getLocalName() + "- for box " + boxMessage.boxID);
 
             } else if (msg.getPerformative() == ACLMessage.CONFIRM) {// belt can continue to move
 //remove this box from current list
@@ -184,8 +190,10 @@ public class ConveyorModelingBehaviour extends BaseTopicBasedTickerBehaviour {
                 if (currentBoxes.isEmpty()) {
                     sendMoveOnMessage();
                     System.out.println(getBehaviourName() + " move on msg to conveyor sent");
+                } else {
+                    System.out.println("there are boxes still in current list: " + currentBoxes.size() + "  - " + currentBoxes.toString());
                 }
-                System.out.println(getBehaviourName() + " confirm move on received " + owner.getName());
+                System.out.println(getBehaviourName() + " confirm move on received " + msg.getSender().getLocalName());
 
             }
 
@@ -214,6 +222,7 @@ public class ConveyorModelingBehaviour extends BaseTopicBasedTickerBehaviour {
         msg.addReceiver(sendingTopics[TopicNames.CONVEYOR_IN_TOPIC.ordinal()]);
 // no content is needed for this message
         owner.send(msg);
+        System.out.println(getBehaviourName() + " sending move on to conveyor");
     }
     void sendBoxStoppedAt(int boxId, AID subscriber) {
         ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
@@ -225,6 +234,7 @@ public class ConveyorModelingBehaviour extends BaseTopicBasedTickerBehaviour {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        System.out.println("sent msg box stopped at your station to " + subscriber.getLocalName() + " about boxId " + boxId);
         owner.send(msg);
     }
 

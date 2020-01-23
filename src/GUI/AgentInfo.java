@@ -21,6 +21,14 @@ public class AgentInfo {
     ObjectProperty<Integer> objectPropConeAvailA = new SimpleObjectProperty<>(0);
     IntegerProperty coneAvailableCountA = IntegerProperty.integerProperty(objectPropConeAvailA);
 
+    ObjectProperty<Integer> objectPropConeAvailB = new SimpleObjectProperty<>(0);
+    IntegerProperty coneAvailableCountB = IntegerProperty.integerProperty(objectPropConeAvailB);
+
+    ObjectProperty<Integer> objectPropConeAvailC = new SimpleObjectProperty<>(0);
+    IntegerProperty coneAvailableCountC = IntegerProperty.integerProperty(objectPropConeAvailC);
+
+
+
     SimpleBooleanProperty isHardwareReady = new SimpleBooleanProperty(this, "isHardwareReady", false);
 
     public boolean getIsHardwareReadyProperty() {
@@ -110,7 +118,18 @@ public class AgentInfo {
                 guiAgent.sendUImessage(agentName, new MessageToGUI(new int[]{newValue.intValue(), -1, -1}));
             }
         });
-
+        coneAvailableCountB.addListener((observable, oldValue, newValue) -> {
+            System.out.println(agentName + " info - changed coneAvailableCount: " + oldValue + " to " + newValue);
+            if (guiAgent != null) {
+                guiAgent.sendUImessage(agentName, new MessageToGUI(new int[]{-1, newValue.intValue(), -1}));
+            }
+        });
+        coneAvailableCountC.addListener((observable, oldValue, newValue) -> {
+            System.out.println(agentName + " info - changed coneAvailableCount: " + oldValue + " to " + newValue);
+            if (guiAgent != null) {
+                guiAgent.sendUImessage(agentName, new MessageToGUI(new int[]{-1, -1, newValue.intValue()}));
+            }
+        });
     }
 
     String getName() {

@@ -11,6 +11,7 @@ import viabots.behaviours.ConeType;
 import viabots.behaviours.GuiInteractionBehaviour;
 import viabots.behaviours.S2Behaviour;
 import viabots.behaviours.S3Behaviour;
+import viabots.messageData.ConveyorOntologies;
 import viabots.messageData.TopicNames;
 
 import java.util.EnumSet;
@@ -29,6 +30,7 @@ public class ViaBotAgent extends Agent {
     public EnumSet<VSMRoles> currentRoles;
     int s2RolesCount = 0;//shows how many different s2 behaviours is added to this agent
     TreeMap<Integer, Integer> unannouncedBoxes = new TreeMap<>(); //key boxid, value - number of s2roles that has processed this newbox msg
+    public MessageTemplate uiCommandTpl;
 
     public boolean s2MustPostNewBoxMsg(int boxId) {// called after receiving newBox msg, shows whether to post back to queue this msg
         if (unannouncedBoxes.get(boxId) == null) {
@@ -80,6 +82,7 @@ public class ViaBotAgent extends Agent {
         }
 
         addBehaviour(new GuiInteractionBehaviour(this));
+        uiCommandTpl = MessageTemplate.MatchOntology(ConveyorOntologies.GuiCommands.name());
     }
 
     void addVsmRole(VSMRoles vsmRole) {// duplicate of RoleCheckingBehaviour function, temporary

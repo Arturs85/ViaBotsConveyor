@@ -3,15 +3,13 @@ package viabots;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
-import viabots.behaviours.ConeType;
-import viabots.behaviours.ConveyorModelingBehaviour;
-import viabots.behaviours.RoleCheckingBehaviour;
-import viabots.behaviours.S1ManipulatorBehaviour;
+import viabots.behaviours.*;
 
 ;import java.util.EnumSet;
 
 public class ManipulatorAgent extends ViaBotAgent {
     public CommunicationWithHardware communication = new CommunicationWithHardware();
+    int sensorPosition;
     public int[] coneCountAvailable = new int[ConeType.values().length];
 
     @Override
@@ -20,7 +18,12 @@ public class ManipulatorAgent extends ViaBotAgent {
         // type = ManipulatorType.UNKNOWN;//for testing
         communication.start();// tries to connect to server in new thread
         // addBehaviour(new TestCommunicationBehaviour(this));
-        addBehaviour(new S1ManipulatorBehaviour(this));
+        if (getArguments().length < 3)
+            System.out.println("!!!---missing sensor position argument ---!!!");
+        else if (getArguments()[2] != null)
+            sensorPosition = (Integer) getArguments()[2];
+
+        addBehaviour(new S1ManipulatorBehaviour(this, sensorPosition));
         addBehaviour(new RoleCheckingBehaviour(this));
         currentRoles = EnumSet.noneOf(VSMRoles.class);
 //addBehaviour(new ConveyorModelingBehaviour(this,2000));//for testing----------------------------------!!!
@@ -45,6 +48,7 @@ public class ManipulatorAgent extends ViaBotAgent {
         switch (coneType) {
             case A:
                 communication.sendString(InterProcessCommands.insertPartA);
+
                 break;
             case B:
                 communication.sendString(InterProcessCommands.insertPartB);
@@ -57,6 +61,9 @@ public class ManipulatorAgent extends ViaBotAgent {
                 break;
 
         }
+        int index = coneType.ordinal();
+        coneCountAvailable[index] = coneCountDecrese(coneCountAvailable[index]);
+        GuiInteractionBehaviour.sendConeCountChanged(this, coneCountAvailable);
     }
 
     public void insertPartInPosition(int position) {//positions in box(As shown in Box) is mapped to string commands to manipulator process
@@ -81,8 +88,17 @@ public class ManipulatorAgent extends ViaBotAgent {
                 break;
 
         }
+        //decrese available cone count of inserted type
+        int index = Box.getConeTypeForBoxPosition(position).ordinal();
+        coneCountAvailable[index] = coneCountDecrese(coneCountAvailable[index]);
+        GuiInteractionBehaviour.sendConeCountChanged(this, coneCountAvailable);
     }
 
+    int coneCountDecrese(int count) {
+        count--;
+        if (count < 0) count = 0;
+        return count;
+    }
     @Override
     public boolean isConnected() {
         return communication.isConnected();

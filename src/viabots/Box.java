@@ -8,7 +8,7 @@ import java.util.EnumSet;
 
 public class Box implements Serializable {
     static int idCounter = 0;
-    static final int[][] boxContents = new int[][]{new int[]{1, 1, 1, 0, 0, 0}, new int[]{0, 1, 1, 1, 0, 0}, new int[]{0, 0, 0, 1, 1, 1}};// first index- boxType ordinal, contents of arrays- required positions for boxType
+    static final int[][] boxContents = new int[][]{new int[]{1, 1, 1, 0, 0, 0}, new int[]{0, 1, 1, 0, 0, 0}, new int[]{1, 0, 1, 0, 0, 0}};// first index- boxType ordinal, contents of arrays- required positions for boxType
     static final ConeType[] baseBoxModel = new ConeType[]{ConeType.A, ConeType.B, ConeType.B, ConeType.B, ConeType.B, ConeType.A};//cone types for each position
 /*
      ____
@@ -58,6 +58,11 @@ public class Box implements Serializable {
 
     public ArrayList<Integer> getPositions(ConeType coneType) {
         return getPositions(coneType, boxType);
+
+    }
+
+    static ConeType getConeTypeForBoxPosition(int position) {
+        return baseBoxModel[position];
 
     }
 

@@ -90,7 +90,7 @@ public class ConveyorAgent extends ViaBotAgent {
             e.printStackTrace();
         }
         previousHasLeft = false;
-        cab.sendConveyorMessage(ConveyorAgent.boxArrived + " " + BoxType.A.name());//for testing
+        //cab.sendConveyorMessage(ConveyorAgent.boxArrived + " " + BoxType.A.name());//for testing
 
     }
 
@@ -161,7 +161,7 @@ public class ConveyorAgent extends ViaBotAgent {
 
     @Override
     public void receiveUImessage() {
-        ACLMessage msg = receive();
+        ACLMessage msg = receive(uiCommandTpl);
         if (msg != null) {
             String content = msg.getContent();
             if (content != null) {
@@ -171,8 +171,9 @@ public class ConveyorAgent extends ViaBotAgent {
                     if (beltIsOn) stopBelt();
                     else startBelt();
                 } else if (content.equalsIgnoreCase(MessageContent.PLACE_BOX.name())) {//
-                    placeBox();
-
+                    //  placeBox();
+                    previousHasLeft = true;//override state to achieve box placement
+                    //  cab.placeBoxOnBelt();// this also sends msg of new box arrival
                 }
             }
         } //else
