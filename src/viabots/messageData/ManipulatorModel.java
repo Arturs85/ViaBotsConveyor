@@ -8,7 +8,7 @@ import java.util.Arrays;
 public class ManipulatorModel implements Serializable {
     String agentName;
     int coneTypesCount = ConeType.values().length;
-    int[] conesAvailable = new int[coneTypesCount];
+    public int[] conesAvailable = new int[coneTypesCount];
     int[] timesForFirstInsertion = new int[coneTypesCount];
     int[] timesForNextInsertion = new int[coneTypesCount];
     public ConeType currentCone;
@@ -16,7 +16,7 @@ public class ManipulatorModel implements Serializable {
     public ManipulatorModel(String agentName, ConeType currentCone) {
         this.agentName = agentName;
         this.currentCone = currentCone;
-        Arrays.fill(conesAvailable, 10);// for testing
+        Arrays.fill(conesAvailable, 0);// for testing
         Arrays.fill(timesForFirstInsertion, 1000);// for testing
         Arrays.fill(timesForNextInsertion, 5000);// for testing
 

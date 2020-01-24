@@ -61,7 +61,7 @@ public class Box implements Serializable {
 
     }
 
-    static ConeType getConeTypeForBoxPosition(int position) {
+    public static ConeType getConeTypeForBoxPosition(int position) {
         return baseBoxModel[position];
 
     }

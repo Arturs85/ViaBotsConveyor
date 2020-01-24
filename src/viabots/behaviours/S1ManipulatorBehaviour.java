@@ -3,6 +3,7 @@ package viabots.behaviours;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
+import viabots.Box;
 import viabots.CommunicationWithHardware;
 import viabots.ManipulatorAgent;
 import viabots.ViaBotAgent;
@@ -70,6 +71,7 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
                     //replay received , this means, that operation is done
                     // send message to conv modeler to move on, if there are no more jobs for this box at this station
                     //todo decrese cone count available in model
+
                     System.out.println(getBehaviourName() + " received from hardware -insertion complete ");
                     toDoList.get(currentBoxId).remove(currentPosition);// removes position of newly inserted cone from the todolist
                     currentPosition = null;
@@ -179,6 +181,10 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
                 sendStopBoxAtStation(new BoxMessage(boxMessage.boxID, boxMessage.boxType, boxMessage.coneType));
                 // add job to the list
                 addJobToTheList(boxMessage.boxID, boxMessage.positionInBox);
+
+                manipulatorModel.insert(Box.getConeTypeForBoxPosition(boxMessage.positionInBox));  // mark that cone is reserved - remove it from array(it will be picked from holder later )
+                GuiInteractionBehaviour.sendConeCountChanged(master, manipulatorModel.conesAvailable);
+
                 System.out.println("request insertion msg from s2 received  " + master.getName() + " for position " + boxMessage.positionInBox);
 
                 sendAcceptAssignmentToS2(boxMessage);
@@ -284,6 +290,7 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
                         for (int i = 0; i < messageObj.coneCount.length; i++) {
                             if (messageObj.coneCount[i] >= 0) {//negative values indicate no change in count
                                 master.coneCountAvailable[i] = messageObj.coneCount[i];//todo use manipulator model insted
+                                manipulatorModel.conesAvailable[i] = messageObj.coneCount[i];
                                 System.out.println(master.getLocalName() + " cone count update msg received: " + master.coneCountAvailable[i]);
 
                             }

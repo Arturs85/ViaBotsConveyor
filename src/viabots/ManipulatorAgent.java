@@ -94,7 +94,7 @@ public class ManipulatorAgent extends ViaBotAgent {
         GuiInteractionBehaviour.sendConeCountChanged(this, coneCountAvailable);
     }
 
-    int coneCountDecrese(int count) {
+    static int coneCountDecrese(int count) {
         count--;
         if (count < 0) count = 0;
         return count;
