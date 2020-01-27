@@ -22,6 +22,7 @@ public class S3Behaviour extends BaseTopicBasedTickerBehaviour {
     MessageTemplate convMsgTpl;
     //TreeMap<Integer,ArrayList<BoxMessage>> jobsList;
     TreeMap<Integer, EnumSet<ConeType>> jobsListc;
+    ControlValueCalculator cValueCalc = new ControlValueCalculator();
 
     public S3Behaviour(ViaBotAgent a) {
         super(a);
@@ -37,7 +38,10 @@ public class S3Behaviour extends BaseTopicBasedTickerBehaviour {
 
     void subscribeToMessages() {
         createAndRegisterReceivingTopics(TopicNames.S2_TO_S3_TOPIC);
+        createAndRegisterReceivingTopics(TopicNames.MODELER_NEW_BOX_TOPIC);
+
         createSendingTopic(TopicNames.REQUESTS_TO_MODELER);
+        createSendingTopic(TopicNames.S3_TO_S2_TOPIC);
 //        conveyorMsgTopic = owner.createTopicForBehaviour(TopicNames.CONVEYOR_TOPIC.name());
 //        convMsgTpl = MessageTemplate.MatchTopic(conveyorMsgTopic);
 //        owner.registerBehaviourToTopic(conveyorMsgTopic);
@@ -53,6 +57,41 @@ public class S3Behaviour extends BaseTopicBasedTickerBehaviour {
 
     }
 
+    void receiveNewBoxArrivedMsg() {
+        ACLMessage msg = owner.receive(templates[TopicNames.MODELER_NEW_BOX_TOPIC.ordinal()]);
+        if (msg == null) return;
+        else receiveNewBoxArrivedMsg();// read all msgs of this template
+
+        if (msg.getOntology().contains(ConveyorOntologies.NewBoxWithID.name())) {//
+            BoxMessage boxMessage = null;
+            try {
+                boxMessage = (BoxMessage) msg.getContentObject();
+            } catch (UnreadableException e) {
+                e.printStackTrace();
+            }
+            //update control values and send it to s2
+            cValueCalc.processNewBox(boxMessage);
+            sendControlValuesToS2();
+
+//check if this msg should be post back for others  to be able to receive it
+            if (owner.s2MustPostNewBoxMsg(boxMessage.boxID)) {
+                owner.postMessage(msg);
+            }
+        }
+
+    }
+
+    void sendControlValuesToS2() {
+        ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+        msg.addReceiver(sendingTopics[TopicNames.S3_TO_S2_TOPIC.ordinal()]);
+        try {
+            msg.setContentObject(cValueCalc.cVals);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        owner.send(msg);
+
+    }
 
     void receiveInsertersReady() {
         ACLMessage msg = owner.receive(templates[TopicNames.S2_TO_S3_TOPIC.ordinal()]);

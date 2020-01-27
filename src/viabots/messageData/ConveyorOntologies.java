@@ -6,4 +6,5 @@ public enum ConveyorOntologies {
     S1TaskConfirmation,
     BoxAtSatation,
     GuiCommands,
+    ChangeConeType,
 }

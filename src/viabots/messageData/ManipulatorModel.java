@@ -40,8 +40,10 @@ public class ManipulatorModel implements Serializable {
         int index = coneType.ordinal();
 
         if (conesAvailable[index] > 0) {
+            conesAvailable[index]--;//decrese cone count
             if (isFirstInsertionDone)
                 return timesForNextInsertion[index];
+
             else {
                 isFirstInsertionDone = true;
                 return timesForFirstInsertion[index];

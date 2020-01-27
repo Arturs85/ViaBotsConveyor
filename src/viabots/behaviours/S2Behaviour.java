@@ -27,7 +27,7 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
     static int infoWaitingTimeout = 6000;// ms
     int waitingCounter = 0;
     BoxMessage currentBoxMessage = null;// message of box for which inserters are currently requested or planned dont receive other messages of this type until plan for current is made
-
+    double latestCval = 0;
     public S2Behaviour(ViaBotAgent a, ConeType coneType) {
         super(a);
         owner = a;
@@ -102,6 +102,7 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
     void subscribeToMessages() {
         createAndRegisterReceivingTopics(TopicNames.MODELER_NEW_BOX_TOPIC);
         createAndRegisterReceivingTopics(TopicNames.S1_TO_S2_TOPIC);
+        createAndRegisterReceivingTopics(TopicNames.S3_TO_S2_TOPIC);
         createSendingTopic(TopicNames.S2_TO_S1_TOPIC);
         createSendingTopic(TopicNames.S2_TO_S3_TOPIC);
 
@@ -284,6 +285,16 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
 
     }
 
+    void receiveControlValue() {// will all s2 of one agent receive this msg?
+        ACLMessage msg = owner.receive(templates[TopicNames.S3_TO_S2_TOPIC.ordinal()]);
+        double[] cVals = null;
+        try {
+            cVals = (double[]) msg.getContentObject();
+        } catch (UnreadableException e) {
+            e.printStackTrace();
+        }
+        latestCval = cVals[coneType.ordinal()];
+    }
 
 
     /**
@@ -315,6 +326,7 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
         owner.send(msg);
     }
 
+
     void sendInsertionRequestToS1(String agentName, int position, int boxID) {
         ACLMessage msg = new ACLMessage(ACLMessage.UNKNOWN);
         msg.setOntology(ConveyorOntologies.TaskAssignmentToS1.name());
@@ -327,5 +339,18 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
         msg.addReceiver(new AID(agentName, true));
         owner.send(msg);
         System.out.println(getBehaviourName() + coneType + " sending insertion request to s1: " + agentName + " position " + position);
+    }
+
+    //for informing own s1 to change its cone type
+    void sendChangeConeType(AID manipAgent, ConeType coneType) {// to s1
+        ACLMessage msg = new ACLMessage(ACLMessage.UNKNOWN);
+        msg.addReceiver(manipAgent);
+        msg.setOntology(ConveyorOntologies.ChangeConeType.name());
+        try {
+            msg.setContentObject(new S1ToS2Message(null, coneType));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        owner.send(msg);
     }
 }

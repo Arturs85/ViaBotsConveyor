@@ -28,8 +28,8 @@ public class ViaBotAgent extends Agent {
     public static final int tickerPeriod = 1000;//ms
     public ManipulatorType type;
     public EnumSet<VSMRoles> currentRoles;
-    int s2RolesCount = 0;//shows how many different s2 behaviours is added to this agent
-    TreeMap<Integer, Integer> unannouncedBoxes = new TreeMap<>(); //key boxid, value - number of s2roles that has processed this newbox msg
+    int sNewBoxArrivedMsgSubscriberRolesCount = 0;//shows how many different s behaviours is added to this agent
+    TreeMap<Integer, Integer> unannouncedBoxes = new TreeMap<>(); //key boxid, value - number of s roles that has processed this newbox msg
     public MessageTemplate uiCommandTpl;
 
     public boolean s2MustPostNewBoxMsg(int boxId) {// called after receiving newBox msg, shows whether to post back to queue this msg
@@ -39,7 +39,7 @@ public class ViaBotAgent extends Agent {
             unannouncedBoxes.put(boxId, unannouncedBoxes.get(boxId) + 1);
         }
         //check whether all s2 has read this newbox msg
-        if (unannouncedBoxes.get(boxId) >= s2RolesCount) {
+        if (unannouncedBoxes.get(boxId) >= sNewBoxArrivedMsgSubscriberRolesCount) {
             unannouncedBoxes.remove(boxId);
             return false;
         } else
@@ -91,14 +91,15 @@ public class ViaBotAgent extends Agent {
         switch (vsmRole) {
             case S3:
                 addBehaviour(new S3Behaviour(this));
+                sNewBoxArrivedMsgSubscriberRolesCount++;
                 break;
             case S2_A:
                 addBehaviour(new S2Behaviour(this, ConeType.A));
-                s2RolesCount++;
+                sNewBoxArrivedMsgSubscriberRolesCount++;
                 break;
             case S2_B:
                 addBehaviour(new S2Behaviour(this, ConeType.B));
-                s2RolesCount++;
+                sNewBoxArrivedMsgSubscriberRolesCount++;
 
                 break;
         }

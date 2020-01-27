@@ -6,12 +6,10 @@ import jade.lang.acl.UnreadableException;
 import viabots.Box;
 import viabots.CommunicationWithHardware;
 import viabots.ManipulatorAgent;
-import viabots.ViaBotAgent;
 import viabots.messageData.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.TreeMap;
 
@@ -25,6 +23,7 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
     Integer currentPosition = null;// cone position in box
     MessageTemplate boxAtStationTpl;
     MessageTemplate taskAssignmentTpl;
+    MessageTemplate coneAssignmentTpl;
     int stationPosition = 0; // box sensor number
 
     public S1ManipulatorBehaviour(ManipulatorAgent manipulatorAgent, Integer sensorPosition) {
@@ -36,6 +35,8 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
         manipulatorModel = new ManipulatorModel(owner.getLocalName(), ConeType.A);//default cone type is set here!!!
         boxAtStationTpl = MessageTemplate.MatchOntology(ConveyorOntologies.BoxAtSatation.name());
         taskAssignmentTpl = MessageTemplate.MatchOntology(ConveyorOntologies.TaskAssignmentToS1.name());
+        coneAssignmentTpl = MessageTemplate.MatchOntology(ConveyorOntologies.ChangeConeType.name());
+
         createAndRegisterReceivingTopics(TopicNames.UI_TO_MANIPULATOR);
         createSendingTopic(TopicNames.S1_TO_S2_TOPIC);
         createSendingTopic(TopicNames.REQUESTS_TO_MODELER);
@@ -111,17 +112,17 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
      * call this after processing all topic messages, because this call will empty msg queue
      */
     public void receiveDirectlyAdressedMsgs() {// further needs update to receive box id
-        ACLMessage msg = master.receive();
+        ACLMessage msg = master.receive(coneAssignmentTpl);
         while (msg != null) {
-            if (msg.getContent().contains(MessageContent.INSERT_CONE.name())) {
-
-                String posString = msg.getContent().substring(MessageContent.INSERT_CONE.name().length());
-                int pos = Integer.parseInt(posString);
-                // TODO: 19.19.12    //prepeare to insert part when box arrives
-
+            S1ToS2Message msgObj = null;
+            try {
+                msgObj = (S1ToS2Message) msg.getContentObject();
+            } catch (UnreadableException e) {
+                e.printStackTrace();
             }
-
-            msg = master.receive();
+            System.out.println(master.getLocalName() + " changing cone type from " + manipulatorModel.currentCone + " to " + msgObj.currentConeType);
+            setCurentConeType(msgObj.currentConeType);
+            msg = master.receive(coneAssignmentTpl);
         }
     }
 
@@ -144,6 +145,7 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
         }
     }
 
+    //process all msgs of this topic
     public void receiveInfoRequestMessage() {//from s2
         ACLMessage msg = master.receive(templates[TopicNames.S2_TO_S1_TOPIC.ordinal()]);
         if (msg != null) {
@@ -166,6 +168,7 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
             }
         } //else
     }
+
 
     public void receiveInsertionRequestMessage() {//from s2
         ACLMessage msg = master.receive(taskAssignmentTpl);
