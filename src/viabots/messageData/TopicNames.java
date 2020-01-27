@@ -13,6 +13,6 @@ public enum TopicNames {
     REQUESTS_TO_MODELER,
     UI_TO_MANIPULATOR,
     S3_TO_S2_TOPIC,
-
+    S2_TO_S2_TOPIC,
 
 }

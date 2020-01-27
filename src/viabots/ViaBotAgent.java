@@ -30,6 +30,8 @@ public class ViaBotAgent extends Agent {
     public EnumSet<VSMRoles> currentRoles;
     int sNewBoxArrivedMsgSubscriberRolesCount = 0;//shows how many different s behaviours is added to this agent
     TreeMap<Integer, Integer> unannouncedBoxes = new TreeMap<>(); //key boxid, value - number of s roles that has processed this newbox msg
+    TreeMap<ACLMessage, Integer> unreadMsgs = new TreeMap<>();// shows how many times msg has been read
+    public int[] subscribersForTopic = new int[TopicNames.values().length];
     public MessageTemplate uiCommandTpl;
 
     public boolean s2MustPostNewBoxMsg(int boxId) {// called after receiving newBox msg, shows whether to post back to queue this msg
@@ -41,6 +43,20 @@ public class ViaBotAgent extends Agent {
         //check whether all s2 has read this newbox msg
         if (unannouncedBoxes.get(boxId) >= sNewBoxArrivedMsgSubscriberRolesCount) {
             unannouncedBoxes.remove(boxId);
+            return false;
+        } else
+            return true;
+    }
+
+    public boolean s2MustPostMsg(ACLMessage msg, TopicNames topicName) {// called after receiving newBox msg, shows whether to post back to queue this msg
+        if (unreadMsgs.get(msg) == null) {
+            unreadMsgs.put(msg, 1);//mark first reception
+        } else {//update reads count
+            unreadMsgs.put(msg, unannouncedBoxes.get(msg) + 1);
+        }
+        //check whether all s2 has read this newbox msg
+        if (unreadMsgs.get(unreadMsgs) >= subscribersForTopic[topicName.ordinal()]) {
+            unreadMsgs.remove(msg);
             return false;
         } else
             return true;

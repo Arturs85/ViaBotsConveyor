@@ -28,6 +28,8 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
     int waitingCounter = 0;
     BoxMessage currentBoxMessage = null;// message of box for which inserters are currently requested or planned dont receive other messages of this type until plan for current is made
     double latestCval = 0;
+    double[] latestCVals;
+
     public S2Behaviour(ViaBotAgent a, ConeType coneType) {
         super(a);
         owner = a;
@@ -42,9 +44,11 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
 // look through all new messages
         processMessages2(templates[TopicNames.S1_TO_S2_TOPIC.ordinal()]);
         processMessages2(templates[TopicNames.MODELER_NEW_BOX_TOPIC.ordinal()]);
+        receiveControlValue();// right moment?
 
         switch (state) {
             case IDLE:
+                receiveS2Request();// receive these msgs only when not planing own inserters
                 break;
             case WAITING_S1_INFO:
 
@@ -103,19 +107,10 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
         createAndRegisterReceivingTopics(TopicNames.MODELER_NEW_BOX_TOPIC);
         createAndRegisterReceivingTopics(TopicNames.S1_TO_S2_TOPIC);
         createAndRegisterReceivingTopics(TopicNames.S3_TO_S2_TOPIC);
+        createAndRegisterReceivingTopics(TopicNames.S2_TO_S2_TOPIC);
+
         createSendingTopic(TopicNames.S2_TO_S1_TOPIC);
         createSendingTopic(TopicNames.S2_TO_S3_TOPIC);
-
-//       conveyorMsgTopic = owner.createTopicForBehaviour(TopicNames.CONVEYOR_TOPIC.name());
-//        convMsgTpl = MessageTemplate.MatchTopic(conveyorMsgTopic);
-//        owner.registerBehaviourToTopic(conveyorMsgTopic);
-//
-//        s2toS1Topic = owner.createTopicForBehaviour(TopicNames.S2_TO_S1_TOPIC.name());
-//
-//        s1toS2Topic = owner.createTopicForBehaviour(TopicNames.S1_TO_S2_TOPIC.name());
-//        owner.registerBehaviourToTopic(s1toS2Topic);
-//        s1toS2Tpl = MessageTemplate.MatchTopic(s1toS2Topic);
-
 
     }
 
@@ -144,73 +139,6 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
         insertersList.put(boxMessage.boxID, new BoxWInserters(boxMessage.boxID, boxMessage.boxType));
         return true;
     }
-
-//    void processMessages(MessageTemplate template) {// reads all available messages of corresponding template
-//        ACLMessage msg = owner.receive(template);
-//        while (msg != null) {
-//            System.out.println(owner.getLocalName()+" received msg with template: "+ template.toString());
-//            if (template.equals(templates[TopicNames.S1_TO_S2_TOPIC.ordinal()])) {
-//                if (msg.getPerformative() == ACLMessage.INFORM) {// this should be reply to info request
-//                    try {
-//                        ManipulatorModel incomingMsg = (ManipulatorModel) (msg.getContentObject());
-//                        if(!incomingMsg.currentCone.equals(coneType)){//this msg is for other s2 type
-//                            owner.postMessage(msg);
-//                            return;
-//                        }
-//                        s1List.put(msg.getSender().getName(), incomingMsg);
-//                        System.out.println("s2" +coneType+" received model from "+msg.getSender().getLocalName());
-//                    } catch (UnreadableException e) {
-//                        e.printStackTrace();
-//                    }
-//                } else// this should be ready confirmation from s1
-//                    //should receice confirmation of assignment
-//                    if (msg.getPerformative() == ACLMessage.ACCEPT_PROPOSAL) {
-//                        BoxMessage reply = null;
-//                        try {
-//                            reply = (BoxMessage) msg.getContentObject();
-//                        } catch (UnreadableException e) {
-//                            e.printStackTrace();
-//                        }
-//                        if(!reply.coneType.equals(coneType)){//this msg is for other s2 type
-//                            owner.postMessage(msg);
-//                            System.out.println("s2" +coneType+" received agree s1 "+reply.coneType+", posting back");
-//
-//                            continue;// continue untill end of msg queue
-//                        }
-//                        System.out.println("s2" +coneType+" received agree from "+msg.getSender().getLocalName());
-//
-//                        insertersList.get(reply.boxID).setInserter(msg.getSender(), reply.positionInBox);//mark insertion request accepted
-//
-//
-//                    }
-//
-//            } else if (template.equals(templates[TopicNames.MODELER_NEW_BOX_TOPIC.ordinal()])) {
-//                if (msg.getOntology().contains(ConveyorOntologies.NewBoxWithID.name())) {// make plan for this box
-//                    BoxMessage boxMessage = null;
-//                    try {
-//                        boxMessage = (BoxMessage) msg.getContentObject();
-//                    } catch (UnreadableException e) {
-//                        e.printStackTrace();
-//                    }
-//                    if(currentBoxMessage!=null && currentBoxMessage.boxID==boxMessage.boxID){// this behaviour already receved this msg, put it back
-//                        owner.postMessage(msg);
-//                        return;
-//                    }
-//                    currentBoxMessage=boxMessage;
-//                    enterState(S2States.WAITING_S1_INFO);// sends info requests and waits time
-//                    String boxTypeString = msg.getContent().substring(ConveyorAgent.boxArrived.length() + 1);
-////check if this msg should be post back for other s2 to be able to receive it
-//                    if(owner.s2MustPostNewBoxMsg(currentBoxMessage.boxID)){
-//                        owner.postMessage(msg);
-//                    }
-//                }
-//
-//            }
-//
-//            msg = owner.receive(template);
-//        }
-//
-//    }
 
 
     void processMessages2(MessageTemplate template) {// reads all available messages of corresponding template
@@ -294,8 +222,48 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
             e.printStackTrace();
         }
         latestCval = cVals[coneType.ordinal()];
+        latestCVals = cVals;
+        if (owner.s2MustPostMsg(msg, TopicNames.S3_TO_S2_TOPIC))
+            owner.postMessage(msg);
+        System.out.println(getBehaviourName() + coneType + " received control values from S3");
     }
 
+    void receiveS2Request() {// all s2 on every agent should receive this
+        ACLMessage msg = owner.receive(templates[TopicNames.S2_TO_S2_TOPIC.ordinal()]);
+        if (msg.getOntology().equals(ConveyorOntologies.S1Request)) {
+            ConeType requestingType = null;
+            try {
+                requestingType = (ConeType) msg.getContentObject();
+            } catch (UnreadableException e) {
+                e.printStackTrace();
+            }
+            if (owner.s2MustPostMsg(msg, TopicNames.S2_TO_S2_TOPIC))
+                owner.postMessage(msg);
+            if (requestingType.equals(coneType)) return;// it is message from itself
+            // compare own cVal with requesting s2
+            if (latestCVals[requestingType.ordinal()] < latestCVals[coneType.ordinal()] - 1) {
+                // find manipulator to give to requester
+                String manip = findLeastValuedManipulator();
+                sendChangeConeType(manip, requestingType);
+            }
+
+
+        } else
+            owner.postMessage(msg);
+
+    }
+
+    String findLeastValuedManipulator() {//returns manipulator agent name
+        int speedOfLeastSoFar = 0;
+        String nameOfLeastSoFar = null;
+        for (Map.Entry<String, ManipulatorModel> entry : s1List.entrySet()) {
+            if (entry.getValue().timesForNextInsertion[coneType.ordinal()] > speedOfLeastSoFar) {
+                speedOfLeastSoFar = entry.getValue().timesForNextInsertion[coneType.ordinal()];
+                nameOfLeastSoFar = entry.getKey();
+            }
+        }
+        return nameOfLeastSoFar;
+    }
 
     /**
      * forward boxMessage to coresponding s1 so they can reply with speeds for that particular box
@@ -342,9 +310,9 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
     }
 
     //for informing own s1 to change its cone type
-    void sendChangeConeType(AID manipAgent, ConeType coneType) {// to s1
+    void sendChangeConeType(String manipAgent, ConeType coneType) {// to s1
         ACLMessage msg = new ACLMessage(ACLMessage.UNKNOWN);
-        msg.addReceiver(manipAgent);
+        msg.addReceiver(new AID(manipAgent, true));
         msg.setOntology(ConveyorOntologies.ChangeConeType.name());
         try {
             msg.setContentObject(new S1ToS2Message(null, coneType));

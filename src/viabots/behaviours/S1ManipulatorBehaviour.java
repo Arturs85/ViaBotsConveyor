@@ -58,6 +58,7 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
         receiveInfoRequestMessage();
         receiveInsertionRequestMessage();
         receiveBoxArrivedMessage();
+        receiveTypeChangeMsg();
         receiveUImessage();
 
         switch (state) {
@@ -111,7 +112,7 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
     /**
      * call this after processing all topic messages, because this call will empty msg queue
      */
-    public void receiveDirectlyAdressedMsgs() {// further needs update to receive box id
+    public void receiveTypeChangeMsg() {// further needs update to receive box id
         ACLMessage msg = master.receive(coneAssignmentTpl);
         while (msg != null) {
             S1ToS2Message msgObj = null;

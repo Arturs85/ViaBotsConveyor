@@ -22,6 +22,7 @@ public abstract class BaseTopicBasedTickerBehaviour extends TickerBehaviour {
         receivingTopics[topicName.ordinal()] = owner.createTopicForBehaviour(topicName.name());
         owner.registerBehaviourToTopic(receivingTopics[topicName.ordinal()]);
         templates[topicName.ordinal()] = MessageTemplate.MatchTopic(receivingTopics[topicName.ordinal()]);
+        owner.subscribersForTopic[topicName.ordinal()]++;// can bee overfilled if this method is called repeatedly
     }
 
 

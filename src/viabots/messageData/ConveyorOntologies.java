@@ -7,4 +7,5 @@ public enum ConveyorOntologies {
     BoxAtSatation,
     GuiCommands,
     ChangeConeType,
+    S1Request,
 }

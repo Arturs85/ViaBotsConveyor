@@ -10,7 +10,7 @@ public class ManipulatorModel implements Serializable {
     int coneTypesCount = ConeType.values().length;
     public int[] conesAvailable = new int[coneTypesCount];
     int[] timesForFirstInsertion = new int[coneTypesCount];
-    int[] timesForNextInsertion = new int[coneTypesCount];
+    public int[] timesForNextInsertion = new int[coneTypesCount];
     public ConeType currentCone;
 
     public ManipulatorModel(String agentName, ConeType currentCone) {
