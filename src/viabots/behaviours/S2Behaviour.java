@@ -215,6 +215,7 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
 
     void receiveControlValue() {// will all s2 of one agent receive this msg?
         ACLMessage msg = owner.receive(templates[TopicNames.S3_TO_S2_TOPIC.ordinal()]);
+        if(msg==null)return;
         double[] cVals = null;
         try {
             cVals = (double[]) msg.getContentObject();
@@ -230,6 +231,7 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
 
     void receiveS2Request() {// all s2 on every agent should receive this
         ACLMessage msg = owner.receive(templates[TopicNames.S2_TO_S2_TOPIC.ordinal()]);
+        if(msg==null)return;
         if (msg.getOntology().equals(ConveyorOntologies.S1Request)) {
             ConeType requestingType = null;
             try {
