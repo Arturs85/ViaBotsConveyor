@@ -71,6 +71,19 @@ public class GuiInteractionBehaviour extends TickerBehaviour {
         master.send(msg);
     }
 
+    public static void sendConeTypeChanged(ViaBotAgent master, ConeType conetype) {
+        MessageToGUI data = new MessageToGUI(EnumSet.of(conetype));
+        ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+        try {
+            msg.setContentObject(data);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        msg.addReceiver(master.uiTopic);
+
+        master.send(msg);
+    }
+
     public static void sendTakeDownMessageToGui(ViaBotAgent master) {
         MessageToGUI data = new MessageToGUI(master.isConnected(), master.type, true);
         // System.out.println("is connected: "+master.communication.isConnected());

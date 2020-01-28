@@ -123,7 +123,9 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
             }
             System.out.println(master.getLocalName() + " changing cone type from " + manipulatorModel.currentCone + " to " + msgObj.currentConeType);
             setCurentConeType(msgObj.currentConeType);
+            GuiInteractionBehaviour.sendConeTypeChanged(owner, manipulatorModel.currentCone);
             msg = master.receive(coneAssignmentTpl);
+
         }
     }
 

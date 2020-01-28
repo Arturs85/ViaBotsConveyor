@@ -38,4 +38,5 @@ public class MessageToGUI implements Serializable {
     public MessageToGUI(int[] coneCount) {
         this.coneCount = coneCount;
     }
+
 }

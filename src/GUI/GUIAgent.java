@@ -111,7 +111,9 @@ public class GUIAgent extends Agent {
                     ai.coneAvailableCountA.setValue(msg.coneCount[0]);
                     ai.coneAvailableCountB.setValue(msg.coneCount[1]);
                     ai.coneAvailableCountC.setValue(msg.coneCount[2]);
-
+                }
+                if (msg.enabledParts != null) {
+                    ai.setEnabledCones(msg.enabledParts);
                 }
             });
             if (msg.isTakenDown) {

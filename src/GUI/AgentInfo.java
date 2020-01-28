@@ -100,6 +100,16 @@ public class AgentInfo {
 
     }
 
+    void setEnabledCones(EnumSet<ConeType> enabledCones) {
+        enabledParts = enabledCones;
+
+        isAEnabledProperty.set(enabledCones.contains(ConeType.A));
+        isBEnabledProperty.set(enabledCones.contains(ConeType.B));
+        isCEnabledProperty.set(enabledCones.contains(ConeType.C));
+
+
+    }
+
     AgentInfo(String name, ManipulatorType type) {
         this.agentName = name;
         this.type = type;
