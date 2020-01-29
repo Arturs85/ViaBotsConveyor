@@ -14,6 +14,7 @@ import viabots.behaviours.S3Behaviour;
 import viabots.messageData.ConveyorOntologies;
 import viabots.messageData.TopicNames;
 
+import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.TreeMap;
 
@@ -30,7 +31,7 @@ public class ViaBotAgent extends Agent {
     public EnumSet<VSMRoles> currentRoles;
     int sNewBoxArrivedMsgSubscriberRolesCount = 0;//shows how many different s behaviours is added to this agent
     TreeMap<Integer, Integer> unannouncedBoxes = new TreeMap<>(); //key boxid, value - number of s roles that has processed this newbox msg
-    TreeMap<ACLMessage, Integer> unreadMsgs = new TreeMap<>();// shows how many times msg has been read
+    TreeMap<ACLMessage, Integer> unreadMsgs = new TreeMap(Comparator.comparingInt(Object::hashCode));// shows how many times msg has been read
     public int[] subscribersForTopic = new int[TopicNames.values().length];
     public MessageTemplate uiCommandTpl;
 
@@ -52,10 +53,10 @@ public class ViaBotAgent extends Agent {
         if (unreadMsgs.get(msg) == null) {
             unreadMsgs.put(msg, 1);//mark first reception
         } else {//update reads count
-            unreadMsgs.put(msg, unannouncedBoxes.get(msg) + 1);
+            unreadMsgs.put(msg, unreadMsgs.get(msg) + 1);
         }
         //check whether all s2 has read this newbox msg
-        if (unreadMsgs.get(unreadMsgs) >= subscribersForTopic[topicName.ordinal()]) {
+        if (unreadMsgs.get(msg) >= subscribersForTopic[topicName.ordinal()]) {
             unreadMsgs.remove(msg);
             return false;
         } else

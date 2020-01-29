@@ -29,7 +29,7 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
     BoxMessage currentBoxMessage = null;// message of box for which inserters are currently requested or planned dont receive other messages of this type until plan for current is made
     double latestCval = 0;
     double[] latestCVals;
-
+    double latestS1Count = 0;
     public S2Behaviour(ViaBotAgent a, ConeType coneType) {
         super(a);
         owner = a;
@@ -44,25 +44,35 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
 // look through all new messages
         processMessages2(templates[TopicNames.S1_TO_S2_TOPIC.ordinal()]);
         processMessages2(templates[TopicNames.MODELER_NEW_BOX_TOPIC.ordinal()]);
+        receiveS2Request();// receive these msgs only when not planing own inserters
         receiveControlValue();// right moment?
 
         switch (state) {
             case IDLE:
-                receiveS2Request();// receive these msgs only when not planing own inserters
                 break;
             case WAITING_S1_INFO:
 
                 waitingCounter--;
                 if (waitingCounter <= 0) {// waiting time is over, try to make plan using received manipulatorModels
+                    latestS1Count = s1List.size();
                     boolean hasPlan = makePlan(currentBoxMessage);
 
                     if (hasPlan) {//plan has been made and requests according to the plan has been sent
                         enterState(S2States.WAITING_S1_CONFIRM_PREPEARED);
                     } else {// plan could not be made- start again with requests
+                        sendWorkerRequest();// request workers only if plan cant be made
                         enterState(S2States.WAITING_S1_INFO);
                     }
 
                 }
+                break;
+            case REFRESH_S1_LIST:
+                waitingCounter--;
+                if (waitingCounter <= 0) {// waiting time is over, try to make plan using received manipulatorModels
+                    latestS1Count = s1List.size();
+                    enterState(S2States.IDLE);
+                }
+
                 break;
             case WAITING_S1_CONFIRM_PREPEARED:
                 if (insertersList.get(currentBoxMessage.boxID).hasAllInserters(coneType)) {// all inserters ready, send ready msg to S3
@@ -92,6 +102,15 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
                 waitingCounter = infoWaitingTimeout / ViaBotAgent.tickerPeriod;
                 state = S2States.WAITING_S1_INFO;
                 break;
+            case REFRESH_S1_LIST:
+                s1List.clear();
+                currentBoxMessage.coneType = coneType;// sets own cone type, so receivers can only select messages with appropriate cone type
+                sendInfoRequestMessagesToS1(currentBoxMessage);
+                waitingCounter = infoWaitingTimeout / ViaBotAgent.tickerPeriod;
+                state = S2States.REFRESH_S1_LIST;
+
+
+                break;
             case WAITING_S1_CONFIRM_PREPEARED:
 
                 state = S2States.WAITING_S1_CONFIRM_PREPEARED;
@@ -111,7 +130,7 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
 
         createSendingTopic(TopicNames.S2_TO_S1_TOPIC);
         createSendingTopic(TopicNames.S2_TO_S3_TOPIC);
-
+        createSendingTopic(TopicNames.S2_TO_S2_TOPIC);
     }
 
     /**
@@ -215,6 +234,7 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
 
     void receiveControlValue() {// will all s2 of one agent receive this msg?
         ACLMessage msg = owner.receive(templates[TopicNames.S3_TO_S2_TOPIC.ordinal()]);
+        if (msg == null) return;
         double[] cVals = null;
         try {
             cVals = (double[]) msg.getContentObject();
@@ -225,29 +245,36 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
         latestCVals = cVals;
         if (owner.s2MustPostMsg(msg, TopicNames.S3_TO_S2_TOPIC))
             owner.postMessage(msg);
-        System.out.println(getBehaviourName() + coneType + " received control values from S3");
+        System.out.println(getBehaviourName() + coneType + " received control values from S3, own value: " + latestCval);
     }
 
     void receiveS2Request() {// all s2 on every agent should receive this
         ACLMessage msg = owner.receive(templates[TopicNames.S2_TO_S2_TOPIC.ordinal()]);
-        if (msg.getOntology().equals(ConveyorOntologies.S1Request)) {
-            ConeType requestingType = null;
+        if (msg == null) return;
+        System.out.println("S2" + coneType + " Received s2 request for worker from S2, msg hash: " + msg.hashCode());
+
+        if (msg.getOntology().equals(ConveyorOntologies.S1Request.name())) {
+            S2RequestMsg requestMsg = null;
             try {
-                requestingType = (ConeType) msg.getContentObject();
+                requestMsg = (S2RequestMsg) msg.getContentObject();
             } catch (UnreadableException e) {
                 e.printStackTrace();
             }
             if (owner.s2MustPostMsg(msg, TopicNames.S2_TO_S2_TOPIC))
                 owner.postMessage(msg);
-            if (requestingType.equals(coneType)) return;// it is message from itself
+            if (requestMsg.coneType.equals(coneType)) return;// it is message from itself
+            if (state != S2States.IDLE) return;// process message only when not planing own inserters
+            System.out.println("S2" + coneType + " Received s2 request for worker from S2" + requestMsg.coneType);
+
             // compare own cVal with requesting s2
-            if (latestCVals[requestingType.ordinal()] < latestCVals[coneType.ordinal()] - 1) {
+            if (requestMsg.cVal > (getLatestCval() + 1)) {
                 // find manipulator to give to requester
                 String manip = findLeastValuedManipulator();
-                sendChangeConeType(manip, requestingType);
+                sendChangeConeType(manip, requestMsg.coneType);
+                System.out.println("S2" + coneType + " sending change to " + requestMsg.coneType);
             }
 
-
+            System.out.println("initiator: " + requestMsg.coneType + " " + requestMsg.cVal + " receiver: " + coneType + " " + getLatestCval());
         } else
             owner.postMessage(msg);
 
@@ -262,6 +289,7 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
                 nameOfLeastSoFar = entry.getKey();
             }
         }
+        enterState(S2States.REFRESH_S1_LIST);//update workers list after giveaway
         return nameOfLeastSoFar;
     }
 
@@ -320,5 +348,22 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
             e.printStackTrace();
         }
         owner.send(msg);
+    }
+
+    void sendWorkerRequest() {
+        ACLMessage msg = new ACLMessage(ACLMessage.UNKNOWN);
+        msg.setOntology(ConveyorOntologies.S1Request.name());
+        try {
+            msg.setContentObject(new S2RequestMsg(coneType, getLatestCval()));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        msg.addReceiver(sendingTopics[TopicNames.S2_TO_S2_TOPIC.ordinal()]);
+        owner.send(msg);
+        System.out.println(getBehaviourName() + coneType + " sending worker request to other S2's");
+    }
+
+    double getLatestCval() {
+        return latestCval - latestS1Count;
     }
 }

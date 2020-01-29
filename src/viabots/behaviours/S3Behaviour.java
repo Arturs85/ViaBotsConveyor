@@ -33,7 +33,9 @@ public class S3Behaviour extends BaseTopicBasedTickerBehaviour {
 
     @Override
     protected void onTick() {
+        receiveNewBoxArrivedMsg();
         receiveInsertersReady();
+
     }
 
     void subscribeToMessages() {
