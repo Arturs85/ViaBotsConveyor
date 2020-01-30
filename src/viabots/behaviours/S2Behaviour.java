@@ -38,7 +38,8 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
         this.coneType = coneType;
         subscribeToMessages();
     }
-
+//todo initial manipulator cone type is not reflected in the ui
+//todo large reply waiting times
 
     @Override
     protected void onTick() {
@@ -89,7 +90,10 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
                 if (waitingCounter <= 0) {// waiting time is over
 // this means that no positive replys were received, no use to try to query own workers again, send request to s3
                     // enterState(S2States.WAITING_S1_INFO);
+//send again request to s2, because previous one may be skipped due to the unsuitable state of receiver
 
+                    sendWorkerRequest();// request workers again
+                    enterState(S2States.WAITING_S2_REPLY);
                 }
 
                 break;
@@ -280,18 +284,19 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
             if (requestMsg.coneType.equals(coneType)) return;// it is message from itself
             if (state != S2States.IDLE) return;// process message only when not planing own inserters
             System.out.println("S2" + coneType + " Received s2 request for worker from S2" + requestMsg.coneType);
+            String manip = findLeastValuedManipulator(requestMsg.coneType);
 
             // compare own cVal with requesting s2
-            if (requestMsg.cVal > (getLatestCval() + 1)) {
+            if (requestMsg.cVal > (getLatestCval() + 1) && manip!= null) {
                 // find manipulator to give to requester
-                String manip = findLeastValuedManipulator();
+
                 enterState(S2States.REFRESH_S1_LIST);//update workers list after giveaway
 
-                sendChangeConeType(manip, requestMsg.coneType);
-                //send reply to requester
-                sendReplyToS2Request(true, requestMsg.coneType);
-                System.out.println("S2" + coneType + " sending change to " + requestMsg.coneType);
-            } else {
+    sendChangeConeType(manip, requestMsg.coneType);
+    //send reply to requester
+    sendReplyToS2Request(true, requestMsg.coneType);
+    System.out.println("S2" + coneType + " sending change to " + requestMsg.coneType);
+} else {
                 sendReplyToS2Request(false, requestMsg.coneType);
 
             }
@@ -325,11 +330,11 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
         }
     }
 
-    String findLeastValuedManipulator() {//returns manipulator agent name
+    String findLeastValuedManipulator(ConeType requesterType) {//returns manipulator agent name
         int speedOfLeastSoFar = 0;
         String nameOfLeastSoFar = null;
-        for (Map.Entry<String, ManipulatorModel> entry : s1List.entrySet()) {
-            if (entry.getValue().timesForNextInsertion[coneType.ordinal()] > speedOfLeastSoFar) {
+        for (Map.Entry<String, ManipulatorModel> entry : s1List.entrySet()) {//consider only manipulators with cones of requester type
+            if (entry.getValue().timesForNextInsertion[coneType.ordinal()] > speedOfLeastSoFar && entry.getValue().conesAvailable[requesterType.ordinal()]>0 ) {
                 speedOfLeastSoFar = entry.getValue().timesForNextInsertion[coneType.ordinal()];
                 nameOfLeastSoFar = entry.getKey();
             }
@@ -404,7 +409,7 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
         msg.addReceiver(sendingTopics[TopicNames.S2_TO_S2_TOPIC.ordinal()]);
         msg.setOntology(ConveyorOntologies.S1Request.name());
         try {
-            msg.setContentObject(new S1ToS2Message(null, receiverConeType));
+            msg.setContentObject(new S2RequestMsg(receiverConeType,0));
         } catch (IOException e) {
             e.printStackTrace();
         }
