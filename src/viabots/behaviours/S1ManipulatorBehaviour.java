@@ -42,6 +42,7 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
         createSendingTopic(TopicNames.REQUESTS_TO_MODELER);
         stationPosition = sensorPosition;
         System.out.println("created agent at sensor position " + sensorPosition);
+        GuiInteractionBehaviour.sendConeTypeChanged(owner, manipulatorModel.currentCone);// For initial cone type to bee visible on gui
     }
 
     void setCurentConeType(ConeType coneType) {//for changing cone type that robot currently is set to insert

@@ -38,7 +38,6 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
         this.coneType = coneType;
         subscribeToMessages();
     }
-//todo initial manipulator cone type is not reflected in the ui
 //todo large reply waiting times
 
     @Override
