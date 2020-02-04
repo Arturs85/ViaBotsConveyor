@@ -24,8 +24,8 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
     Map<String, ManipulatorModel> s1List = new TreeMap<>();
     TreeMap<Integer, BoxWInserters> insertersList = new TreeMap<>();
     S2States state = S2States.IDLE;
-    static int infoWaitingTimeout = 6000;// ms
-    static int grantWaitingTimeout = 9000;// ms
+    static int infoWaitingTimeout = 3000;// ms
+    static int grantWaitingTimeout = 4000;// ms
 
     int waitingCounter = 0;
     BoxMessage currentBoxMessage = null;// message of box for which inserters are currently requested or planned dont receive other messages of this type until plan for current is made
@@ -93,7 +93,8 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
 
                    // sendWorkerRequest();// request workers again
                    // enterState(S2States.WAITING_S2_REPLY);
-                enterState(S2States.WAITING_S1_INFO);// query own manipulators again, maybe cones has been added
+                    sendResourceRequestToS3();
+                    enterState(S2States.WAITING_S1_INFO);// query own manipulators again, maybe cones has been added
                 }
 
                 break;
@@ -340,6 +341,19 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
             }
         }
         return nameOfLeastSoFar;
+    }
+
+    void sendResourceRequestToS3() {
+        ACLMessage msg = new ACLMessage(ACLMessage.FAILURE);
+        try {
+            msg.setContentObject(new S2RequestMsg(coneType, getLatestCval()));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        msg.addReceiver(sendingTopics[TopicNames.S2_TO_S3_TOPIC.ordinal()]);
+        owner.send(msg);
+        //enterState(S2States.WAITING_S2_REPLY);
+        System.out.println(getBehaviourName() + coneType + " sending failure to S3");
     }
 
     /**

@@ -17,4 +17,9 @@ public class ControlValueCalculator {
         }
     }
 
+    void increaseAskersVal(ConeType askersConeType) {
+        cVals[askersConeType.ordinal()]++;
+
+    }
+
 }

@@ -9,6 +9,7 @@ import jade.lang.acl.UnreadableException;
 import viabots.*;
 import viabots.messageData.BoxMessage;
 import viabots.messageData.ConveyorOntologies;
+import viabots.messageData.S2RequestMsg;
 import viabots.messageData.TopicNames;
 
 import java.io.IOException;
@@ -95,6 +96,7 @@ public class S3Behaviour extends BaseTopicBasedTickerBehaviour {
 
     }
 
+
     void receiveInsertersReady() {
         ACLMessage msg = owner.receive(templates[TopicNames.S2_TO_S3_TOPIC.ordinal()]);
         while (msg != null) {
@@ -121,8 +123,19 @@ public class S3Behaviour extends BaseTopicBasedTickerBehaviour {
                 }
 
 
-            }
+            } else if (msg.getPerformative() == ACLMessage.FAILURE) {//this should be s2 asking for resources msg
+                S2RequestMsg obj = null;
 
+                try {
+                    obj = (S2RequestMsg) msg.getContentObject();
+                } catch (UnreadableException e) {
+                    e.printStackTrace();
+                }
+// increase cVal for asker and send new cVals
+                cValueCalc.increaseAskersVal(obj.coneType);
+                sendControlValuesToS2();
+                System.out.println("S3 sent updated cVals after S2" + obj.coneType + " request");
+            }
             msg = owner.receive(templates[TopicNames.S2_TO_S3_TOPIC.ordinal()]);
         }
     }

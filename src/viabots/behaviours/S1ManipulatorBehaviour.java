@@ -174,7 +174,7 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
     }
 
 
-    public void receiveInsertionRequestMessage() {//from s2
+    public void receiveInsertionRequestMessage() {//from s2, sent by name
         ACLMessage msg = master.receive(taskAssignmentTpl);
         if (msg != null) {
             if (msg.getOntology().equals(ConveyorOntologies.TaskAssignmentToS1.name())) {//remove double check
