@@ -15,7 +15,7 @@ public class Main {
     static int agentsCounter = 0;
     static String localHost = "vnpc-Precision-T1700";
     final static int CONNECTING_INTERVAL = 4000;
-
+static String version = "feb2";
     /**
      * arg[0] hostname of main container- needed only if this is peripherial container
      * arg[1] manipulator type name as in enum {@link ManipulatorType}
@@ -23,6 +23,7 @@ public class Main {
      */
     public static void main(String[] args) {
 //test
+        System.out.println("version: "+version);
         BoxType type = BoxType.B;
         String content = ConveyorAgent.stoppedAt + type.name();
         char position = content.charAt(ConveyorAgent.stoppedAt.length());

@@ -63,7 +63,7 @@ public class ManipulatorAgent extends ViaBotAgent {
         }
         int index = coneType.ordinal();
         coneCountAvailable[index] = coneCountDecrese(coneCountAvailable[index]);
-        GuiInteractionBehaviour.sendConeCountChanged(this, coneCountAvailable);
+      //  GuiInteractionBehaviour.sendConeCountChanged(this, coneCountAvailable);
     }
 
     public void insertPartInPosition(int position) {//positions in box(As shown in Box) is mapped to string commands to manipulator process
@@ -91,7 +91,7 @@ public class ManipulatorAgent extends ViaBotAgent {
         //decrese available cone count of inserted type
         int index = Box.getConeTypeForBoxPosition(position).ordinal();
         coneCountAvailable[index] = coneCountDecrese(coneCountAvailable[index]);
-        GuiInteractionBehaviour.sendConeCountChanged(this, coneCountAvailable);
+     //   GuiInteractionBehaviour.sendConeCountChanged(this, coneCountAvailable);
     }
 
     static int coneCountDecrese(int count) {

@@ -21,9 +21,14 @@ public class ManipulatorModel implements Serializable {
         Arrays.fill(timesForNextInsertion, 5000);// for testing
 
     }
-
+public String toString(){
+        return " ConesAvail: "+conesAvailable[0]+" "+conesAvailable[1]+" "+conesAvailable[2]+" CurType: "+currentCone;
+}
     boolean isFirstInsertionDone = false;
 
+public void reset(){
+    isFirstInsertionDone=false;
+}
     public int peekInsertionTime(ConeType coneType) {
         int index = coneType.ordinal();
 
@@ -43,7 +48,6 @@ public class ManipulatorModel implements Serializable {
             conesAvailable[index]--;//decrese cone count
             if (isFirstInsertionDone)
                 return timesForNextInsertion[index];
-
             else {
                 isFirstInsertionDone = true;
                 return timesForFirstInsertion[index];

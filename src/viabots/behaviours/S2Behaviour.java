@@ -91,8 +91,9 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
                     // enterState(S2States.WAITING_S1_INFO);
 //send again request to s2, because previous one may be skipped due to the unsuitable state of receiver
 
-                    sendWorkerRequest();// request workers again
-                    enterState(S2States.WAITING_S2_REPLY);
+                   // sendWorkerRequest();// request workers again
+                   // enterState(S2States.WAITING_S2_REPLY);
+                enterState(S2States.WAITING_S1_INFO);// query own manipulators again, maybe cones has been added
                 }
 
                 break;
@@ -184,17 +185,18 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
             processMessages2(template);
         }//start processing from last msg, to be able to post back unrelated messages
         if (msg != null) {
-            System.out.println(owner.getLocalName() + " received msg with template: " + template.toString());
+           // System.out.println(owner.getLocalName() + " received msg with template: " + template.toString());
             if (template.equals(templates[TopicNames.S1_TO_S2_TOPIC.ordinal()])) {
                 if (msg.getPerformative() == ACLMessage.INFORM) {// this should be reply to info request
                     try {
                         ManipulatorModel incomingMsg = (ManipulatorModel) (msg.getContentObject());
                         if (!incomingMsg.currentCone.equals(coneType)) {//this msg is for other s2 type
                             owner.postMessage(msg);
-                            return;
+                            //return;
+                        }else {
+                            s1List.put(msg.getSender().getName(), incomingMsg);
+                            System.out.println("s2" + coneType + " received model from " + msg.getSender().getLocalName()+ incomingMsg.toString());
                         }
-                        s1List.put(msg.getSender().getName(), incomingMsg);
-                        System.out.println("s2" + coneType + " received model from " + msg.getSender().getLocalName());
                     } catch (UnreadableException e) {
                         e.printStackTrace();
                     }
@@ -211,7 +213,7 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
                             owner.postMessage(msg);
                             System.out.println("s2" + coneType + " received agree s1 " + reply.coneType + ", posting back");
 
-                        }
+                        }else{
                         System.out.println("s2" + coneType + " received agree from " + msg.getSender().getLocalName());
 
                         if (insertersList.get(reply.boxID) != null) {
@@ -219,9 +221,8 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
                         } else {
                             System.out.println(getBehaviourName() + " 254---NULL POINTER WARNING____");
                         }
-
                     }
-
+                    }
             } else if (template.equals(templates[TopicNames.MODELER_NEW_BOX_TOPIC.ordinal()])) {
                 if (msg.getOntology().contains(ConveyorOntologies.NewBoxWithID.name())) {// make plan for this box
                     BoxMessage boxMessage = null;

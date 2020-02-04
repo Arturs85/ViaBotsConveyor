@@ -42,9 +42,9 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
         createSendingTopic(TopicNames.REQUESTS_TO_MODELER);
         stationPosition = sensorPosition;
         System.out.println("created agent at sensor position " + sensorPosition);
-        GuiInteractionBehaviour.sendConeTypeChanged(owner, manipulatorModel.currentCone);// For initial cone type to bee visible on gui
+      //  GuiInteractionBehaviour.sendConeTypeChanged(owner, manipulatorModel.currentCone);// For initial cone type to bee visible on gui
     }
-
+//todo manipulator loses 1 cone of initial count?
     void setCurentConeType(ConeType coneType) {//for changing cone type that robot currently is set to insert
         manipulatorModel.currentCone = coneType;
     }
@@ -215,6 +215,7 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
 
     void sendinfoToS2(ManipulatorModel model) {
         ACLMessage msg = new ACLMessage(ACLMessage.INFORM);//inform
+        model.reset();//reset isFirstInsertionDone before sending, so that planner gets right value - false. isFirstInsertionDone is meant to use for planner only
         try {
             msg.setContentObject(model);
         } catch (IOException e) {

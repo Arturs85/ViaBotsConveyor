@@ -16,7 +16,7 @@ import java.io.IOException;
 import java.util.*;
 
 public class ConveyorModelingBehaviour extends BaseTopicBasedTickerBehaviour {
-    static int numberOfSensors = 4; // there will be as much queues as there is sensors
+    static int numberOfSensors = 5; // there will be as much queues as there is sensors
 
     List<LinkedList<Box>> boxQueues = new ArrayList<>(numberOfSensors);
     ManipulatorAgent owner;
