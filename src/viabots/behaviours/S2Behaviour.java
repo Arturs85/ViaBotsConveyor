@@ -32,6 +32,7 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
     double latestCval = 0;
     double[] latestCVals;
     double latestS1Count = 0;
+
     public S2Behaviour(ViaBotAgent a, ConeType coneType) {
         super(a);
         owner = a;
@@ -91,8 +92,8 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
                     // enterState(S2States.WAITING_S1_INFO);
 //send again request to s2, because previous one may be skipped due to the unsuitable state of receiver
 
-                   // sendWorkerRequest();// request workers again
-                   // enterState(S2States.WAITING_S2_REPLY);
+                    // sendWorkerRequest();// request workers again
+                    // enterState(S2States.WAITING_S2_REPLY);
                     sendResourceRequestToS3();
                     enterState(S2States.WAITING_S1_INFO);// query own manipulators again, maybe cones has been added
                 }
@@ -186,7 +187,7 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
             processMessages2(template);
         }//start processing from last msg, to be able to post back unrelated messages
         if (msg != null) {
-           // System.out.println(owner.getLocalName() + " received msg with template: " + template.toString());
+            // System.out.println(owner.getLocalName() + " received msg with template: " + template.toString());
             if (template.equals(templates[TopicNames.S1_TO_S2_TOPIC.ordinal()])) {
                 if (msg.getPerformative() == ACLMessage.INFORM) {// this should be reply to info request
                     try {
@@ -194,9 +195,9 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
                         if (!incomingMsg.currentCone.equals(coneType)) {//this msg is for other s2 type
                             owner.postMessage(msg);
                             //return;
-                        }else {
+                        } else {
                             s1List.put(msg.getSender().getName(), incomingMsg);
-                            System.out.println("s2" + coneType + " received model from " + msg.getSender().getLocalName()+ incomingMsg.toString());
+                            System.out.println("s2" + coneType + " received model from " + msg.getSender().getLocalName() + incomingMsg.toString());
                         }
                     } catch (UnreadableException e) {
                         e.printStackTrace();
@@ -214,15 +215,15 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
                             owner.postMessage(msg);
                             System.out.println("s2" + coneType + " received agree s1 " + reply.coneType + ", posting back");
 
-                        }else{
-                        System.out.println("s2" + coneType + " received agree from " + msg.getSender().getLocalName());
-
-                        if (insertersList.get(reply.boxID) != null) {
-                            insertersList.get(reply.boxID).setInserter(msg.getSender(), reply.positionInBox);//mark insertion request accepted//!!!NULL POINTER ERROR
                         } else {
-                            System.out.println(getBehaviourName() + " 254---NULL POINTER WARNING____");
+                            System.out.println("s2" + coneType + " received agree from " + msg.getSender().getLocalName());
+
+                            if (insertersList.get(reply.boxID) != null) {
+                                insertersList.get(reply.boxID).setInserter(msg.getSender(), reply.positionInBox);//mark insertion request accepted//!!!NULL POINTER ERROR
+                            } else {
+                                System.out.println(getBehaviourName() + " 254---NULL POINTER WARNING____");
+                            }
                         }
-                    }
                     }
             } else if (template.equals(templates[TopicNames.MODELER_NEW_BOX_TOPIC.ordinal()])) {
                 if (msg.getOntology().contains(ConveyorOntologies.NewBoxWithID.name())) {// make plan for this box
@@ -288,16 +289,16 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
             String manip = findLeastValuedManipulator(requestMsg.coneType);
 
             // compare own cVal with requesting s2
-            if (requestMsg.cVal > (getLatestCval() + 1) && manip!= null) {
+            if (requestMsg.cVal > (getLatestCval() + 1) && manip != null) {
                 // find manipulator to give to requester
 
                 enterState(S2States.REFRESH_S1_LIST);//update workers list after giveaway
 
-    sendChangeConeType(manip, requestMsg.coneType);
-    //send reply to requester
-    sendReplyToS2Request(true, requestMsg.coneType);
-    System.out.println("S2" + coneType + " sending change to " + requestMsg.coneType);
-} else {
+                sendChangeConeType(manip, requestMsg.coneType);
+                //send reply to requester
+                sendReplyToS2Request(true, requestMsg.coneType);
+                System.out.println("S2" + coneType + " sending change to " + requestMsg.coneType);
+            } else {
                 sendReplyToS2Request(false, requestMsg.coneType);
 
             }
@@ -335,7 +336,7 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
         int speedOfLeastSoFar = 0;
         String nameOfLeastSoFar = null;
         for (Map.Entry<String, ManipulatorModel> entry : s1List.entrySet()) {//consider only manipulators with cones of requester type
-            if (entry.getValue().timesForNextInsertion[coneType.ordinal()] > speedOfLeastSoFar && entry.getValue().conesAvailable[requesterType.ordinal()]>0 ) {
+            if (entry.getValue().timesForNextInsertion[coneType.ordinal()] > speedOfLeastSoFar && entry.getValue().conesAvailable[requesterType.ordinal()] > 0) {
                 speedOfLeastSoFar = entry.getValue().timesForNextInsertion[coneType.ordinal()];
                 nameOfLeastSoFar = entry.getKey();
             }
@@ -423,7 +424,7 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
         msg.addReceiver(sendingTopics[TopicNames.S2_TO_S2_TOPIC.ordinal()]);
         msg.setOntology(ConveyorOntologies.S1Request.name());
         try {
-            msg.setContentObject(new S2RequestMsg(receiverConeType,0));
+            msg.setContentObject(new S2RequestMsg(receiverConeType, 0));
         } catch (IOException e) {
             e.printStackTrace();
         }

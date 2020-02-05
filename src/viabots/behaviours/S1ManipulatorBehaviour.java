@@ -25,6 +25,7 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
     MessageTemplate taskAssignmentTpl;
     MessageTemplate coneAssignmentTpl;
     int stationPosition = 0; // box sensor number
+//boolean isHoldingCone=false;
 
     public S1ManipulatorBehaviour(ManipulatorAgent manipulatorAgent, Integer sensorPosition) {
         super(manipulatorAgent);
@@ -42,9 +43,9 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
         createSendingTopic(TopicNames.REQUESTS_TO_MODELER);
         stationPosition = sensorPosition;
         System.out.println("created agent at sensor position " + sensorPosition);
-      //  GuiInteractionBehaviour.sendConeTypeChanged(owner, manipulatorModel.currentCone);// For initial cone type to bee visible on gui
+        //  GuiInteractionBehaviour.sendConeTypeChanged(owner, manipulatorModel.currentCone);// For initial cone type to bee visible on gui
     }
-//todo manipulator loses 1 cone of initial count?
+
     void setCurentConeType(ConeType coneType) {//for changing cone type that robot currently is set to insert
         manipulatorModel.currentCone = coneType;
     }
@@ -64,9 +65,32 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
 
         switch (state) {
             case IDLE:
+// try to pick up cone for next box, that will arrive i.e. box with least id on the todolist
+                Integer nextPosition = getNextConeToPrepeare();
+                if (nextPosition != null) {//should prepare cone because there is known next box with positions
+                    currentPosition = nextPosition;
+                    // dont set curBoxId yet, because that would mean that box has arrived
+                    startConePickup(Box.getConeTypeForBoxPosition(currentPosition));
+
+                }
+                break;
+            case PICKING_FROM_HOLDER:
+                try {
+                    master.communication.listenForReplyWTimeout(CommunicationWithHardware.SO_READ_TIMEOUT_MS);// this call blocks , no behaviours is executed during this time
+                    System.out.println(getAgent().getLocalName() + " received from hardware -pickup complete ");
+                    state = S1States.HOLDING_CONE;
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
 
                 break;
+            case HOLDING_CONE:
+                if (currentBoxId != null) {//means that box is at sensor
+                    master.insertPartInPosition(currentPosition);
+                    state = S1States.INSERTING;
 
+                }
+                break;
             case INSERTING:
                 //wait for reply from hardware
                 try {
@@ -86,8 +110,8 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
                         System.out.println(getBehaviourName() + " proceeding with next cone insertion ");
 
                         currentPosition = toDoList.get(currentBoxId).get(toDoList.get(currentBoxId).size() - 1);// get next position
-                        master.insertPartInPosition(currentPosition);
-
+                        // master.insertPartInPosition(currentPosition);
+                        startConePickup(Box.getConeTypeForBoxPosition(currentPosition));
                     }
                 } catch (IOException e) {
                     //e.printStackTrace();
@@ -142,8 +166,14 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
             // insert cones according to the toDoList
             currentBoxId = boxMessage.boxID;
             currentPosition = toDoList.get(currentBoxId).get(toDoList.get(currentBoxId).size() - 1);// get first position
-            master.insertPartInPosition(currentPosition);
-            state = S1States.INSERTING;
+            if (state.equals(S1States.HOLDING_CONE)) {
+                master.insertPartInPosition(currentPosition);// todo currentPosition is no valid anymore
+                state = S1States.INSERTING;
+            } else {//pick up cone, this shold not be executed, because first cone should always be prepeared
+                startConePickup(Box.getConeTypeForBoxPosition(currentPosition));
+            }
+
+
             System.out.println("box id: " + boxMessage.boxID + " stopped at station received  " + master.getName());
 
         }
@@ -206,6 +236,29 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
             toDoList.put(boxId, positions);
         }
         positions.add(conePosition);
+// pick up cone for next insertion, if has not holding one already
+        if (!state.equals(S1States.PICKING_FROM_HOLDER) && !state.equals(S1States.HOLDING_CONE)) {
+            startConePickup(Box.getConeTypeForBoxPosition(conePosition));
+        }
+    }
+
+    void startConePickup(ConeType coneType) {
+        master.pickUpCone(coneType);
+        state = S1States.PICKING_FROM_HOLDER;
+    }
+
+    Integer getNextConeToPrepeare() {// see if there is jobs on the list, and prepare cone for that job
+
+        Integer nextBox = toDoList.firstKey();
+        if (nextBox == null) return null;
+
+        ArrayList<Integer> positions = toDoList.get(nextBox);// get next box position list
+        if (positions.isEmpty()) {
+            System.out.println("job with no positions??");
+            return null;
+
+        }
+        return positions.get(0);
 
     }
 
