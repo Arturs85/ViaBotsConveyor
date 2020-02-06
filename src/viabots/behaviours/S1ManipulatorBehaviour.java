@@ -107,8 +107,9 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
                     currentPosition = null;
                     if (toDoList.get(currentBoxId).isEmpty()) {
                         sendInsertionCompleteAtStation(new BoxMessage(currentBoxId, null));
+                        toDoList.remove(currentBoxId); // remove processed box, so that manipulator can pick next box on the list and prepeare cone for it
                         currentBoxId = null;
-                        state = S1States.IDLE;
+                       state = S1States.IDLE;
                     } else {// there still is some position on the list
                         System.out.println(getBehaviourName() + " proceeding with next cone insertion ");
 
@@ -168,9 +169,10 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
             }
             // insert cones according to the toDoList
             currentBoxId = boxMessage.boxID;
+            if(currentPosition==null)//means that manipulator has not prepared cone
             currentPosition = toDoList.get(currentBoxId).get(toDoList.get(currentBoxId).size() - 1);// get first position
             if (state.equals(S1States.HOLDING_CONE)) {
-                master.insertPartInPosition(currentPosition);// todo currentPosition is no valid anymore
+                master.insertPartInPosition(currentPosition);//
                 state = S1States.INSERTING;
             } else {//pick up cone, this shold not be executed, because first cone should always be prepeared
                 startConePickup(Box.getConeTypeForBoxPosition(currentPosition));
@@ -251,6 +253,7 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
     }
 
     Integer getNextConeToPrepeare() {// see if there is jobs on the list, and prepare cone for that job
+if(toDoList.isEmpty()) return null;
 
         Integer nextBox = toDoList.firstKey();
         if (nextBox == null) return null;
@@ -259,10 +262,8 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
         if (positions.isEmpty()) {
             System.out.println("job with no positions??");
             return null;
-
         }
         return positions.get(0);
-
     }
 
     /**
@@ -299,7 +300,7 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
         msg.addReceiver(sendingTopics[TopicNames.S1_TO_S2_TOPIC.ordinal()]);
         owner.sendLogMsgToGui("manip sends to topic: " + sendingTopics[TopicNames.S1_TO_S2_TOPIC.ordinal()].toString());
         owner.send(msg);
-        System.out.println(getBehaviourName() + model.currentCone + " info Msg sent to s2 topic");
+        System.out.println(getAgent().getLocalName() + model.currentCone + " info Msg sent to s2 topic");
     }
 
     void sendAcceptAssignmentToS2(BoxMessage boxMessage) {
@@ -325,7 +326,7 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
         }
         msg.addReceiver(sendingTopics[TopicNames.REQUESTS_TO_MODELER.ordinal()]);
         owner.send(msg);
-        System.out.println(getBehaviourName() + " sent msg stopBoxAtStation to modeler, boxid " + boxMessage.boxID);
+        System.out.println(getAgent().getLocalName() + " sent msg stopBoxAtStation to modeler, boxid " + boxMessage.boxID);
     }
 
     void sendInsertionCompleteAtStation(BoxMessage boxMessage) {
@@ -338,7 +339,7 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
         }
         msg.addReceiver(sendingTopics[TopicNames.REQUESTS_TO_MODELER.ordinal()]);
         owner.send(msg);
-        System.out.println(getBehaviourName() + " sent msg insertion complete to modeler, boxid " + boxMessage.boxID);
+        System.out.println(getAgent().getLocalName() + " sent msg insertion complete to modeler, boxid " + boxMessage.boxID);
 
     }
 
