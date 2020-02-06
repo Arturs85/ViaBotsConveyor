@@ -6,9 +6,11 @@ import jade.lang.acl.ACLMessage;
 import viabots.behaviours.*;
 
 ;import java.util.EnumSet;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 public class ManipulatorAgent extends ViaBotAgent {
-    public CommunicationWithHardware communication = new CommunicationWithHardware();
+    public ConcurrentLinkedDeque<String> hardwareMsgQueue = new ConcurrentLinkedDeque<>();
+    public CommunicationWithHardware communication = new CommunicationWithHardware(hardwareMsgQueue);
     int sensorPosition;
     public int[] coneCountAvailable = new int[ConeType.values().length];
 

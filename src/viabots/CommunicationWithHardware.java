@@ -5,6 +5,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 
 /**
@@ -21,6 +22,13 @@ public class CommunicationWithHardware extends Thread {
     DataOutputStream dout = null;
     final Integer syncLock = 1;
     volatile boolean isRunning = true;
+    ConcurrentLinkedDeque<String> hardwareMsgQueue;// created in ManipulatorAgent
+
+    public CommunicationWithHardware(ConcurrentLinkedDeque<String> hardwareMsgQueue) {
+        super();
+        this.hardwareMsgQueue = hardwareMsgQueue;
+    }
+
     public boolean isConnected() {
         synchronized (syncLock) {
             if (socket != null) return true;
@@ -50,7 +58,12 @@ public class CommunicationWithHardware extends Thread {
                 synchronized (syncLock) {
                     if (socket != null) {
                         try {
-                            System.out.println(listenForReplyWTimeout(1000));
+
+                            String incoming = listenForReplyWTimeout(1000);// does it need timeout?
+                            if (incoming != null) {
+                                System.out.println("====== comWHW received: " + incoming);
+                                hardwareMsgQueue.push(incoming);
+                            }
                             // len = din.read(reply);
                         } catch (IOException e) {
 

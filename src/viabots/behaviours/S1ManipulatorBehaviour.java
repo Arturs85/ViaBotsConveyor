@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
     ManipulatorAgent master;
@@ -25,6 +26,8 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
     MessageTemplate taskAssignmentTpl;
     MessageTemplate coneAssignmentTpl;
     int stationPosition = 0; // box sensor number
+    ConcurrentLinkedDeque<String> hardwareMsgQueue = master.hardwareMsgQueue;
+
 //boolean isHoldingCone=false;
 
     public S1ManipulatorBehaviour(ManipulatorAgent manipulatorAgent, Integer sensorPosition) {
@@ -75,12 +78,11 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
                 }
                 break;
             case PICKING_FROM_HOLDER:
-                try {
-                    master.communication.listenForReplyWTimeout(CommunicationWithHardware.SO_READ_TIMEOUT_MS);// this call blocks , no behaviours is executed during this time
+                if (receiveHardwareMsgsOperationCompleate()) {
+                    //master.communication.listenForReplyWTimeout(CommunicationWithHardware.SO_READ_TIMEOUT_MS);// this call blocks , no behaviours is executed during this time
                     System.out.println(getAgent().getLocalName() + " received from hardware -pickup complete ");
                     state = S1States.HOLDING_CONE;
-                } catch (IOException e) {
-                    e.printStackTrace();
+                } else {
                 }
 
                 break;
@@ -93,8 +95,9 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
                 break;
             case INSERTING:
                 //wait for reply from hardware
-                try {
-                    master.communication.listenForReplyWTimeout(CommunicationWithHardware.SO_READ_TIMEOUT_MS);
+
+                if (receiveHardwareMsgsOperationCompleate()) {
+                    //   master.communication.listenForReplyWTimeout(CommunicationWithHardware.SO_READ_TIMEOUT_MS);
                     //replay received , this means, that operation is done
                     // send message to conv modeler to move on, if there are no more jobs for this box at this station
                     //todo decrese cone count available in model
@@ -113,10 +116,10 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
                         // master.insertPartInPosition(currentPosition);
                         startConePickup(Box.getConeTypeForBoxPosition(currentPosition));
                     }
-                } catch (IOException e) {
+                } else {
                     //e.printStackTrace();
                     // most likely timeout occured -continue to wait for reply
-                    System.out.println(getBehaviourName() + " did not received confirm from hardware - " + e.getClass().getName());
+                    //System.out.println(getBehaviourName() + " did not received confirm from hardware - " + e.getClass().getName());
 
                 }
                 break;
@@ -260,6 +263,24 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
         }
         return positions.get(0);
 
+    }
+
+    /**
+     * checks msgs from manipulator hardware, if it contains "inserted". normally there should not bee more than one msg,
+     * because this check should be called more often than insertion time. Other msgs are ignored
+     *
+     * @return true if confirmation is received
+     */
+    boolean receiveHardwareMsgsOperationCompleate() {//
+        if (hardwareMsgQueue.isEmpty()) return false;
+
+        String msg = hardwareMsgQueue.pollLast();
+        if (msg == null) return false;
+
+        if (msg.contains("INSERTED")) {
+            return true;
+        }
+        return false;
     }
 
     ManipulatorModel makeModel(int boxId) {
