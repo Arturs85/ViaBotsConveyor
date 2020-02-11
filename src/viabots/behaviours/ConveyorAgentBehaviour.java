@@ -5,10 +5,7 @@ import jade.core.Agent;
 import jade.core.behaviours.TickerBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.UnreadableException;
-import viabots.BoxGenerationModel;
-import viabots.BoxType;
-import viabots.ConveyorAgent;
-import viabots.ViaBotAgent;
+import viabots.*;
 import viabots.messageData.BoxMessage;
 import viabots.messageData.MessageContent;
 import viabots.messageData.TopicNames;
@@ -56,12 +53,12 @@ public class ConveyorAgentBehaviour extends BaseTopicBasedTickerBehaviour {
                     e.printStackTrace();
                 }
                 master.requestStopBeltAt(boxMessage.positionInBox);
+               
 
-
-                System.out.println("box stopped at station received  " + master.getName());
+                 Log.soutWTime("box stopped at station received  " + master.getName());
 
             } else if (msg.getPerformative() == ACLMessage.INFORM) {// this should be moveOn message
-                System.out.println(getBehaviourName() + " received inform to move on belt");
+                 Log.soutWTime(getBehaviourName() + " received inform to move on belt");
                 master.startBelt();
             }
 
@@ -73,7 +70,7 @@ public class ConveyorAgentBehaviour extends BaseTopicBasedTickerBehaviour {
         msg.setContent(content);
         msg.addReceiver(sendingTopics[TopicNames.CONVEYOR_OUT_TOPIC.ordinal()]);
         master.send(msg);
-        System.out.println("Conv sent a message with content : " + content);
+         Log.soutWTime("Conv sent a message with content : " + content);
     }
 
 

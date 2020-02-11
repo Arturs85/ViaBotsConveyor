@@ -15,7 +15,7 @@ public class Main {
     static int agentsCounter = 0;
     static String localHost = "vnpc-Precision-T1700";
     final static int CONNECTING_INTERVAL = 4000;
-    static String version = "feb6_2";
+    static String version = "feb10";
     /**
      * arg[0] hostname of main container- needed only if this is peripherial container
      * arg[1] manipulator type name as in enum {@link ManipulatorType}
