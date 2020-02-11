@@ -127,7 +127,19 @@ public class ConveyorModelingBehaviour extends BaseTopicBasedTickerBehaviour {
 
         } else {
             boxQueues.get(sensorNumber + 1).add(box);
+//check if this box if first in next queue, if so and if next sensor is subscribed to it, then send to conv "stop at sensor x"
 
+            if (boxQueues.get(sensorNumber + 1).getFirst().equals(box)) {
+                //find if next sensor is subscribed at this box
+                if (shouldStop(box.id, sensorNumber + 1)) {
+                    //send conveyor to stop at next trigger of this sensor
+                    sendStopAtNextTrigger(sensorNumber + 1);
+                }
+            }
+        }
+        //check if next box is subscribed by this sens
+        if (shouldStopForNextBox(sensorNumber)) {
+            sendStopAtNextTrigger(sensorNumber);
         }
 // check if there is someone subscribed at this sensor position for current box
         AID subscriber = getSubscriber(box.id, sensorNumber);
@@ -143,6 +155,22 @@ public class ConveyorModelingBehaviour extends BaseTopicBasedTickerBehaviour {
             Log.soutWTime(" no subscribers for sensor " + sensorNumber + " for box " + box.id + " sending move on to conv");
             sendMoveOnMessage();
         }
+
+    }
+
+    boolean shouldStop(int boxId, int sensorNr) {
+        for (BoxMessage b : stopRequests) {
+            if (b.boxID == boxId && b.positionInBox == sensorNr) {//position in box used as position of sensor along the conveyor
+                return true;
+            }
+        }
+        return false;
+    }
+
+    boolean shouldStopForNextBox(int sensorNr) {
+        if (boxQueues.get(sensorNr).isEmpty()) return false;
+        Box nextBox = boxQueues.get(sensorNr).getFirst();
+        return shouldStop(nextBox.id, sensorNr);
 
     }
 
@@ -235,6 +263,17 @@ public class ConveyorModelingBehaviour extends BaseTopicBasedTickerBehaviour {
             e.printStackTrace();
         }
         Log.soutWTime("sent msg box stopped at your station to " + subscriber.getLocalName() + " about boxId " + boxId);
+        owner.send(msg);
+    }
+
+    void sendStopAtNextTrigger(int sensorNr) {//to conveyor
+        ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
+        msg.addReceiver(sendingTopics[TopicNames.CONVEYOR_IN_TOPIC.ordinal()]);
+        try {
+            msg.setContentObject(new BoxMessage(0, null, sensorNr));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         owner.send(msg);
     }
 

@@ -19,7 +19,7 @@ public class Box implements Serializable {
        |
        V
     front
- 0,5 = big cones- type A
+ 1,4 = big cones- type A
  */
 
 
