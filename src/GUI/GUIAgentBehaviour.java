@@ -1,12 +1,13 @@
 package GUI;
 
 import jade.core.behaviours.TickerBehaviour;
+import viabots.ViaBotAgent;
 
 public class GUIAgentBehaviour extends TickerBehaviour {
     GUIAgent owner;
 
     GUIAgentBehaviour(GUIAgent guiAgent) {
-        super(guiAgent, 1000);
+        super(guiAgent, ViaBotAgent.tickerPeriod);
         owner = guiAgent;
     }
 

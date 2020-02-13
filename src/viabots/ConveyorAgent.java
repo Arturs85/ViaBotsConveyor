@@ -56,12 +56,15 @@ public class ConveyorAgent extends ViaBotAgent {
     }
 
     public void requestStopBeltAt(int position) {
+        position++;//off by one correction
+        char pos = String.valueOf(position).charAt(0);
         try {
-            serialComm.out.write((char) position);
+            serialComm.out.write(pos);
             //  beltIsOn = false;
         } catch (IOException e) {
             e.printStackTrace();
         }
+        Log.soutWTime("conv sent char to avr: "+(String.valueOf(pos)));
     }
 
 

@@ -1,5 +1,6 @@
 package viabots.behaviours;
 
+import GUI.GUIAgent;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.TickerBehaviour;
@@ -59,7 +60,7 @@ public class ConveyorModelingBehaviour extends BaseTopicBasedTickerBehaviour {
 
 
     }
-
+boolean isBeltRunning = false;// to determine if issue moveOn command
     void processMessages(MessageTemplate template) {// reads all available messages of coresponding template
         ACLMessage msg = owner.receive(template);
         while (msg != null) {
@@ -76,42 +77,50 @@ public class ConveyorModelingBehaviour extends BaseTopicBasedTickerBehaviour {
 // send new box information on own topic
                 sendNewBoxMessage(b);
             } else if (msg.getContent().contains(ConveyorAgent.stoppedAt)) {
+                isBeltRunning = false;
                 char position = msg.getContent().charAt(ConveyorAgent.stoppedAt.length());
                 owner.sendLogMsgToGui(getBehaviourName() + " received sopped at, read char: " + position);
                 Log.soutWTime("sending log " + getBehaviourName() + " received sopped at, read char: " + position);
-                switch (position) {
-                    case 'A':
 
-                        toTheNext(0);
-                        break;
-                    case 'B':
-                        toTheNext(1);
-                        break;
-                    case 'C':
-                        toTheNext(2);
-                        break;
-                    case 'D':
-                        toTheNext(3);
-                        break;
-                    case 'E':
-                        toTheNext(4);
-                        break;
-                    case 'F':
-                        toTheNext(5);
-
-                        break;
-                    default:
-                        break;
-
-                }
-
-
+              putBoxToNextQueue(position);
+            }else if (msg.getContent().contains(ConveyorAgent.triggerAt)) {
+                char position = msg.getContent().charAt(ConveyorAgent.triggerAt.length());
+                owner.sendLogMsgToGui(getBehaviourName() + " received trigger at, read char: " + position);
+                Log.soutWTime("sending log " + getBehaviourName() + " received trigger at, read char: " + position);
+toTheNext(Integer.valueOf(String.valueOf(position))-1);
             }
             msg = owner.receive(template);
         }
 
     }
+void putBoxToNextQueue(char position){
+    switch (position) {
+        case 'A':
 
+            toTheNext(0);
+            break;
+        case 'B':
+            toTheNext(1);
+            break;
+        case 'C':
+            toTheNext(2);
+            break;
+        case 'D':
+            toTheNext(3);
+            break;
+        case 'E':
+            toTheNext(4);
+            break;
+        case 'F':
+            toTheNext(5);
+
+            break;
+        default:
+            break;
+
+    }
+
+}
     /**
      * moves first box of queue before this sensor to next queue, or removes it if there are no more queues
      */
@@ -153,8 +162,11 @@ public class ConveyorModelingBehaviour extends BaseTopicBasedTickerBehaviour {
 //        }
         if (currentBoxes.isEmpty()) {
             Log.soutWTime(" no subscribers for sensor " + sensorNumber + " for box " + box.id + " sending move on to conv");
+
+            if(!isBeltRunning)
             sendMoveOnMessage();
         }
+        sendConvModelMsgToGUI();
 
     }
 
@@ -215,6 +227,7 @@ public class ConveyorModelingBehaviour extends BaseTopicBasedTickerBehaviour {
                     }
                 }
 // if currentBox list is empty conv can move on
+                //if (currentBoxes.isEmpty() && !isBeltRunning) {
                 if (currentBoxes.isEmpty()) {
                     sendMoveOnMessage();
                     Log.soutWTime(getBehaviourName() + " move on msg to conveyor sent");
@@ -241,7 +254,7 @@ public class ConveyorModelingBehaviour extends BaseTopicBasedTickerBehaviour {
 
         msg.addReceiver(modelerToGuiTopic);
         owner.send(msg);
-        // Log.soutWTime("modeling queue msg object sent");
+         Log.soutWTime("boxes on the belt :  "+ GUIAgent.getModelAsString(boxQueues));
 
     }
 
@@ -250,8 +263,10 @@ public class ConveyorModelingBehaviour extends BaseTopicBasedTickerBehaviour {
         msg.addReceiver(sendingTopics[TopicNames.CONVEYOR_IN_TOPIC.ordinal()]);
 // no content is needed for this message
         owner.send(msg);
+    isBeltRunning = true;
         Log.soutWTime(getBehaviourName() + " sending move on to conveyor");
     }
+
     void sendBoxStoppedAt(int boxId, AID subscriber) {
         ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
         msg.setOntology(ConveyorOntologies.BoxAtSatation.name());
@@ -274,6 +289,7 @@ public class ConveyorModelingBehaviour extends BaseTopicBasedTickerBehaviour {
         } catch (IOException e) {
             e.printStackTrace();
         }
+       Log.soutWTime("sending to conv: stop at sensor "+sensorNr);
         owner.send(msg);
     }
 
@@ -293,7 +309,6 @@ public class ConveyorModelingBehaviour extends BaseTopicBasedTickerBehaviour {
     @Override
     protected void onTick() {
         processMessages(templates[TopicNames.CONVEYOR_OUT_TOPIC.ordinal()]);
-        sendConvModelMsgToGUI();
         receiveStopOrMoveOnRequestMessage();
     }
 }

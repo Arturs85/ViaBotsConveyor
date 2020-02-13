@@ -55,7 +55,7 @@ public class ConveyorAgentBehaviour extends BaseTopicBasedTickerBehaviour {
                 master.requestStopBeltAt(boxMessage.positionInBox);// this request should only be sent jus before box will arrive
 
 
-                Log.soutWTime("request to stop at station received  " + master.getName());
+                Log.soutWTime("request to stop at station received  " + boxMessage.positionInBox);
 
             } else if (msg.getPerformative() == ACLMessage.INFORM) {// this should be moveOn message
                  Log.soutWTime(getBehaviourName() + " received inform to move on belt");

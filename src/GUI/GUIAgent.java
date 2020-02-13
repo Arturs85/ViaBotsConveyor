@@ -125,7 +125,12 @@ public class GUIAgent extends Agent {
             }
         } else {
 // else create new AgentInfo entry -td
-            Platform.runLater(() -> agents.add(new AgentInfo(agentName, msg.manipulatorType)));// todo- add other info on record creation time
+            Platform.runLater(() -> {
+                        AgentInfo agentInfo = findAgentInfoByName(agentName);
+                        if (agentInfo == null)//double check, because previous was done in other earlier time
+                            agents.add(new AgentInfo(agentName, msg.manipulatorType));
+                    }
+            );
         }
     }
 
@@ -163,7 +168,7 @@ public class GUIAgent extends Agent {
         }
     }
 
-    String getModelAsString(List<LinkedList<Box>> boxQueues) {
+ public  static    String getModelAsString(List<LinkedList<Box>> boxQueues) {
         StringBuilder str = new StringBuilder("-->");
 
         for (int i = 0; i < boxQueues.size(); i++) {
