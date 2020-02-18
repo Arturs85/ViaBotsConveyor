@@ -7,6 +7,7 @@ import gnu.io.SerialPort;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.LinkedList;
 
 public class TwoWaySerialComm {
     InputStream in;
@@ -14,6 +15,8 @@ public class TwoWaySerialComm {
     boolean isConnected = false;
     CommPort commPort;
     ConveyorAgent owner;
+    public Integer txBufferLock = Integer.valueOf(0);
+SerialWriter sendingThread;
 
     public TwoWaySerialComm(ConveyorAgent conveyorAgent) {
         super();
@@ -46,7 +49,8 @@ public class TwoWaySerialComm {
                 out = serialPort.getOutputStream();
 
                 (new Thread(new SerialReader(in))).start();
-                (new Thread(new SerialWriter(out))).start();
+             sendingThread= ((new SerialWriter(out)));
+                new Thread(sendingThread).start();
 
             } else {
                 System.out.println("Error: Only serial ports are handled by this example.");
@@ -57,8 +61,10 @@ public class TwoWaySerialComm {
     public void disconect() {
 
         try {
+            sendingThread.isRunning=false;
             if (in != null) in.close();
             if (out != null) out.close();
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -66,7 +72,16 @@ public class TwoWaySerialComm {
 
     }
 
-    /** */
+  public   void writeToOutputQeue(char command) {
+synchronized (sendingThread.txBuffer){
+    sendingThread.txBuffer.addLast(command);
+
+}
+    }
+
+    /**
+     *
+     */
     public class SerialReader implements Runnable {
         InputStream in;
 
@@ -86,7 +101,7 @@ public class TwoWaySerialComm {
                     String recData = new String(buffer, 0, len);
 
                     owner.onSerialInput(recData.charAt(0));
-                    System.out.print(recData);
+                    // System.out.print(recData);
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -94,22 +109,41 @@ public class TwoWaySerialComm {
         }
     }
 
-    /** */
+    /**
+     *
+     */
     public static class SerialWriter implements Runnable {
         OutputStream out;
+        LinkedList<Character> txBuffer = new LinkedList<Character>();
 
         public SerialWriter(OutputStream out) {
             this.out = out;
         }
 
+       public volatile boolean isRunning = true;
+
         public void run() {
-            try {
-                int c = 0;
-                while ((c = System.in.read()) > -1) {
-                    this.out.write(c);
+            while (isRunning) {
+
+                synchronized (txBuffer) {
+                    if (!txBuffer.isEmpty()) {
+                        char d = txBuffer.getFirst();
+
+                        try {
+
+                            this.out.write(d);
+                            txBuffer.removeFirst();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
+                //send msgs with less frequency than receivers readout so receiver does not lose any of msgs
+                try {
+                    Thread.sleep(110);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }

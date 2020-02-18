@@ -58,40 +58,30 @@ public class ConveyorAgent extends ViaBotAgent {
     public void requestStopBeltAt(int position) {
         position++;//off by one correction
         char pos = String.valueOf(position).charAt(0);
-        try {
-            serialComm.out.write(pos);
-            //  beltIsOn = false;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        serialComm.writeToOutputQeue(pos);
+
         Log.soutWTime("conv sent char to avr: "+(String.valueOf(pos)));
     }
 
 
     void stopBelt() {
-        try {
-            serialComm.out.write(commandStop);
-            beltIsOn = false;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        serialComm.writeToOutputQeue(commandStop);
+
+        beltIsOn = false;
+
     }
 
     public void startBelt() {
-        try {
-            serialComm.out.write(commandStart);
+
+          serialComm.writeToOutputQeue(commandStart);
+            //serialComm.out.write(commandStart);
             beltIsOn = true;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+
     }
 
-    public void placeBox() {
-        try {
-            serialComm.out.write(commandPlaceBox);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public void  placeBox() {
+        serialComm.writeToOutputQeue(commandPlaceBox);
+
         previousHasLeft = false;
         //cab.sendConveyorMessage(ConveyorAgent.boxArrived + " " + BoxType.A.name());//for testing
 
@@ -134,7 +124,7 @@ public class ConveyorAgent extends ViaBotAgent {
                 break;
             default:
                 sendConveyorMessage("uninterpreted: " + data);
-
+               // System.out.println("uninterp: "+String.valueOf(data));
                 break;
         }
 
@@ -144,7 +134,7 @@ public class ConveyorAgent extends ViaBotAgent {
         msg.setContent(content);
         msg.addReceiver(conveyorTopic);
         send(msg);
-        System.out.println(content);
+      Log.soutWTime(content);
     }
 
 
