@@ -47,11 +47,13 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
 // look through all new messages
         processMessages2(templates[TopicNames.S1_TO_S2_TOPIC.ordinal()]);
         processMessages2(templates[TopicNames.MODELER_NEW_BOX_TOPIC.ordinal()]);
-        receiveS2Request();// receive these msgs only when not planing own inserters
-        receiveControlValue();// right moment?
+        boolean hasNewControlValues = receiveControlValue();// right moment?
 
         switch (state) {
             case IDLE:
+                receiveS2Request();// receive these msgs only when not planing own inserters
+                if (hasNewControlValues)
+                    sendWorkerRequest();// ask for workers, because control values may be changed and cone availability may been changed
                 break;
             case WAITING_S1_INFO:
 
@@ -63,7 +65,7 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
                     if (hasPlan) {//plan has been made and requests according to the plan has been sent
                         enterState(S2States.WAITING_S1_CONFIRM_PREPEARED);
                     } else {// plan could not be made- start again with requests
-                        sendWorkerRequest();// request workers only if plan cant be made
+                        sendWorkerRequest();// request workers if plan cant be made
                         enterState(S2States.WAITING_S2_REPLY);
                     }
 
@@ -253,9 +255,9 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
 
     }
 
-    void receiveControlValue() {// will all s2 of one agent receive this msg?
+    boolean receiveControlValue() {// will all s2 of one agent receive this msg?
         ACLMessage msg = owner.receive(templates[TopicNames.S3_TO_S2_TOPIC.ordinal()]);
-        if (msg == null) return;
+        if (msg == null) return false;
         double[] cVals = null;
         try {
             cVals = (double[]) msg.getContentObject();
@@ -267,6 +269,7 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
         if (owner.s2MustPostMsg(msg, TopicNames.S3_TO_S2_TOPIC))
             owner.postMessage(msg);
         System.out.println(getBehaviourName() + coneType + " received control values from S3, own value: " + latestCval);
+        return true;
     }
 
     void receiveS2Request() {// all s2 on every agent should receive this
