@@ -22,4 +22,10 @@ public class ControlValueCalculator {
 
     }
 
+    void addPrediction(double[] predictedAvgConeCount) {
+        for (int i = 0; i < cVals.length; i++) {
+            cVals[i] = (cVals[i] + predictedAvgConeCount[i]) / 2;
+        }
+    }
+
 }

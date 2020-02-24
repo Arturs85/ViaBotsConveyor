@@ -13,4 +13,5 @@ public class S2RequestMsg implements Serializable {
         this.cVal = cVal;
     }
 
+
 }

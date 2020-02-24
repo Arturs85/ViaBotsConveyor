@@ -24,6 +24,7 @@ public class S3Behaviour extends BaseTopicBasedTickerBehaviour {
     //TreeMap<Integer,ArrayList<BoxMessage>> jobsList;
     TreeMap<Integer, EnumSet<ConeType>> jobsListc;
     ControlValueCalculator cValueCalc = new ControlValueCalculator();
+    BoxGenerationModel boxGenerationModel = null;
 
     public S3Behaviour(ViaBotAgent a) {
         super(a);
@@ -36,7 +37,7 @@ public class S3Behaviour extends BaseTopicBasedTickerBehaviour {
     protected void onTick() {
         receiveNewBoxArrivedMsg();
         receiveInsertersReady();
-
+        receiveBoxGenerationModel();
     }
 
     void subscribeToMessages() {
@@ -72,16 +73,42 @@ public class S3Behaviour extends BaseTopicBasedTickerBehaviour {
             } catch (UnreadableException e) {
                 e.printStackTrace();
             }
-            //update control values and send it to s2
-            cValueCalc.processNewBox(boxMessage);
-            sendControlValuesToS2();
 
 //check if this msg should be post back for others  to be able to receive it
             if (owner.s2MustPostNewBoxMsg(boxMessage.boxID)) {
                 owner.postMessage(msg);
             }
+            // update local copy of boxGenerationModel
+            boxGenerationModel.getNextFromPattern();// incr3eses counter, dont care about return value
+
+            //update control values and send it to s2
+            cValueCalc.processNewBox(boxMessage);
+            double[] predictedCvals = boxGenerationModel.countAvarageCones(4);
+            if (predictedCvals != null) {// add prediction to the cVals
+
+                System.out.println("predicted cVals : " + predictedCvals[0] + "  " + predictedCvals[1] + "  " + predictedCvals[2]);
+                cValueCalc.addPrediction(predictedCvals);
+            }
+            sendControlValuesToS2();
+
         }
 
+    }
+
+    void receiveBoxGenerationModel() {
+        ACLMessage msg = owner.receive(templates[TopicNames.BOX_GEN_MODEL_TOPIC.ordinal()]);
+        if (msg == null) return;
+        {
+
+            try {
+                boxGenerationModel = (BoxGenerationModel) msg.getContentObject();
+            } catch (UnreadableException e) {
+                e.printStackTrace();
+            }
+
+            Log.soutWTime("S3/S4 received box generation model");
+
+        }
     }
 
     void sendControlValuesToS2() {
