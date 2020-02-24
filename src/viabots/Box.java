@@ -64,7 +64,31 @@ public class Box implements Serializable {
     public static ConeType getConeTypeForBoxPosition(int position) {
         return baseBoxModel[position];
 
+
     }
+
+    public static int[] getEachConeTypeCountForBox(BoxType bt) {
+        int[] coneCount = new int[BoxGenerationModel.coneTypeValuesLength];
+        for (int i = 0; i < baseBoxModel.length; i++) {
+            if (boxContents[bt.ordinal()][i] > 0) {
+                int conetype = baseBoxModel[i].ordinal();
+                coneCount[conetype]++;
+            }
+        }
+        return coneCount;
+    }
+
+//    public static int getConeCountOfType(BoxType bt, ConeType ct){
+//        int count =0;
+//        for (int i = 0; i < baseBoxModel.length; i++) {
+//            if(baseBoxModel[i].equals(ct) && boxContents[bt.ordinal()][i]>0){
+//
+//
+//            }
+//
+//        }
+//
+//    }
 
     public static EnumSet<ConeType> getConeTypes(BoxType boxType) {
         EnumSet<ConeType> res = EnumSet.noneOf(ConeType.class);

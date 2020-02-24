@@ -14,5 +14,6 @@ public enum TopicNames {
     UI_TO_MANIPULATOR,
     S3_TO_S2_TOPIC,
     S2_TO_S2_TOPIC,
+    BOX_GEN_MODEL_TOPIC,
 
 }

@@ -10,16 +10,21 @@ import viabots.messageData.BoxMessage;
 import viabots.messageData.MessageContent;
 import viabots.messageData.TopicNames;
 
+import java.io.IOException;
+
 public class ConveyorAgentBehaviour extends BaseTopicBasedTickerBehaviour {
     ConveyorAgent master;
     BoxGenerationModel boxGenerationModel;
-
+    static final int boxGenModelSendingInterval = 5000; //ms
+    int boxGenSendingIntCounter = 0;
     public ConveyorAgentBehaviour(ConveyorAgent a) {
         super(a);
         master = a;
         boxGenerationModel = new BoxGenerationModel();
         createAndRegisterReceivingTopics(TopicNames.CONVEYOR_IN_TOPIC);
         createSendingTopic(TopicNames.CONVEYOR_OUT_TOPIC);
+        createSendingTopic(TopicNames.BOX_GEN_MODEL_TOPIC);
+
     }
 
     @Override
@@ -28,6 +33,13 @@ public class ConveyorAgentBehaviour extends BaseTopicBasedTickerBehaviour {
         master.receiveUImessage();// this should be last call to message reception, for it is receiving msgs wo template
 
         placeBoxOnBelt();// tries to put new box on the belt every tick
+
+        if (boxGenSendingIntCounter >= boxGenModelSendingInterval) {// clear counter and send model
+            boxGenSendingIntCounter = 0;
+            sendBoxGeneratorModelMessage();
+        }
+        boxGenSendingIntCounter += ViaBotAgent.tickerPeriod;
+
 
 
     }
@@ -73,5 +85,16 @@ public class ConveyorAgentBehaviour extends BaseTopicBasedTickerBehaviour {
          Log.soutWTime("Conv sent a message with content : " + content);
     }
 
+    public void sendBoxGeneratorModelMessage() {
+        ACLMessage msg = new ACLMessage(ACLMessage.UNKNOWN);
+        try {
+            msg.setContentObject(boxGenerationModel);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        msg.addReceiver(sendingTopics[TopicNames.BOX_GEN_MODEL_TOPIC.ordinal()]);
+        master.send(msg);
+        // Log.soutWTime("Conv sent a message with content : " + content);
+    }
 
 }
