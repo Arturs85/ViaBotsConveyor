@@ -15,12 +15,11 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.embed.swing.JFXPanel;
 import viabots.Box;
+import viabots.BoxType;
 import viabots.ManipulatorType;
 import viabots.ViaBotAgent;
-import viabots.messageData.ConvModelingMsgToUI;
-import viabots.messageData.ConveyorOntologies;
-import viabots.messageData.MessageToGUI;
-import viabots.messageData.TopicNames;
+import viabots.behaviours.ConveyorModelingBehaviour;
+import viabots.messageData.*;
 
 import java.io.IOException;
 import java.util.LinkedList;
@@ -41,6 +40,11 @@ public class GUIAgent extends Agent {
     MessageTemplate convMsgTpl;
     MessageTemplate modelerToGuiTpl;
     MessageTemplate logTopicTpl;
+
+    int onTimeMiliSec = 0;
+    int processedBoxes = 0;
+    static boolean hasOpertionStarted = false;
+    List<LinkedList<Box>> previousBoxQueues = null;
 
     @Override
     protected void setup() {
@@ -96,6 +100,18 @@ public class GUIAgent extends Agent {
                 return ai;
         }
         return null;
+    }
+
+    void displayStatistics() {
+        final int secs = (onTimeMiliSec / 1000) % 60;
+        final int mins = (onTimeMiliSec / 1000) / 60;
+        Platform.runLater(() -> {
+            conveyorGUI.controller.labelOnTime.setText("On Time " + mins + " : " + secs);
+            conveyorGUI.controller.labelProcessedBoxes.setText("Processed boxes " + processedBoxes);
+            if (processedBoxes != 0)
+                conveyorGUI.controller.labelSecPerBox.setText("Seconds per box " + (onTimeMiliSec / 1000 / processedBoxes));
+
+        });
     }
 
     void updateGUI(MessageToGUI msg, String agentName) {
@@ -165,6 +181,17 @@ public class GUIAgent extends Agent {
             String data = getModelAsString(boxQueues);
             Platform.runLater(() -> conveyorGUI.controller.logTextArea.appendText("Msg from modeler: " + data + "\n"));
             //System.out.println("Msg from conveyor: " + msg.getContent());
+            //see if some box has left conveyor
+
+            BoxType boxType = null;
+
+            if (previousBoxQueues != null)
+                boxType = ConveyorModelingBehaviour.boxHasLeftConv(previousBoxQueues, boxQueues);
+
+            if (boxType != null)
+                processedBoxes++;
+
+            previousBoxQueues = boxQueues;
         }
     }
 
@@ -216,6 +243,9 @@ public class GUIAgent extends Agent {
     }
 
     void sendUImessage(String agentName, String content) {
+        if (content.equals(MessageContent.PLACE_BOX.name())) {//conv has been started
+            hasOpertionStarted = true;
+        }
 
         ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
         msg.setOntology(ConveyorOntologies.GuiCommands.name());

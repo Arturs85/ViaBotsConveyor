@@ -311,4 +311,16 @@ void putBoxToNextQueue(char position){
         processMessages(templates[TopicNames.CONVEYOR_OUT_TOPIC.ordinal()]);
         receiveStopOrMoveOnRequestMessage();
     }
+
+    public static BoxType boxHasLeftConv(List<LinkedList<Box>> prevBoxQueues, List<LinkedList<Box>> actualBoxQueues) {
+        if (prevBoxQueues.get(prevBoxQueues.size() - 1).isEmpty()) return null;
+
+        if (actualBoxQueues.get(actualBoxQueues.size() - 1).isEmpty())
+            return prevBoxQueues.get(prevBoxQueues.size() - 1).getLast().boxType;
+        if (prevBoxQueues.get(prevBoxQueues.size() - 1).getLast().id != actualBoxQueues.get(actualBoxQueues.size() - 1).getLast().id) {
+            return prevBoxQueues.get(prevBoxQueues.size() - 1).getLast().boxType;
+
+        }
+        return null;
+    }
 }

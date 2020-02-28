@@ -18,5 +18,10 @@ public class GUIAgentBehaviour extends TickerBehaviour {
         owner.receiveLogMsg();
         owner.receiveUImessage();
 
+        if (owner.hasOpertionStarted)
+            owner.onTimeMiliSec += ViaBotAgent.tickerPeriod;
+
+        owner.displayStatistics();
+
     }
 }
