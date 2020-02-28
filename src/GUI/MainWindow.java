@@ -1,6 +1,7 @@
 package GUI;
 
 import javafx.fxml.FXML;
+import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
@@ -10,6 +11,9 @@ public class MainWindow {
     @FXML
     public ListView<AgentInfo> workingAgentsListView;
     public TextArea logTextArea;
+    public Label labelOnTime;
+    public Label labelProcessedBoxes;
+    public Label labelSecPerBox;
 
     GUIAgent owner;
 

@@ -1,16 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.TextArea?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
-
 
 <VBox alignment="CENTER" prefWidth="1000.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="GUI.MainWindow">
     <children>
-        <Label prefHeight="25.0" text="Agents" textAlignment="CENTER" VBox.vgrow="ALWAYS"/>
+        <HBox prefWidth="200.0">
+            <children>
+                <Label prefHeight="25.0" text="Agents" textAlignment="CENTER">
+                    <padding>
+                        <Insets right="44.0"/>
+                    </padding>
+                </Label>
+                <Label fx:id="labelOnTime" prefHeight="25.0" text="OnTime " textAlignment="RIGHT">
+                    <padding>
+                        <Insets right="44.0"/>
+                    </padding>
+                </Label>
+                <Label fx:id="labelProcessedBoxes" prefHeight="25.0" text="Processed Boxes " textAlignment="RIGHT">
+                    <padding>
+                        <Insets right="44.0"/>
+                    </padding>
+                </Label>
+                <Label fx:id="labelSecPerBox" prefHeight="25.0" text="Seconds per Box " textAlignment="RIGHT"/>
+
+
+            </children>
+        </HBox>
 
         <SplitPane dividerPositions="0.6" orientation="VERTICAL" prefWidth="1000.0" VBox.vgrow="ALWAYS">
             <items>
