@@ -49,7 +49,7 @@ public class ViaBotAgent extends Agent {
             return true;
     }
 
-    public boolean s2MustPostMsg(ACLMessage msg, TopicNames topicName) {// called after receiving newBox msg, shows whether to post back to queue this msg
+    public boolean s2MustPostMsg(ACLMessage msg, TopicNames topicName) {// shows whether to post back to queue this msg
         if (unreadMsgs.get(msg) == null) {
             unreadMsgs.put(msg, 1);//mark first reception
         } else {//update reads count

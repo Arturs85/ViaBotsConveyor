@@ -252,7 +252,7 @@ void putBoxToNextQueue(char position){
             e.printStackTrace();
         }
 
-        msg.addReceiver(modelerToGuiTopic);
+        msg.addReceiver(sendingTopics[TopicNames.MODELER_GUI.ordinal()]);
         owner.send(msg);
          Log.soutWTime("boxes on the belt :  "+ GUIAgent.getModelAsString(boxQueues));
 

@@ -48,12 +48,15 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
         processMessages2(templates[TopicNames.S1_TO_S2_TOPIC.ordinal()]);
         processMessages2(templates[TopicNames.MODELER_NEW_BOX_TOPIC.ordinal()]);
         boolean hasNewControlValues = receiveControlValue();// right moment?
+        if (hasNewControlValues)
+            sendWorkerRequest();// ask for workers, because control values may be changed and cone availability may been changed
 
         switch (state) {
             case IDLE:
                 receiveS2Request();// receive these msgs only when not planing own inserters
-                if (hasNewControlValues)
-                    sendWorkerRequest();// ask for workers, because control values may be changed and cone availability may been changed
+
+                receiveReplyToRequest();// do nothing on this msg information, but this call will remove this msg from queue
+
                 break;
             case WAITING_S1_INFO:
 
@@ -88,7 +91,9 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
                 break;
             case WAITING_S2_REPLY://wait for reply to request of worker, do not send new requests until reply is received
                 waitingCounter--;
-                receiveReplyToRequest();
+                boolean positiveReply = receiveReplyToRequest();
+                if (positiveReply) enterState(S2States.WAITING_S1_INFO);
+
                 if (waitingCounter <= 0) {// waiting time is over
 // this means that no positive replys were received, no use to try to query own workers again, send request to s3
                     // enterState(S2States.WAITING_S1_INFO);
@@ -268,16 +273,17 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
         latestCVals = cVals;
         if (owner.s2MustPostMsg(msg, TopicNames.S3_TO_S2_TOPIC))
             owner.postMessage(msg);
-        System.out.println(getBehaviourName() + coneType + " received control values from S3, own value: " + latestCval);
+        System.out.println("S2" + coneType + " received control values from S3, own value: " + latestCval);
         return true;
     }
 
     void receiveS2Request() {// all s2 on every agent should receive this
         ACLMessage msg = owner.receive(templates[TopicNames.S2_TO_S2_TOPIC.ordinal()]);
         if (msg == null) return;
-        System.out.println("S2" + coneType + " Received s2 request for worker from S2, msg hash: " + msg.hashCode());
 
         if (msg.getOntology().equals(ConveyorOntologies.S1Request.name()) && (msg.getPerformative() == ACLMessage.REQUEST)) {
+            System.out.println("S2" + coneType + " Received s2 request for worker from S2, msg hash: " + msg.hashCode() + " ");
+
             S2RequestMsg requestMsg = null;
             try {
                 requestMsg = (S2RequestMsg) msg.getContentObject();
@@ -300,7 +306,7 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
                 sendChangeConeType(manip, requestMsg.coneType);
                 //send reply to requester
                 sendReplyToS2Request(true, requestMsg.coneType);
-                System.out.println("S2" + coneType + " sending change to " + requestMsg.coneType);
+                System.out.println("S2" + coneType + " sending change to " + requestMsg.coneType+" to "+manip);
             } else {
                 sendReplyToS2Request(false, requestMsg.coneType);
 
@@ -312,9 +318,9 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
 
     }
 
-    void receiveReplyToRequest() {
+    boolean receiveReplyToRequest() {// true if positive reply
         ACLMessage msg = owner.receive(templates[TopicNames.S2_TO_S2_TOPIC.ordinal()]);
-        if (msg == null) return;
+        if (msg == null) return false;
         if (msg.getOntology().equals(ConveyorOntologies.S1Request.name())) {
             S2RequestMsg replyMsg = null;
             try {
@@ -326,13 +332,14 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
             if (msg.getPerformative() == ACLMessage.AGREE && replyMsg.coneType.equals(coneType)) {
                 System.out.println("S2" + coneType + " Received POSITIVE reply to request for worker from S2");
                 //try to send requests to workers
-                enterState(S2States.WAITING_S1_INFO);
+                return true;
             } else if (msg.getPerformative() == ACLMessage.REFUSE && replyMsg.coneType.equals(coneType)) {
                 System.out.println("S2" + coneType + " Received NEGATIVE reply to request for worker from S2");
 
             } else owner.postMessage(msg);//other receiver
-
         }
+        return false;
+
     }
 
     String findLeastValuedManipulator(ConeType requesterType) {//returns manipulator agent name
@@ -373,7 +380,7 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
         }
         msg.addReceiver(sendingTopics[TopicNames.S2_TO_S1_TOPIC.ordinal()]);// should this be sent to all s1 or just ones with same cone type as sender?
         owner.send(msg);
-        System.out.println(owner.getLocalName() + " sent info request to s1 topic");
+       // System.out.println(owner.getLocalName() + " sent info request to s1 topic");
     }
 
     void sendInsertersReady(int boxID, BoxType boxType, ConeType coneType) {

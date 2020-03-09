@@ -94,7 +94,7 @@ public class GUIAgent extends Agent {
 
     }
 
-    AgentInfo findAgentInfoByName(String name) {
+    AgentInfo findAgentInfoByName(String name) {//concurrent mod exception sometimes
         for (AgentInfo ai : agents) {
             if (ai.getName().compareTo(name) == 0)
                 return ai;
@@ -154,7 +154,7 @@ public class GUIAgent extends Agent {
         ACLMessage msg = receive(convMsgTpl);
         if (msg != null) {
             Platform.runLater(() -> conveyorGUI.controller.logTextArea.appendText("Msg from conveyor: " + msg.getContent() + "\n"));
-            System.out.println("Msg from conveyor: " + msg.getContent());
+        //    System.out.println("Msg from conveyor: " + msg.getContent());
         }
     }
 

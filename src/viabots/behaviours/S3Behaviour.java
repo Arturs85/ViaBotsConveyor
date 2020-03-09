@@ -43,6 +43,7 @@ public class S3Behaviour extends BaseTopicBasedTickerBehaviour {
     void subscribeToMessages() {
         createAndRegisterReceivingTopics(TopicNames.S2_TO_S3_TOPIC);
         createAndRegisterReceivingTopics(TopicNames.MODELER_NEW_BOX_TOPIC);
+        createAndRegisterReceivingTopics(TopicNames.BOX_GEN_MODEL_TOPIC);
 
         createSendingTopic(TopicNames.REQUESTS_TO_MODELER);
         createSendingTopic(TopicNames.S3_TO_S2_TOPIC);
@@ -79,6 +80,7 @@ public class S3Behaviour extends BaseTopicBasedTickerBehaviour {
                 owner.postMessage(msg);
             }
             // update local copy of boxGenerationModel
+           if(boxGenerationModel!=null){
             boxGenerationModel.getNextFromPattern();// incr3eses counter, dont care about return value
 
             //update control values and send it to s2
@@ -89,6 +91,7 @@ public class S3Behaviour extends BaseTopicBasedTickerBehaviour {
                 System.out.println("predicted cVals : " + predictedCvals[0] + "  " + predictedCvals[1] + "  " + predictedCvals[2]);
                 cValueCalc.addPrediction(predictedCvals);
             }
+           }
             sendControlValuesToS2();
 
         }
