@@ -4,10 +4,8 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.control.*;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
-import javafx.util.StringConverter;
 import javafx.util.converter.BooleanStringConverter;
 import viabots.ManipulatorType;
 import viabots.behaviours.ConeType;
@@ -242,7 +240,7 @@ public class AgentInfoListCell extends ListCell<AgentInfo> {
                     additionalButtonsInitialised = true;
                 }
             }
-            if (item.getType().equals(ManipulatorType.BAXTER) || item.getType().equals(ManipulatorType.IRB160) || item.getType().equals(ManipulatorType.SMALL_ONE) || item.getType().equals(ManipulatorType.PEPPER)) {
+            if (item.getType().equals(ManipulatorType.BAXTER) || item.getType().equals(ManipulatorType.IRB120) || item.getType().equals(ManipulatorType.SMALL_ONE) ) {
                 spinnerSetup();// right place?
                 if (spinnerConeCountA != null)
                     spinnerConeCountA.getValueFactory().valueProperty().bindBidirectional(item.objectPropConeAvailA);

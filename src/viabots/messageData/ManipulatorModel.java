@@ -1,24 +1,36 @@
 package viabots.messageData;
 
+import viabots.ManipulatorType;
 import viabots.behaviours.ConeType;
 
 import java.io.Serializable;
 import java.util.Arrays;
 
 public class ManipulatorModel implements Serializable {
+
+    static int manipTypesCount = ManipulatorType.values().length;
+   public static int[][] firstInsertionTimes= {{},{2000,2000},{1000,1000},{1100,1100},{}};//first index - manip type ordinal, second index- cone type ordinal
+   public static int[][] nextInsertionTimes= {{},{5000,5000},{4000,4000},{4100,4100},{}};//first index - manip type ordinal, second index- cone type ordinal
+
+
     String agentName;
-    int coneTypesCount = ConeType.values().length;
+   static int coneTypesCount = ConeType.values().length;
     public int[] conesAvailable = new int[coneTypesCount];
     int[] timesForFirstInsertion = new int[coneTypesCount];
     public int[] timesForNextInsertion = new int[coneTypesCount];
     public ConeType currentCone;
-
-    public ManipulatorModel(String agentName, ConeType currentCone) {
+ManipulatorType manipulatorType;
+    public ManipulatorModel(String agentName, ConeType currentCone,ManipulatorType manipulatorType) {
         this.agentName = agentName;
         this.currentCone = currentCone;
+        this.manipulatorType = manipulatorType;
         Arrays.fill(conesAvailable, 0);// for testing
-        Arrays.fill(timesForFirstInsertion, 1000);// for testing
-        Arrays.fill(timesForNextInsertion, 5000);// for testing
+
+        timesForFirstInsertion= firstInsertionTimes[manipulatorType.ordinal()];
+       timesForNextInsertion = nextInsertionTimes[manipulatorType.ordinal()];
+
+//        Arrays.fill(timesForFirstInsertion, 1000);// for testing
+//        Arrays.fill(timesForNextInsertion, 5000);// for testing
 
     }
 public String toString(){

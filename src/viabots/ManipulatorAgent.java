@@ -69,6 +69,7 @@ public class ManipulatorAgent extends ViaBotAgent {
     }
 
     public void insertPartInPosition(int position) {//positions in box(As shown in Box) is mapped to string commands to manipulator process
+       Log.soutWTime("Manipulator agent: insertPart in Position: "+position);
         switch (position) {
             case 0:
                 communication.sendString(InterProcessCommands.insertPartA);
@@ -85,7 +86,7 @@ public class ManipulatorAgent extends ViaBotAgent {
             case 4:
                 communication.sendString(InterProcessCommands.insertPartE);
                 break;
-            case 6:
+            case 5:
                 communication.sendString(InterProcessCommands.insertPartF);
                 break;
 

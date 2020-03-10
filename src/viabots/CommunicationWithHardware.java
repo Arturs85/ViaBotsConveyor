@@ -109,7 +109,7 @@ public class CommunicationWithHardware extends Thread {
                     dout.write(bytes);
                     System.out.println(getName() + " sent: " + new String(bytes));
                 } catch (IOException e) {
-                    //e.printStackTrace();
+                    e.printStackTrace();
                     socket = null;
                 }
             } else {

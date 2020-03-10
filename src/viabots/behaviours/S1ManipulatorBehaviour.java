@@ -38,7 +38,7 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
         hardwareMsgQueue = master.hardwareMsgQueue;
         enabledParts = EnumSet.noneOf(ConeType.class);
         createAndRegisterReceivingTopics(TopicNames.S2_TO_S1_TOPIC);
-        manipulatorModel = new ManipulatorModel(owner.getLocalName(), ConeType.A);//default cone type is set here!!!
+        manipulatorModel = new ManipulatorModel(owner.getLocalName(), ConeType.A,manipulatorAgent.type);//default cone type is set here!!!
         boxAtStationTpl = MessageTemplate.MatchOntology(ConveyorOntologies.BoxAtSatation.name());
         taskAssignmentTpl = MessageTemplate.MatchOntology(ConveyorOntologies.TaskAssignmentToS1.name());
         coneAssignmentTpl = MessageTemplate.MatchOntology(ConveyorOntologies.ChangeConeType.name());
@@ -60,7 +60,7 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
         master.insertPart(coneType);
     }
 
-
+int printCounter=0;//for testing
     @Override
     protected void onTick() {
         receiveInfoRequestMessage();
@@ -95,6 +95,8 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
                     master.insertPartInPosition(currentPosition);
                     state = S1States.INSERTING;
                     Log.soutWTime("Box "+currentBoxId+ " is waiting at this station");
+                }else{
+
                 }
                 break;
             case INSERTING:

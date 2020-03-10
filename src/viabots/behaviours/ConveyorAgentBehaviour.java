@@ -70,7 +70,7 @@ public class ConveyorAgentBehaviour extends BaseTopicBasedTickerBehaviour {
                 Log.soutWTime("request to stop at station received  " + boxMessage.positionInBox);
 
             } else if (msg.getPerformative() == ACLMessage.INFORM) {// this should be moveOn message
-                 Log.soutWTime(getBehaviourName() + " received inform to move on belt");
+                 Log.soutWTime(getBehaviourName() + " received inform to move on belt from "+ msg.getSender().getLocalName());
                 master.startBelt();
             }
 

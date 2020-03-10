@@ -162,7 +162,7 @@ void putBoxToNextQueue(char position){
 //            currentBoxes.add(box);// s3 can attempt to clear this box before it is in this list
 //        }
         if (currentBoxes.isEmpty()) {
-            Log.soutWTime(" no subscribers for sensor " + sensorNumber + " for box " + box.id + " sending move on to conv");
+           // Log.soutWTime(" no subscribers for sensor " + sensorNumber + " for box " + box.id + " sending move on to conv");
 
             if(!isBeltRunning)
                 shouldSendMoveOn = true;//sendMoveOnMessage();// this should only be sent after all stopped at messages are processed
@@ -231,7 +231,7 @@ void putBoxToNextQueue(char position){
                 //if (currentBoxes.isEmpty() && !isBeltRunning) {
                 if (currentBoxes.isEmpty()) {
                     shouldSendMoveOn = true;//sendMoveOnMessage();
-                    Log.soutWTime(getBehaviourName() + " move on msg to conveyor sent");
+                  //  Log.soutWTime(getBehaviourName() + " move on msg to conveyor sent");
                 } else {
                     Log.soutWTime("there are boxes still in current list: " + currentBoxes.size() + "  - " + currentBoxes.toString());
                 }
@@ -265,7 +265,7 @@ void putBoxToNextQueue(char position){
 // no content is needed for this message
         owner.send(msg);
     isBeltRunning = true;
-        Log.soutWTime(getBehaviourName() + " sending move on to conveyor");
+        Log.soutWTime(getBehaviourName() + " -----======------sending move on to conveyor");
     }
 
     void sendBoxStoppedAt(int boxId, AID subscriber) {
@@ -306,14 +306,21 @@ void putBoxToNextQueue(char position){
         msg.addReceiver(sendingTopics[TopicNames.MODELER_NEW_BOX_TOPIC.ordinal()]);
         owner.send(msg);
     }
-
+int printIntervalCounter=0;//for testing
     @Override
     protected void onTick() {
         shouldSendMoveOn = false;
         processMessages(templates[TopicNames.CONVEYOR_OUT_TOPIC.ordinal()]);
         receiveStopOrMoveOnRequestMessage();
-        if (shouldSendMoveOn && currentBoxes.isEmpty())// double check on curr boxes, can bee refractored in prior calls in this tick
+        if (shouldSendMoveOn && currentBoxes.isEmpty()) {// double check on curr boxes, can bee refractored in prior calls in this tick
             sendMoveOnMessage();
+        }else{
+        printIntervalCounter++;
+            if(printIntervalCounter>10){
+                printIntervalCounter=0;
+                Log.soutWTime("cant move on because curBoxes size: "+ currentBoxes.size() + "  - " + currentBoxes.toString());
+            }
+        }
     }
 
     public static BoxType boxHasLeftConv(List<LinkedList<Box>> prevBoxQueues, List<LinkedList<Box>> actualBoxQueues) {

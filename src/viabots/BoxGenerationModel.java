@@ -11,7 +11,7 @@ import static viabots.BoxType.*;
 
 public class BoxGenerationModel implements Serializable {
 
-    BoxType pattern[] = new BoxType[]{A, A, B, C};
+    BoxType pattern[] = new BoxType[]{B, A, B, C};
     int counter = -1;
     final static int coneTypeValuesLength = ConeType.values().length;
 
