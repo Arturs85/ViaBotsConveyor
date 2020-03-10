@@ -25,7 +25,8 @@ public class S3Behaviour extends BaseTopicBasedTickerBehaviour {
     TreeMap<Integer, EnumSet<ConeType>> jobsListc;
     ControlValueCalculator cValueCalc = new ControlValueCalculator();
     BoxGenerationModel boxGenerationModel = null;
-
+    boolean isUsingPrediction = true;
+    boolean isProducingCvalues = true;
     public S3Behaviour(ViaBotAgent a) {
         super(a);
         owner = a;
@@ -38,11 +39,16 @@ public class S3Behaviour extends BaseTopicBasedTickerBehaviour {
         receiveNewBoxArrivedMsg();
         receiveInsertersReady();
         receiveBoxGenerationModel();
+        receiveDisablePrediction();
+        receiveDisableControl();
     }
 
     void subscribeToMessages() {
         createAndRegisterReceivingTopics(TopicNames.S2_TO_S3_TOPIC);
         createAndRegisterReceivingTopics(TopicNames.MODELER_NEW_BOX_TOPIC);
+        createAndRegisterReceivingTopics(TopicNames.DISABLE_PREDICTION);
+        createAndRegisterReceivingTopics(TopicNames.DISABLE_CONTROL);
+
         createAndRegisterReceivingTopics(TopicNames.BOX_GEN_MODEL_TOPIC);
 
         createSendingTopic(TopicNames.REQUESTS_TO_MODELER);
@@ -80,20 +86,22 @@ public class S3Behaviour extends BaseTopicBasedTickerBehaviour {
                 owner.postMessage(msg);
             }
             // update local copy of boxGenerationModel
-           if(boxGenerationModel!=null){
             boxGenerationModel.getNextFromPattern();// incr3eses counter, dont care about return value
 
             //update control values and send it to s2
             cValueCalc.processNewBox(boxMessage);
             double[] predictedCvals = boxGenerationModel.countAvarageCones(4);
-            if (predictedCvals != null) {// add prediction to the cVals
+            if (isUsingPrediction) {
+                if (predictedCvals != null) {// add prediction to the cVals
 
-                System.out.println("predicted cVals : " + predictedCvals[0] + "  " + predictedCvals[1] + "  " + predictedCvals[2]);
-                cValueCalc.addPrediction(predictedCvals);
+                    System.out.println("predicted cVals : " + predictedCvals[0] + "  " + predictedCvals[1] + "  " + predictedCvals[2]);
+                    cValueCalc.addPrediction(predictedCvals);
+                }
             }
-           }
-            sendControlValuesToS2();
-
+            if (isProducingCvalues)
+                sendControlValuesToS2(cValueCalc.cVals);
+            else
+                sendControlValuesToS2(ControlValueCalculator.zeroes); //send zero as cVal to
         }
 
     }
@@ -114,11 +122,11 @@ public class S3Behaviour extends BaseTopicBasedTickerBehaviour {
         }
     }
 
-    void sendControlValuesToS2() {
+    void sendControlValuesToS2(double[] cVals) {
         ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
         msg.addReceiver(sendingTopics[TopicNames.S3_TO_S2_TOPIC.ordinal()]);
         try {
-            msg.setContentObject(cValueCalc.cVals);
+            msg.setContentObject(cVals);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -163,7 +171,7 @@ public class S3Behaviour extends BaseTopicBasedTickerBehaviour {
                 }
 // increase cVal for asker and send new cVals
                 cValueCalc.increaseAskersVal(obj.coneType);
-                sendControlValuesToS2();
+                sendControlValuesToS2(cValueCalc.cVals);
                 System.out.println("S3 sent updated cVals after S2" + obj.coneType + " request");
             }
             msg = owner.receive(templates[TopicNames.S2_TO_S3_TOPIC.ordinal()]);
@@ -183,4 +191,30 @@ public class S3Behaviour extends BaseTopicBasedTickerBehaviour {
         System.out.println("s3 all inserters ready sent, boxId: " + boxID);
     }
 
+
+    void receiveDisablePrediction() {
+        ACLMessage msg = owner.receive(templates[TopicNames.DISABLE_PREDICTION.ordinal()]);
+        if (msg != null) {
+
+            try {
+                isUsingPrediction = (Boolean) msg.getContentObject();
+            } catch (UnreadableException e) {
+                e.printStackTrace();
+            }
+            System.out.println("---------------------S3 is using prediction: " + isUsingPrediction);
+        }
+    }
+
+    void receiveDisableControl() {
+        ACLMessage msg = owner.receive(templates[TopicNames.DISABLE_CONTROL.ordinal()]);
+        if (msg != null) {
+
+            try {
+                isProducingCvalues = (Boolean) msg.getContentObject();
+            } catch (UnreadableException e) {
+                e.printStackTrace();
+            }
+            System.out.println("==================== S3 is generating cotrol: " + isProducingCvalues);
+        }
+    }
 }

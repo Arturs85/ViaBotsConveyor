@@ -26,6 +26,7 @@ public class ConveyorModelingBehaviour extends BaseTopicBasedTickerBehaviour {
     ArrayList<BoxMessage> stopRequests = new ArrayList<>();
     MessageTemplate convMsgTpl;
     ArrayList<Box> currentBoxes = new ArrayList<>(); // this box should be valid from moment when message "boxStoppedAt" is sent till "moveOn is received"
+    boolean shouldSendMoveOn = false;
 
     //normally there should be only one box in this list, but if two sensors has fired nearly same time there can be more than one box
     public ConveyorModelingBehaviour(ManipulatorAgent a) {
@@ -164,7 +165,7 @@ void putBoxToNextQueue(char position){
             Log.soutWTime(" no subscribers for sensor " + sensorNumber + " for box " + box.id + " sending move on to conv");
 
             if(!isBeltRunning)
-            sendMoveOnMessage();
+                shouldSendMoveOn = true;//sendMoveOnMessage();// this should only be sent after all stopped at messages are processed
         }
         sendConvModelMsgToGUI();
 
@@ -229,7 +230,7 @@ void putBoxToNextQueue(char position){
 // if currentBox list is empty conv can move on
                 //if (currentBoxes.isEmpty() && !isBeltRunning) {
                 if (currentBoxes.isEmpty()) {
-                    sendMoveOnMessage();
+                    shouldSendMoveOn = true;//sendMoveOnMessage();
                     Log.soutWTime(getBehaviourName() + " move on msg to conveyor sent");
                 } else {
                     Log.soutWTime("there are boxes still in current list: " + currentBoxes.size() + "  - " + currentBoxes.toString());
@@ -308,8 +309,11 @@ void putBoxToNextQueue(char position){
 
     @Override
     protected void onTick() {
+        shouldSendMoveOn = false;
         processMessages(templates[TopicNames.CONVEYOR_OUT_TOPIC.ordinal()]);
         receiveStopOrMoveOnRequestMessage();
+        if (shouldSendMoveOn && currentBoxes.isEmpty())// double check on curr boxes, can bee refractored in prior calls in this tick
+            sendMoveOnMessage();
     }
 
     public static BoxType boxHasLeftConv(List<LinkedList<Box>> prevBoxQueues, List<LinkedList<Box>> actualBoxQueues) {

@@ -6,9 +6,10 @@ import viabots.messageData.BoxMessage;
 import java.util.ArrayList;
 
 public class ControlValueCalculator {
-    ConeType[] conesPossible = ConeType.values();
-    public double[] cVals = new double[conesPossible.length];
+    static ConeType[] conesPossible = ConeType.values();
 
+    public double[] cVals = new double[conesPossible.length];
+    public static double[] zeroes = new double[conesPossible.length];
     void processNewBox(BoxMessage boxMessage) {
         // value is proportional to nr of cones
         for (int i = 0; i < conesPossible.length; i++) {
@@ -27,5 +28,6 @@ public class ControlValueCalculator {
             cVals[i] = (cVals[i] + predictedAvgConeCount[i]) / 2;
         }
     }
+
 
 }

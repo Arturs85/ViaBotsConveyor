@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.SplitPane?>
@@ -28,7 +29,25 @@
                         <Insets right="44.0"/>
                     </padding>
                 </Label>
-                <Label fx:id="labelSecPerBox" prefHeight="25.0" text="Seconds per Box " textAlignment="RIGHT"/>
+                <Label fx:id="labelSecPerBox" prefHeight="25.0" text="Seconds per Box " textAlignment="RIGHT">
+                    <padding>
+                        <Insets right="44.0"/>
+                    </padding>
+
+                </Label>
+                <CheckBox fx:id="checkBoxUsePrediction" mnemonicParsing="false" prefHeight="25.0" selected="true"
+                          text="Use Prediction">
+                    <padding>
+                        <Insets right="44.0"/>
+                    </padding>
+                </CheckBox>
+
+                <CheckBox fx:id="checkBoxUseCvalues" mnemonicParsing="false" prefHeight="25.0" selected="true"
+                          text="Use Control">
+                    <padding>
+                        <Insets right="44.0"/>
+                    </padding>
+                </CheckBox>
 
 
             </children>

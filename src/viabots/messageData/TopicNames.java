@@ -15,5 +15,6 @@ public enum TopicNames {
     S3_TO_S2_TOPIC,
     S2_TO_S2_TOPIC,
     BOX_GEN_MODEL_TOPIC,
-
+    DISABLE_PREDICTION,
+    DISABLE_CONTROL
 }

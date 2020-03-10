@@ -14,6 +14,7 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.embed.swing.JFXPanel;
+import javafx.scene.control.CheckBox;
 import viabots.Box;
 import viabots.BoxType;
 import viabots.ManipulatorType;
@@ -21,6 +22,7 @@ import viabots.ViaBotAgent;
 import viabots.behaviours.ConveyorModelingBehaviour;
 import viabots.messageData.*;
 
+import java.awt.*;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
@@ -35,6 +37,8 @@ public class GUIAgent extends Agent {
     public AID conveyorTopic;
     public AID modelerToGuiTopic;
     public AID logTopic;
+    public AID disablePredictionTopic;
+    public AID disableControlTopic;
 
     MessageTemplate uiMsgTpl;
     MessageTemplate convMsgTpl;
@@ -55,6 +59,8 @@ public class GUIAgent extends Agent {
 
             conveyorGUI.start(ConveyorGUI.classStage);
             conveyorGUI.controller.workingAgentsListView.setItems(agents);
+            conveyorGUI.controller.checkBoxUsePrediction.setOnAction(event -> sendDisablePrediction(((CheckBox) event.getSource()).isSelected()));
+            conveyorGUI.controller.checkBoxUseCvalues.setOnAction(event -> sendDisableControl(((CheckBox) event.getSource()).isSelected()));
 
         });
 
@@ -76,6 +82,9 @@ public class GUIAgent extends Agent {
             logTopicTpl = MessageTemplate.MatchTopic(logTopic);
             topicHelper.register(logTopic);
 
+            disablePredictionTopic = topicHelper.createTopic(TopicNames.DISABLE_PREDICTION.name());// for sending
+            disableControlTopic = topicHelper.createTopic(TopicNames.DISABLE_CONTROL.name());// for sending
+
         } catch (
                 ServiceException e) {
             e.printStackTrace();
@@ -85,6 +94,7 @@ public class GUIAgent extends Agent {
         //agents.add(new AgentInfo(ManipulatorType.UNKNOWN));
         AgentInfoListCell.guiAgent = this;
         AgentInfo.guiAgent = this;
+
     }
 
     @Override
@@ -272,6 +282,29 @@ public class GUIAgent extends Agent {
         msg.addReceiver(new AID(agentName, true));
         send(msg);
         System.out.println(getName() + "checkbox info msg sent");
+    }
+
+
+    void sendDisablePrediction(boolean enablePrediction) {
+        ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
+        try {
+            msg.setContentObject(enablePrediction);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        msg.addReceiver(disablePredictionTopic);
+        send(msg);
+    }
+
+    void sendDisableControl(boolean enableControl) {
+        ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
+        try {
+            msg.setContentObject(enableControl);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        msg.addReceiver(disableControlTopic);
+        send(msg);
     }
 
 }

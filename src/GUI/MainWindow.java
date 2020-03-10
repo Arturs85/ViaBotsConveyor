@@ -1,10 +1,7 @@
 package GUI;
 
 import javafx.fxml.FXML;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
-import javafx.scene.control.TextArea;
+import javafx.scene.control.*;
 import javafx.util.Callback;
 
 public class MainWindow {
@@ -14,6 +11,8 @@ public class MainWindow {
     public Label labelOnTime;
     public Label labelProcessedBoxes;
     public Label labelSecPerBox;
+    public CheckBox checkBoxUsePrediction;
+    public CheckBox checkBoxUseCvalues;
 
     GUIAgent owner;
 
