@@ -25,6 +25,10 @@ public class Box implements Serializable {
 
     public int id;
     public BoxType boxType;
+    //for statistics
+    public int timeMovingMs = 0;
+    public int timeAtStationMs = 0;
+    public int timeBetweenStationsMs = 0;
 
     /**
      * for uniqe boxes

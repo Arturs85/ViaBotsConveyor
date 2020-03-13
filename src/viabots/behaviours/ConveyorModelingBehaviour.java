@@ -17,7 +17,7 @@ import java.io.IOException;
 import java.util.*;
 
 public class ConveyorModelingBehaviour extends BaseTopicBasedTickerBehaviour {
-    static int numberOfSensors = 5; // there will be as much queues as there is sensors
+    public static final int numberOfSensors = 5; // there will be as much queues as there is sensors
 
     List<LinkedList<Box>> boxQueues = new ArrayList<>(numberOfSensors);
     ManipulatorAgent owner;
@@ -27,6 +27,8 @@ public class ConveyorModelingBehaviour extends BaseTopicBasedTickerBehaviour {
     MessageTemplate convMsgTpl;
     ArrayList<Box> currentBoxes = new ArrayList<>(); // this box should be valid from moment when message "boxStoppedAt" is sent till "moveOn is received"
     boolean shouldSendMoveOn = false;
+
+    BoxTimeCounter boxTimeCounter = new BoxTimeCounter(boxQueues, currentBoxes);// for statistics
 
     //normally there should be only one box in this list, but if two sensors has fired nearly same time there can be more than one box
     public ConveyorModelingBehaviour(ManipulatorAgent a) {
@@ -84,6 +86,7 @@ boolean isBeltRunning = false;// to determine if issue moveOn command
                 Log.soutWTime("sending log " + getBehaviourName() + " received sopped at, read char: " + position);
 
               putBoxToNextQueue(position);
+                boxTimeCounter.stoppedAtSensor();
             }else if (msg.getContent().contains(ConveyorAgent.triggerAt)) {
                 char position = msg.getContent().charAt(ConveyorAgent.triggerAt.length());
                 owner.sendLogMsgToGui(getBehaviourName() + " received trigger at, read char: " + position);
@@ -134,7 +137,7 @@ void putBoxToNextQueue(char position){
         Box box = boxQueues.get(sensorNumber).removeFirst();// todo add queues size check
 
         if ((sensorNumber + 1) >= boxQueues.size()) {//no more queues, erease box(do nothing)
-
+            boxTimeCounter.addToFinished(box);
         } else {
             boxQueues.get(sensorNumber + 1).add(box);
 //check if this box if first in next queue, if so and if next sensor is subscribed to it, then send to conv "stop at sensor x"
@@ -266,6 +269,7 @@ void putBoxToNextQueue(char position){
         owner.send(msg);
     isBeltRunning = true;
         Log.soutWTime(getBehaviourName() + " -----======------sending move on to conveyor");
+        boxTimeCounter.startedMovingOn();
     }
 
     void sendBoxStoppedAt(int boxId, AID subscriber) {
