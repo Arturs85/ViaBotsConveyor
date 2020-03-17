@@ -5,4 +5,5 @@ public enum S1States {
     PICKING_FROM_HOLDER,
     HOLDING_CONE,
     INSERTING,
+    CHANGING_TYPE
 }

@@ -34,7 +34,7 @@ public class BoxTimeCounter {
     public void startedMovingOn() {
         movementStartTime = System.currentTimeMillis();
         if (movementEndTime == 0) return;
-        long stoppedTime = movementEndTime - movementStartTime;
+        long stoppedTime =  movementStartTime- movementEndTime ;
 //add stopped time to both types of boxes- ones that was at the sensor and ones, that was between
         for (Box b : currentBoxes) {
             b.timeAtStationMs += stoppedTime;
@@ -61,7 +61,7 @@ public class BoxTimeCounter {
 
     public void addToFinished(Box box) {
         processedBoxes.add(box);
-        if (processedBoxes.size() % 10 == 0) print();// print results after each 10th box
+        if (processedBoxes.size() % 5 == 0) print();// print results after each 10th box
     }
 
     public void print() {

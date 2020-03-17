@@ -3,10 +3,7 @@ package viabots.behaviours;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
-import viabots.Box;
-import viabots.CommunicationWithHardware;
-import viabots.Log;
-import viabots.ManipulatorAgent;
+import viabots.*;
 import viabots.messageData.*;
 
 import java.io.IOException;
@@ -28,7 +25,9 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
     MessageTemplate coneAssignmentTpl;
     int stationPosition = 0; // box sensor number
     ConcurrentLinkedDeque<String> hardwareMsgQueue;
-
+    ConeType previousType;
+    final static int typeChangeTimeMs = 5000;
+    int typeChangeCounter = 0;
 //boolean isHoldingCone=false;
 
     public S1ManipulatorBehaviour(ManipulatorAgent manipulatorAgent, Integer sensorPosition) {
@@ -38,7 +37,8 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
         hardwareMsgQueue = master.hardwareMsgQueue;
         enabledParts = EnumSet.noneOf(ConeType.class);
         createAndRegisterReceivingTopics(TopicNames.S2_TO_S1_TOPIC);
-        manipulatorModel = new ManipulatorModel(owner.getLocalName(), ConeType.A,manipulatorAgent.type);//default cone type is set here!!!
+        manipulatorModel = new ManipulatorModel(owner.getLocalName(), ConeType.A, manipulatorAgent.type);//default cone type is set here!!!
+        previousType = manipulatorModel.currentCone;
         boxAtStationTpl = MessageTemplate.MatchOntology(ConveyorOntologies.BoxAtSatation.name());
         taskAssignmentTpl = MessageTemplate.MatchOntology(ConveyorOntologies.TaskAssignmentToS1.name());
         coneAssignmentTpl = MessageTemplate.MatchOntology(ConveyorOntologies.ChangeConeType.name());
@@ -60,7 +60,8 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
         master.insertPart(coneType);
     }
 
-int printCounter=0;//for testing
+    int printCounter = 0;//for testing
+
     @Override
     protected void onTick() {
         receiveInfoRequestMessage();
@@ -76,9 +77,16 @@ int printCounter=0;//for testing
                 if (nextPosition != null) {//should prepare cone because there is known next box with positions
                     currentPosition = nextPosition;
                     // dont set curBoxId yet, because that would mean that box has arrived
+                    ConeType nextConeType = Box.getConeTypeForBoxPosition(currentPosition);
+                    if (nextConeType != previousType) {// start tool change
+                        Log.soutWTime("Starting cone type change to: " + nextConeType);
+                        typeChangeCounter = typeChangeTimeMs / ViaBotAgent.tickerPeriod;
+                        state = S1States.CHANGING_TYPE;
+                        break;
+                    }
                     startConePickup(Box.getConeTypeForBoxPosition(currentPosition));
 
-                    Log.soutWTime("Starting cone pickup, pos: "+currentPosition);
+                    Log.soutWTime("Starting cone pickup, pos: " + currentPosition);
                 }
                 break;
             case PICKING_FROM_HOLDER:
@@ -94,8 +102,8 @@ int printCounter=0;//for testing
                 if (currentBoxId != null) {//means that box is at sensor
                     master.insertPartInPosition(currentPosition);
                     state = S1States.INSERTING;
-                    Log.soutWTime("Box "+currentBoxId+ " is waiting at this station");
-                }else{
+                    Log.soutWTime("Box " + currentBoxId + " is waiting at this station");
+                } else {
 
                 }
                 break;
@@ -109,19 +117,20 @@ int printCounter=0;//for testing
                     //todo decrese cone count available in model
 
                     Log.soutWTime(getBehaviourName() + " received from hardware -insertion complete ");
+                    previousType = Box.getConeTypeForBoxPosition(currentPosition);// to know if manip needs change tool for next cone
                     toDoList.get(currentBoxId).remove(currentPosition);// removes position of newly inserted cone from the todolist
                     currentPosition = null;
                     if (toDoList.get(currentBoxId).isEmpty()) {
                         sendInsertionCompleteAtStation(new BoxMessage(currentBoxId, null));
                         toDoList.remove(currentBoxId); // remove processed box, so that manipulator can pick next box on the list and prepeare cone for it
                         currentBoxId = null;
-                       state = S1States.IDLE;
+                        state = S1States.IDLE;
                     } else {// there still is some position on the list
                         Log.soutWTime(getBehaviourName() + " proceeding with next cone insertion ");
 
                         currentPosition = toDoList.get(currentBoxId).get(toDoList.get(currentBoxId).size() - 1);// get next position
                         // master.insertPartInPosition(currentPosition);
-                        startConePickup(Box.getConeTypeForBoxPosition(currentPosition));
+                        startConePickup(Box.getConeTypeForBoxPosition(currentPosition));// should check if tool change is needed also here (on same box)
                     }
                 } else {
                     //e.printStackTrace();
@@ -129,6 +138,15 @@ int printCounter=0;//for testing
                     //Log.soutWTime(getBehaviourName() + " did not received confirm from hardware - " + e.getClass().getName());
 
                 }
+                break;
+            case CHANGING_TYPE:
+                typeChangeCounter--;
+                if (typeChangeCounter <= 0) {// tool change has ended
+                    previousType = Box.getConeTypeForBoxPosition(currentPosition);//mark, that type is changed
+                    state = S1States.IDLE;
+                    Log.soutWTime("S1 Finished type change: " + previousType);
+                }
+
                 break;
 
         }
@@ -175,8 +193,8 @@ int printCounter=0;//for testing
             }
             // insert cones according to the toDoList
             currentBoxId = boxMessage.boxID;
-            if(currentPosition==null)//means that manipulator has not prepared cone
-            currentPosition = toDoList.get(currentBoxId).get(toDoList.get(currentBoxId).size() - 1);// get first position
+            if (currentPosition == null)//means that manipulator has not prepared cone
+                currentPosition = toDoList.get(currentBoxId).get(toDoList.get(currentBoxId).size() - 1);// get first position
 
             if (state.equals(S1States.HOLDING_CONE)) {
                 master.insertPartInPosition(currentPosition);//
@@ -262,7 +280,7 @@ int printCounter=0;//for testing
     }
 
     Integer getNextConeToPrepeare() {// see if there is jobs on the list, and prepare cone for that job
-if(toDoList.isEmpty()) return null;
+        if (toDoList.isEmpty()) return null;
 
         Integer nextBox = toDoList.firstKey();
         if (nextBox == null) return null;
@@ -288,7 +306,7 @@ if(toDoList.isEmpty()) return null;
         if (msg == null) return false;
 
         if (msg.contains("INSERTED")) {
-            Log.soutWTime("hardwareMsgQueue size: "+ hardwareMsgQueue.size());
+            Log.soutWTime("hardwareMsgQueue size: " + hardwareMsgQueue.size());
             return true;
         }
         return false;

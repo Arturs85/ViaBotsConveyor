@@ -24,14 +24,15 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
     Map<String, ManipulatorModel> s1List = new TreeMap<>();
     TreeMap<Integer, BoxWInserters> insertersList = new TreeMap<>();
     S2States state = S2States.IDLE;
-    static int infoWaitingTimeout = 3000;// ms
-    static int grantWaitingTimeout = 4000;// ms
+    static int infoWaitingTimeout = 1000;// ms
+    static int grantWaitingTimeout = 1000;// ms
 
     int waitingCounter = 0;
     BoxMessage currentBoxMessage = null;// message of box for which inserters are currently requested or planned dont receive other messages of this type until plan for current is made
     double latestCval = 0;
     double[] latestCVals;
     double latestS1Count = 0;
+boolean hasPositiveReplyFromS2=false;// mark if there is any positive reply, so that beh knows, whether to try again or try to make plan
 
     public S2Behaviour(ViaBotAgent a, ConeType coneType) {
         super(a);
@@ -48,11 +49,15 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
         processMessages2(templates[TopicNames.S1_TO_S2_TOPIC.ordinal()]);
         processMessages2(templates[TopicNames.MODELER_NEW_BOX_TOPIC.ordinal()]);
         boolean hasNewControlValues = receiveControlValue();// right moment?
-        if (hasNewControlValues)
-            sendWorkerRequest();// ask for workers, because control values may be changed and cone availability may been changed
 
         switch (state) {
             case IDLE:
+
+                if (hasNewControlValues && getLatestCval()>0) {// ask s1 units only if final cVal is positive,.i.e. less s1 than cones in new box
+                    sendWorkerRequest();// ask for workers, because control values may be changed and cone availability may been changed
+                    enterState(S2States.WAITING_S2_REPLY);
+                }
+
                 receiveS2Request();// receive these msgs only when not planing own inserters
 
                 receiveReplyToRequest();// do nothing on this msg information, but this call will remove this msg from queue
@@ -61,16 +66,31 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
             case WAITING_S1_INFO:
 
                 waitingCounter--;
-                if (waitingCounter <= 0) {// waiting time is over, try to make plan using received manipulatorModels
+                if (waitingCounter <= 0) {// waiting time is over, calc no finalCval
                     latestS1Count = s1List.size();
-                    boolean hasPlan = makePlan(currentBoxMessage);
+                 if(getLatestCval()>0){//see if processing power is big enough, if no request workers to other s2
+                     sendWorkerRequest();
+                     enterState(S2States.WAITING_S2_REPLY);
+                 }else {// make plan
+                      boolean hasPlan = makePlan(currentBoxMessage);
 
                     if (hasPlan) {//plan has been made and requests according to the plan has been sent
                         enterState(S2States.WAITING_S1_CONFIRM_PREPEARED);
-                    } else {// plan could not be made- start again with requests
-                        sendWorkerRequest();// request workers if plan cant be made
-                        enterState(S2States.WAITING_S2_REPLY);
+                    } else {// plan could not be made based on recent cVals, ask for cVal increase (unlikely to execute, because of non positive cVal)
+                        sendResourceRequestToS3();
+                        enterState(S2States.IDLE);
                     }
+                 }
+                   // boolean hasPlan = makePlan(currentBoxMessage);
+
+//                    if (hasPlan) {//plan has been made and requests according to the plan has been sent
+//                        enterState(S2States.WAITING_S1_CONFIRM_PREPEARED);
+//                    } else {// plan could not be made based on recent cVals, ask for cVal increase
+//                        sendResourceRequestToS3();
+//                        enterState(S2States.IDLE);
+//                        //sendWorkerRequest();// request workers if plan cant be made
+//                        //enterState(S2States.WAITING_S2_REPLY);
+//                    }
 
                 }
                 break;
@@ -89,10 +109,10 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
                     enterState(S2States.IDLE);
                 }
                 break;
-            case WAITING_S2_REPLY://wait for reply to request of worker, do not send new requests until reply is received
+            case WAITING_S2_REPLY://wait for reply to request of worker, do not send new requests until reply is received, make plan only after reply timeout has passed
                 waitingCounter--;
                 boolean positiveReply = receiveReplyToRequest();
-                if (positiveReply) enterState(S2States.WAITING_S1_INFO);
+                if (positiveReply) hasPositiveReplyFromS2 = true;// this means that we can try again with worker request
 
                 if (waitingCounter <= 0) {// waiting time is over
 // this means that no positive replys were received, no use to try to query own workers again, send request to s3
@@ -101,12 +121,27 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
 
                     // sendWorkerRequest();// request workers again
                     // enterState(S2States.WAITING_S2_REPLY);
-                    sendResourceRequestToS3();
-                    enterState(S2States.WAITING_S1_INFO);// query own manipulators again, maybe cones has been added
+                    //sendResourceRequestToS3();
+                   if(hasPositiveReplyFromS2) {
+                       enterState(S2States.WAITING_S1_INFO);// query own manipulators again, maybe cones has been added
+                   }else{// no new s1 from other s2, try to make plan as is
+                       boolean hasPlan = makePlan(currentBoxMessage);// replace this block with call
+
+                       if (hasPlan) {//plan has been made and requests according to the plan has been sent
+                           enterState(S2States.WAITING_S1_CONFIRM_PREPEARED);
+                       } else {// plan could not be made based on recent cVals, ask for cVal increase (unlikely to execute, because of non positive cVal)
+                           sendResourceRequestToS3();
+                           enterState(S2States.IDLE);
+                       }
+                   }
                 }
 
                 break;
+            case PROCESS_S2_REPLYS:
 
+
+
+                break;
             default:
                 break;
         }
@@ -143,6 +178,7 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
             case WAITING_S2_REPLY:
                 waitingCounter = grantWaitingTimeout / ViaBotAgent.tickerPeriod;
                 state = S2States.WAITING_S2_REPLY;
+                hasPositiveReplyFromS2 = false;// reset this flag
                 break;
             default:
                 break;

@@ -27,8 +27,9 @@ public class ConveyorModelingBehaviour extends BaseTopicBasedTickerBehaviour {
     MessageTemplate convMsgTpl;
     ArrayList<Box> currentBoxes = new ArrayList<>(); // this box should be valid from moment when message "boxStoppedAt" is sent till "moveOn is received"
     boolean shouldSendMoveOn = false;
+    ArrayList<Box> lastCurrentBoxes = new ArrayList<>();
 
-    BoxTimeCounter boxTimeCounter = new BoxTimeCounter(boxQueues, currentBoxes);// for statistics
+    BoxTimeCounter boxTimeCounter = new BoxTimeCounter(boxQueues, lastCurrentBoxes);// for statistics
 
     //normally there should be only one box in this list, but if two sensors has fired nearly same time there can be more than one box
     public ConveyorModelingBehaviour(ManipulatorAgent a) {
@@ -86,7 +87,9 @@ boolean isBeltRunning = false;// to determine if issue moveOn command
                 Log.soutWTime("sending log " + getBehaviourName() + " received sopped at, read char: " + position);
 
               putBoxToNextQueue(position);
-                boxTimeCounter.stoppedAtSensor();
+               lastCurrentBoxes = new ArrayList<>(currentBoxes);
+               Log.soutWTime("cmb --->>> lastCurrentBoxes size: "+lastCurrentBoxes.size()); // for testing
+               boxTimeCounter.stoppedAtSensor();
             }else if (msg.getContent().contains(ConveyorAgent.triggerAt)) {
                 char position = msg.getContent().charAt(ConveyorAgent.triggerAt.length());
                 owner.sendLogMsgToGui(getBehaviourName() + " received trigger at, read char: " + position);
