@@ -64,6 +64,7 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
 
     @Override
     protected void onTick() {
+        super.onTick();
         receiveInfoRequestMessage();
         receiveInsertionRequestMessage();
         receiveBoxArrivedMessage();
@@ -81,6 +82,7 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
                     if (nextConeType != previousType) {// start tool change
                         Log.soutWTime("Starting cone type change to: " + nextConeType);
                         typeChangeCounter = typeChangeTimeMs / ViaBotAgent.tickerPeriod;
+
                         state = S1States.CHANGING_TYPE;
                         break;
                     }

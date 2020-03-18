@@ -87,7 +87,7 @@ public class Main {
 
 
             // main.createAgent(ManipulatorType.CONVEYOR);
-            //main.createAgent(ManipulatorType.IRB160);//for testing
+            main.createAgent(ManipulatorType.IRB120);//for testing
 
         }
 

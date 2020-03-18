@@ -12,7 +12,7 @@ public abstract class BaseTopicBasedTickerBehaviour extends TickerBehaviour {
     public AID[] sendingTopics;
     public AID[] receivingTopics;
     public MessageTemplate[] templates;// for receiving  messages  of particular topic
-
+    long prevTickStartTime = 0;
     void createSendingTopic(TopicNames topicName) {
         sendingTopics[topicName.ordinal()] = owner.createTopicForBehaviour(topicName.name());
     }
@@ -36,4 +36,17 @@ public abstract class BaseTopicBasedTickerBehaviour extends TickerBehaviour {
     }
 
 
+    int dtOtputCounter = 0;
+
+    @Override
+    protected void onTick() {
+        long time = System.currentTimeMillis();
+        long dt = time - prevTickStartTime;
+        prevTickStartTime = time;
+        dtOtputCounter++;
+        if (dtOtputCounter % 10 == 0) {
+            dtOtputCounter = 0;
+            System.out.println("----//// ticker actual period: " + dt);
+        }
+    }
 }

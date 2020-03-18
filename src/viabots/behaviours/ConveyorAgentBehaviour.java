@@ -29,6 +29,8 @@ public class ConveyorAgentBehaviour extends BaseTopicBasedTickerBehaviour {
 
     @Override
     protected void onTick() {
+        super.onTick();
+
         receiveIncomingTopicMsgs();
         master.receiveUImessage();// this should be last call to message reception, for it is receiving msgs wo template
 
