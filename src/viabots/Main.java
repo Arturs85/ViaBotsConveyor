@@ -15,7 +15,7 @@ public class Main {
     static int agentsCounter = 0;
     static String localHost = "vnpc-Precision-T1700";
     final static int CONNECTING_INTERVAL = 4000;
-    static String version = "feb24";
+    static String version = "mar18";
     /**
      * arg[0] hostname of main container- needed only if this is peripherial container
      * arg[1] manipulator type name as in enum {@link ManipulatorType}
@@ -78,6 +78,7 @@ public class Main {
 
             //  main.createAgent(ManipulatorType.BAXTER);//for testing
 
+            main.createAgent(ManipulatorType.SIM_IRB120,"abb", 1);//for testing
 
             try {
                 Thread.sleep(1000);
@@ -86,8 +87,10 @@ public class Main {
             }
 
 
-            // main.createAgent(ManipulatorType.CONVEYOR);
-            main.createAgent(ManipulatorType.IRB120);//for testing
+             main.createAgent(ManipulatorType.SIM_CONVEYOR);
+            main.createAgent(ManipulatorType.SIM_BAXTER,"baxter", 3);//for testing
+            main.createAgent(ManipulatorType.SIM_SMALL_ONE,"small1(B cones)", 2);//for testing
+            main.createAgent(ManipulatorType.SIM_SMALL_ONE,"small2", 4);//for testing
 
         }
 
@@ -155,7 +158,14 @@ public class Main {
                 } else if (type.equals(ManipulatorType.CONVEYOR)) {
                     dummy = cc.createNewAgent("Conveyor",
                             "viabots.ConveyorAgent", args);
-                } else
+                }else if (type.equals(ManipulatorType.SIM_CONVEYOR)) {
+                    dummy = cc.createNewAgent("SimConveyor",
+                            "viabots.SimConveyorAgent", args);
+                }else if (type.equals(ManipulatorType.SIM_SMALL_ONE) || type.equals(ManipulatorType.SIM_BAXTER) || type.equals(ManipulatorType.SIM_IRB120)) {
+                    dummy = cc.createNewAgent(agentName + (++agentsCounter),
+                            "viabots.SimManipulatorAgent", args);
+                }
+                else
                     dummy = cc.createNewAgent(agentName + (++agentsCounter),
                             "viabots.ManipulatorAgent", args);
 // Fire up the agent

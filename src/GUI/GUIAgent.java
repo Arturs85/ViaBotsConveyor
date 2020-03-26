@@ -39,11 +39,14 @@ public class GUIAgent extends Agent {
     public AID logTopic;
     public AID disablePredictionTopic;
     public AID disableControlTopic;
+public AID parametersTopic;
+    public AID boxTimesTopic;
 
     MessageTemplate uiMsgTpl;
     MessageTemplate convMsgTpl;
     MessageTemplate modelerToGuiTpl;
     MessageTemplate logTopicTpl;
+    MessageTemplate boxTimesTpl;
 
     int onTimeMiliSec = 0;
     int processedBoxes = 0;
@@ -61,7 +64,7 @@ public class GUIAgent extends Agent {
             conveyorGUI.controller.workingAgentsListView.setItems(agents);
             conveyorGUI.controller.checkBoxUsePrediction.setOnAction(event -> sendDisablePrediction(((CheckBox) event.getSource()).isSelected()));
             conveyorGUI.controller.checkBoxUseCvalues.setOnAction(event -> sendDisableControl(((CheckBox) event.getSource()).isSelected()));
-
+conveyorGUI.controller.buttonShowParameters.setOnAction(actionEvent -> {conveyorGUI.showParamsDialog();});
         });
 
         try {
@@ -84,7 +87,11 @@ public class GUIAgent extends Agent {
 
             disablePredictionTopic = topicHelper.createTopic(TopicNames.DISABLE_PREDICTION.name());// for sending
             disableControlTopic = topicHelper.createTopic(TopicNames.DISABLE_CONTROL.name());// for sending
+parametersTopic = topicHelper.createTopic(TopicNames.PARAMETERS_TOPIC.name());// for sending
 
+            boxTimesTopic = topicHelper.createTopic(TopicNames.BOX_TIME_COUNTER_TOPIC.name());// register to receive msgs from convModelingBehaviour
+            boxTimesTpl = MessageTemplate.MatchTopic(boxTimesTopic);
+            topicHelper.register(boxTimesTopic);
         } catch (
                 ServiceException e) {
             e.printStackTrace();
@@ -165,6 +172,13 @@ public class GUIAgent extends Agent {
         if (msg != null) {
             Platform.runLater(() -> conveyorGUI.controller.logTextArea.appendText("Msg from conveyor: " + msg.getContent() + "\n"));
         //    System.out.println("Msg from conveyor: " + msg.getContent());
+        }
+    }
+
+    void receiveBoxTimesMsg(){
+        ACLMessage msg = receive(boxTimesTpl);
+        if(msg!=null){
+            //save data to file
         }
     }
 
@@ -306,5 +320,17 @@ public class GUIAgent extends Agent {
         msg.addReceiver(disableControlTopic);
         send(msg);
     }
+void sendParametersMessage(BoxParamsMsg msgData){
+    ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+    try {
+        msg.setContentObject(msgData);
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+    msg.addReceiver(parametersTopic);
+    send(msg);
+    System.out.println("----------- parameters sent -----------");
+}
+
 
 }

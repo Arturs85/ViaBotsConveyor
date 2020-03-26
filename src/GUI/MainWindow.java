@@ -13,6 +13,7 @@ public class MainWindow {
     public Label labelSecPerBox;
     public CheckBox checkBoxUsePrediction;
     public CheckBox checkBoxUseCvalues;
+    public Button buttonShowParameters;
 
     GUIAgent owner;
 

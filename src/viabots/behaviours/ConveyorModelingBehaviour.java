@@ -52,7 +52,7 @@ public class ConveyorModelingBehaviour extends BaseTopicBasedTickerBehaviour {
         createSendingTopic(TopicNames.MODELER_GUI);
         createSendingTopic(TopicNames.MODELER_NEW_BOX_TOPIC);
         createSendingTopic(TopicNames.CONVEYOR_IN_TOPIC);
-
+createSendingTopic(TopicNames.BOX_TIME_COUNTER_TOPIC);
 //        conveyorMsgTopic = owner.createTopicForBehaviour(TopicNames.CONVEYOR_TOPIC.name());
 //        convMsgTpl = MessageTemplate.MatchTopic(conveyorMsgTopic);
 //        owner.registerBehaviourToTopic(conveyorMsgTopic);
@@ -88,6 +88,7 @@ boolean isBeltRunning = false;// to determine if issue moveOn command
 
               putBoxToNextQueue(position);
                lastCurrentBoxes = new ArrayList<>(currentBoxes);
+              boxTimeCounter.currentBoxes= lastCurrentBoxes;
                Log.soutWTime("cmb --->>> lastCurrentBoxes size: "+lastCurrentBoxes.size()); // for testing
                boxTimeCounter.stoppedAtSensor();
             }else if (msg.getContent().contains(ConveyorAgent.triggerAt)) {
@@ -141,6 +142,10 @@ void putBoxToNextQueue(char position){
 
         if ((sensorNumber + 1) >= boxQueues.size()) {//no more queues, erease box(do nothing)
             boxTimeCounter.addToFinished(box);
+        if(box.id==5){
+            //sendTimesToGUI();// statistics- results
+        owner.sendLogMsgToGui(boxTimeCounter.processedBoxesToString());
+        }
         } else {
             boxQueues.get(sensorNumber + 1).add(box);
 //check if this box if first in next queue, if so and if next sensor is subscribed to it, then send to conv "stop at sensor x"
@@ -300,6 +305,16 @@ void putBoxToNextQueue(char position){
        Log.soutWTime("sending to conv: stop at sensor "+sensorNr);
         owner.send(msg);
     }
+void sendTimesToGUI(){
+    ACLMessage msg = new ACLMessage(ACLMessage.PROPOSE);
+    msg.addReceiver(sendingTopics[TopicNames.BOX_TIME_COUNTER_TOPIC.ordinal()]);
+    try {
+        msg.setContentObject(boxTimeCounter.processedBoxes);
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+    owner.send(msg);
+}
 
     public void sendNewBoxMessage(Box box) {
         ACLMessage msg = new ACLMessage(ACLMessage.UNKNOWN);
@@ -312,6 +327,7 @@ void putBoxToNextQueue(char position){
         }
         msg.addReceiver(sendingTopics[TopicNames.MODELER_NEW_BOX_TOPIC.ordinal()]);
         owner.send(msg);
+   Log.soutWTime("==========  sent new box message: "+box.id+box.boxType+" ==========");
     }
 int printIntervalCounter=0;//for testing
     @Override

@@ -80,9 +80,9 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
                     // dont set curBoxId yet, because that would mean that box has arrived
                     ConeType nextConeType = Box.getConeTypeForBoxPosition(currentPosition);
                     if (nextConeType != previousType) {// start tool change
-                        Log.soutWTime("Starting cone type change to: " + nextConeType);
                         typeChangeCounter = typeChangeTimeMs / ViaBotAgent.tickerPeriod;
-
+                        Log.soutWTime("Starting cone type change to: " + nextConeType+" cntr: "+typeChangeCounter);
+Log.soutWTime("Ticker period: "+getPeriod());
                         state = S1States.CHANGING_TYPE;
                         break;
                     }
@@ -143,6 +143,7 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
                 break;
             case CHANGING_TYPE:
                 typeChangeCounter--;
+                Log.soutWTime("tc ctr: "+typeChangeCounter);
                 if (typeChangeCounter <= 0) {// tool change has ended
                     previousType = Box.getConeTypeForBoxPosition(currentPosition);//mark, that type is changed
                     state = S1States.IDLE;
@@ -328,7 +329,7 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
         }
 
         msg.addReceiver(sendingTopics[TopicNames.S1_TO_S2_TOPIC.ordinal()]);
-        owner.sendLogMsgToGui("manip sends to topic: " + sendingTopics[TopicNames.S1_TO_S2_TOPIC.ordinal()].toString());
+       // owner.sendLogMsgToGui("manip sends to topic: " + sendingTopics[TopicNames.S1_TO_S2_TOPIC.ordinal()].toString());
         owner.send(msg);
         Log.soutWTime(getAgent().getLocalName() + model.currentCone + " info Msg sent to s2 topic");
     }
@@ -402,7 +403,7 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
                     if (messageObj.coneCount != null) {//update available cone count, received from ui
                         for (int i = 0; i < messageObj.coneCount.length; i++) {
                             if (messageObj.coneCount[i] >= 0) {//negative values indicate no change in count
-                                master.coneCountAvailable[i] = messageObj.coneCount[i];//todo use manipulator model insted
+                                master.coneCountAvailable[i] = messageObj.coneCount[i];//todo use manipulator model instead
                                 manipulatorModel.conesAvailable[i] = messageObj.coneCount[i];
                                 Log.soutWTime(master.getLocalName() + " cone count update msg received: " + master.coneCountAvailable[i]);
 

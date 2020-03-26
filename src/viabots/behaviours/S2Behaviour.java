@@ -20,11 +20,11 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
     MessageTemplate convMsgTpl;
     MessageTemplate s1toS2Tpl;
     MessageTemplate taskAssignmentToS1OntTpl = MessageTemplate.MatchOntology(ConveyorOntologies.S1TaskConfirmation.name());
-
+LinkedList<BoxMessage> newBoxMessagesQueue=new LinkedList<>();
     Map<String, ManipulatorModel> s1List = new TreeMap<>();
     TreeMap<Integer, BoxWInserters> insertersList = new TreeMap<>();
     S2States state = S2States.IDLE;
-    static int infoWaitingTimeout = 1000;// ms
+    static int infoWaitingTimeout = 1500;// ms
     static int grantWaitingTimeout = 1000;// ms
 
     int waitingCounter = 0;
@@ -33,35 +33,56 @@ public class S2Behaviour extends BaseTopicBasedTickerBehaviour {
     double[] latestCVals;
     double latestS1Count = 0;
 boolean hasPositiveReplyFromS2=false;// mark if there is any positive reply, so that beh knows, whether to try again or try to make plan
-
+boolean hasPlan = true;// true, for to be able to receive newbox msg
     public S2Behaviour(ViaBotAgent a, ConeType coneType) {
         super(a);
         owner = a;
         this.coneType = coneType;
         subscribeToMessages();
     }
-//todo large reply waiting times
+    int printStateCounter=0;
+    int printStatePeriodTicks = 30;
+void printState(){
+    System.out.println("*** *** S2 type : "+coneType) ;
+    System.out.println("hasPlan: "+hasPlan);
+    System.out.println("hasPositiveReplyFromS2: "+hasPositiveReplyFromS2);
+    System.out.println("state: "+state);
+    if(currentBoxMessage!= null)
+    System.out.println("currentBoxMessage id: "+currentBoxMessage.boxID);
+    System.out.println("latestS1Count : "+latestS1Count);
+
+
+}
 
     @Override
     protected void onTick() {
+        super.onTick();
         //     System.out.println(owner.getLocalName() + " has " + owner.getCurQueueSize() + " msgs ," + getBehaviourName());
 // look through all new messages
+//       printStateCounter++;
+//       if(printStateCounter>= printStatePeriodTicks){
+//           printState();
+//           printStateCounter=0;
+//       }
+
         processMessages2(templates[TopicNames.S1_TO_S2_TOPIC.ordinal()]);
-        processMessages2(templates[TopicNames.MODELER_NEW_BOX_TOPIC.ordinal()]);
-        boolean hasNewControlValues = receiveControlValue();// right moment?
+        processMessages2(templates[TopicNames.MODELER_NEW_BOX_TOPIC.ordinal()]);//receive new box msg
+       boolean hasNewControlValues = receiveControlValue();// right moment?
 
         switch (state) {
             case IDLE:
 
-                if (hasNewControlValues && getLatestCval()>0) {// ask s1 units only if final cVal is positive,.i.e. less s1 than cones in new box
+
+                if (!hasPlan && hasNewControlValues && getLatestCval()>0) {// ask s1 units only if final cVal is positive,.i.e. less s1 than cones in new box
                     sendWorkerRequest();// ask for workers, because control values may be changed and cone availability may been changed
                     enterState(S2States.WAITING_S2_REPLY);
                 }
-
+if(hasPlan)  //process next only when previous plan has been made
+processNewBoxMsgs();
                 receiveS2Request();// receive these msgs only when not planing own inserters
 
                 receiveReplyToRequest();// do nothing on this msg information, but this call will remove this msg from queue
-
+receiveParamsMsg();
                 break;
             case WAITING_S1_INFO:
 
@@ -72,7 +93,7 @@ boolean hasPositiveReplyFromS2=false;// mark if there is any positive reply, so 
                      sendWorkerRequest();
                      enterState(S2States.WAITING_S2_REPLY);
                  }else {// make plan
-                      boolean hasPlan = makePlan(currentBoxMessage);
+                       hasPlan = makePlan(currentBoxMessage);
 
                     if (hasPlan) {//plan has been made and requests according to the plan has been sent
                         enterState(S2States.WAITING_S1_CONFIRM_PREPEARED);
@@ -125,7 +146,7 @@ boolean hasPositiveReplyFromS2=false;// mark if there is any positive reply, so 
                    if(hasPositiveReplyFromS2) {
                        enterState(S2States.WAITING_S1_INFO);// query own manipulators again, maybe cones has been added
                    }else{// no new s1 from other s2, try to make plan as is
-                       boolean hasPlan = makePlan(currentBoxMessage);// replace this block with call
+                        hasPlan = makePlan(currentBoxMessage);// replace this block with call
 
                        if (hasPlan) {//plan has been made and requests according to the plan has been sent
                            enterState(S2States.WAITING_S1_CONFIRM_PREPEARED);
@@ -186,12 +207,19 @@ boolean hasPositiveReplyFromS2=false;// mark if there is any positive reply, so 
 
     }
 
+    void processNewBoxMsgs(){//new box megs are put in queue and processed one by one
+    if(newBoxMessagesQueue.isEmpty()) return;
+    currentBoxMessage = newBoxMessagesQueue.removeFirst();
+        hasPlan=false;// mark that previous plan is invalid for new box
+        enterState(S2States.WAITING_S1_INFO);// sends info requests and waits time
+    }
+
     void subscribeToMessages() {
         createAndRegisterReceivingTopics(TopicNames.MODELER_NEW_BOX_TOPIC);
         createAndRegisterReceivingTopics(TopicNames.S1_TO_S2_TOPIC);
         createAndRegisterReceivingTopics(TopicNames.S3_TO_S2_TOPIC);
         createAndRegisterReceivingTopics(TopicNames.S2_TO_S2_TOPIC);
-
+        createAndRegisterReceivingTopics(TopicNames.PARAMETERS_TOPIC);
         createSendingTopic(TopicNames.S2_TO_S1_TOPIC);
         createSendingTopic(TopicNames.S2_TO_S3_TOPIC);
         createSendingTopic(TopicNames.S2_TO_S2_TOPIC);
@@ -276,15 +304,15 @@ boolean hasPositiveReplyFromS2=false;// mark if there is any positive reply, so 
                     } catch (UnreadableException e) {
                         e.printStackTrace();
                     }
+                    Log.soutWTime("S2"+coneType+" received new box msg from modeler: "+boxMessage.boxType+boxMessage.boxID);
                     if (currentBoxMessage != null && currentBoxMessage.boxID == boxMessage.boxID) {// this behaviour already receved this msg, put it back
                         owner.postMessage(msg);
                         return;
                     }
-                    currentBoxMessage = boxMessage;
-                    enterState(S2States.WAITING_S1_INFO);// sends info requests and waits time
-                    String boxTypeString = msg.getContent().substring(ConveyorAgent.boxArrived.length() + 1);
+                    newBoxMessagesQueue.addLast(boxMessage);// put new box msg in own queue so that it does not get lost i.e. is not removed by s3 or other s2
+
 //check if this msg should be post back for other s2 to be able to receive it
-                    if (owner.s2MustPostNewBoxMsg(currentBoxMessage.boxID)) {
+                    if (owner.s2MustPostNewBoxMsg(boxMessage.boxID)) {
                         owner.postMessage(msg);
                     }
                 }
@@ -477,6 +505,7 @@ boolean hasPositiveReplyFromS2=false;// mark if there is any positive reply, so 
         owner.send(msg);
     }
 
+
     void sendWorkerRequest() {
         ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
         msg.setOntology(ConveyorOntologies.S1Request.name());
@@ -490,6 +519,21 @@ boolean hasPositiveReplyFromS2=false;// mark if there is any positive reply, so 
         //enterState(S2States.WAITING_S2_REPLY);
         System.out.println(getBehaviourName() + coneType + " sending worker request to other S2's");
 
+    }
+
+    void receiveParamsMsg(){
+        ACLMessage msg = owner.receive(templates[TopicNames.PARAMETERS_TOPIC.ordinal()]);
+        if(msg!= null){
+            BoxParamsMsg msgObj = null;
+            try {
+                msgObj= (BoxParamsMsg) msg.getContentObject();
+            } catch (UnreadableException e) {
+                e.printStackTrace();
+            }
+            Box.setBoxContents(msgObj.boxContents);
+            System.out.println("S2 "+coneType +" received parameters from gui:  "+System.lineSeparator()+ Box.boxContentsToString());
+owner.sendLogMsgToGui("S2 "+coneType +" received parameters from gui:  "+System.lineSeparator()+ Box.boxContentsToString());
+        }
     }
 
     double getLatestCval() {

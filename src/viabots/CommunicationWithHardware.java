@@ -59,7 +59,7 @@ public class CommunicationWithHardware extends Thread {
                     if (socket != null) {
                         try {
 
-                            String incoming = listenForReplyWTimeout(1000);// does it need timeout?
+                            String incoming = listenForReplyWTimeout(10);// does it need timeout?
                             if (incoming != null) {
                                 System.out.println("====== comWHW received: " + incoming);
                                 hardwareMsgQueue.push(incoming);

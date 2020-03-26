@@ -8,7 +8,14 @@ import java.util.EnumSet;
 
 public class Box implements Serializable {
     static int idCounter = 0;
-    static final int[][] boxContents = new int[][]{new int[]{1, 1, 1, 1, 0, 1}, new int[]{1, 0, 1, 1, 0, 0}, new int[]{0, 1, 1, 0, 1, 0}};// first index- boxType ordinal, contents of arrays- required positions for boxType
+static int boxContentsUpdateCounter=0;
+    public static synchronized void setBoxContents(int[][] boxContents) {
+        Box.boxContents = boxContents;
+    boxContentsUpdateCounter++;
+        System.out.println("Box contents definition updated "+boxContentsUpdateCounter+" times" );
+    }
+
+    static int[][] boxContents = new int[][]{new int[]{1, 1, 1, 1, 0, 1}, new int[]{1, 0, 1, 1, 0, 1}, new int[]{0, 1, 1, 0, 1, 0}};// first index- boxType ordinal, contents of arrays- required positions for boxType
     static final ConeType[] baseBoxModel = new ConeType[]{ConeType.B, ConeType.A, ConeType.B, ConeType.B, ConeType.A, ConeType.B};//cone types for each position
 /*
      ____
@@ -69,6 +76,19 @@ public class Box implements Serializable {
         return baseBoxModel[position];
 
 
+    }
+
+    public static String boxContentsToString(){
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < boxContents.length; i++) {
+            for (int j = 0; j < boxContents[i].length; j++) {
+                sb.append(boxContents[i][j]);
+                sb.append(' ');
+
+            }
+        sb.append(System.lineSeparator());
+        }
+        return sb.toString();
     }
 
     public static int[] getEachConeTypeCountForBox(BoxType bt) {

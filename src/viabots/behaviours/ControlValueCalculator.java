@@ -4,12 +4,18 @@ import viabots.Box;
 import viabots.messageData.BoxMessage;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class ControlValueCalculator {
     static ConeType[] conesPossible = ConeType.values();
 
     public double[] cVals = new double[conesPossible.length];
     public static double[] zeroes = new double[conesPossible.length];
+
+    public ControlValueCalculator() {
+       Arrays.fill(zeroes,5);// positive value, larger than manipulators count
+    }
+
     void processNewBox(BoxMessage boxMessage) {
         // value is proportional to nr of cones
         for (int i = 0; i < conesPossible.length; i++) {

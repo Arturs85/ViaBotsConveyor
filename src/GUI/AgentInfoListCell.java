@@ -47,6 +47,7 @@ public class AgentInfoListCell extends ListCell<AgentInfo> {
     public Button beltButton;
     public Button boxButton;
     final int initialValueSpinner = 0;
+    final int incrementValueSpinner = 10;
     static int cellId = 0;
     BooleanStringConverter bsc = new BooleanStringConverter() {
         @Override
@@ -58,9 +59,9 @@ public class AgentInfoListCell extends ListCell<AgentInfo> {
 
         }
     };
-    SpinnerValueFactory<Integer> valueFactoryA = new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 25, initialValueSpinner);
-    SpinnerValueFactory<Integer> valueFactoryB = new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 25, initialValueSpinner);
-    SpinnerValueFactory<Integer> valueFactoryC = new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 25, initialValueSpinner);
+    SpinnerValueFactory<Integer> valueFactoryA = new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 250, initialValueSpinner,incrementValueSpinner);
+    SpinnerValueFactory<Integer> valueFactoryB = new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 250, initialValueSpinner,incrementValueSpinner);
+    SpinnerValueFactory<Integer> valueFactoryC = new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 250, initialValueSpinner,incrementValueSpinner);
 
     void spinnerSetup() {
 //        spinnerConeCountA.setValueFactory(valueFactory);
@@ -240,7 +241,8 @@ public class AgentInfoListCell extends ListCell<AgentInfo> {
                     additionalButtonsInitialised = true;
                 }
             }
-            if (item.getType().equals(ManipulatorType.BAXTER) || item.getType().equals(ManipulatorType.IRB120) || item.getType().equals(ManipulatorType.SMALL_ONE) ) {
+            if (item.getType().equals(ManipulatorType.BAXTER) || item.getType().equals(ManipulatorType.IRB120) || item.getType().equals(ManipulatorType.SMALL_ONE)
+            || item.getType().equals(ManipulatorType.SIM_BAXTER) || item.getType().equals(ManipulatorType.SIM_IRB120) || item.getType().equals(ManipulatorType.SIM_SMALL_ONE)) {
                 spinnerSetup();// right place?
                 if (spinnerConeCountA != null)
                     spinnerConeCountA.getValueFactory().valueProperty().bindBidirectional(item.objectPropConeAvailA);

@@ -59,7 +59,7 @@ SerialWriter sendingThread;
     }
 
     public void disconect() {
-
+if(sendingThread!= null)
         try {
             sendingThread.isRunning=false;
             if (in != null) in.close();

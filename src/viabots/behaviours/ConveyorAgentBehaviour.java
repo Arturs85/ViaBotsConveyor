@@ -7,6 +7,7 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.UnreadableException;
 import viabots.*;
 import viabots.messageData.BoxMessage;
+import viabots.messageData.BoxParamsMsg;
 import viabots.messageData.MessageContent;
 import viabots.messageData.TopicNames;
 
@@ -24,13 +25,13 @@ public class ConveyorAgentBehaviour extends BaseTopicBasedTickerBehaviour {
         createAndRegisterReceivingTopics(TopicNames.CONVEYOR_IN_TOPIC);
         createSendingTopic(TopicNames.CONVEYOR_OUT_TOPIC);
         createSendingTopic(TopicNames.BOX_GEN_MODEL_TOPIC);
-
+createAndRegisterReceivingTopics(TopicNames.PARAMETERS_TOPIC);
     }
 
     @Override
     protected void onTick() {
         super.onTick();
-
+receiveParamsMsg();
         receiveIncomingTopicMsgs();
         master.receiveUImessage();// this should be last call to message reception, for it is receiving msgs wo template
 
@@ -78,7 +79,24 @@ public class ConveyorAgentBehaviour extends BaseTopicBasedTickerBehaviour {
 
         }
     }
-
+void receiveParamsMsg(){
+    ACLMessage msg = master.receive(templates[TopicNames.PARAMETERS_TOPIC.ordinal()]);
+if(msg!= null){
+    BoxParamsMsg msgObj = null;
+    try {
+        msgObj= (BoxParamsMsg) msg.getContentObject();
+    } catch (UnreadableException e) {
+        e.printStackTrace();
+    }
+boxGenerationModel.setPattern(msgObj.pattern);
+    System.out.println("Conveyor agent updated box pattern: "+boxGenerationModel.getPatternAsString());
+    owner.sendLogMsgToGui("Conveyor agent updated box pattern: "+boxGenerationModel.getPatternAsString());
+    Box.setBoxContents(msgObj.boxContents);
+    if(msgObj.sensorPositions!=null){
+        master.setSensorIntervals(msgObj.sensorPositions);
+    }
+}
+}
     public void sendConveyorMessage(String content) {
         ACLMessage msg = new ACLMessage(ACLMessage.UNKNOWN);
         msg.setContent(content);

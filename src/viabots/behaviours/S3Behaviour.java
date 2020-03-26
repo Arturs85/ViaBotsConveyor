@@ -101,7 +101,7 @@ public class S3Behaviour extends BaseTopicBasedTickerBehaviour {
             if (isProducingCvalues)
                 sendControlValuesToS2(cValueCalc.cVals);
             else
-                sendControlValuesToS2(ControlValueCalculator.zeroes); //send zero as cVal to
+                sendControlValuesToS2(ControlValueCalculator.zeroes); //send equal positive large values as cVal to
         }
 
     }
@@ -158,6 +158,8 @@ public class S3Behaviour extends BaseTopicBasedTickerBehaviour {
                 if (unfilledList.isEmpty()) {// all inserters are confirmed - remove this entry from joblist and send msg to convMod
                     sendInsertersReady(boxMessage.boxID);
                     jobsListc.remove(boxMessage.boxID);
+                }else{
+                    Log.soutWTime( "S3+ box "+boxMessage.boxID+" still unfilled "+unfilledList.toString());
                 }
 
 

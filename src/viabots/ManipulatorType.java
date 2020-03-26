@@ -1,3 +1,3 @@
 package viabots;
 
-public enum ManipulatorType {UNKNOWN, BAXTER, IRB120,  SMALL_ONE, CONVEYOR}
+public enum ManipulatorType {UNKNOWN, BAXTER, IRB120,  SMALL_ONE, CONVEYOR,SIM_CONVEYOR,SIM_BAXTER, SIM_IRB120,  SIM_SMALL_ONE}

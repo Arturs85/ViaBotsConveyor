@@ -46,7 +46,7 @@ public abstract class BaseTopicBasedTickerBehaviour extends TickerBehaviour {
         dtOtputCounter++;
         if (dtOtputCounter % 10 == 0) {
             dtOtputCounter = 0;
-            System.out.println("----//// ticker actual period: " + dt);
+          //  System.out.println("----//// ticker actual period: " + dt);
         }
     }
 }

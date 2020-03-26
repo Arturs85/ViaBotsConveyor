@@ -38,7 +38,7 @@ public class ConveyorAgent extends ViaBotAgent {
         try {
             serialComm.connectToFirstPort();
         } catch (Exception e) {
-            e.printStackTrace();
+          //  e.printStackTrace();
         }
         conveyorTopic = topicHelper.createTopic(TopicNames.CONVEYOR_OUT_TOPIC.name());
         cab = new ConveyorAgentBehaviour(this);
@@ -54,6 +54,7 @@ public class ConveyorAgent extends ViaBotAgent {
         System.exit(1);
 
     }
+public void setSensorIntervals(int[] intervals){}// implemented in SimConvAgent
 
     public void requestStopBeltAt(int position) {
         position++;//off by one correction

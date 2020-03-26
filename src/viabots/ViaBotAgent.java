@@ -26,7 +26,7 @@ public class ViaBotAgent extends Agent {
     // public MessageTemplate requestTamplate;
     // public MessageTemplate informTamplate;
 
-    public static final int tickerPeriod = 200;//ms
+    public static final int tickerPeriod = 300;//ms
     public ManipulatorType type;
     public EnumSet<VSMRoles> currentRoles;
     int sNewBoxArrivedMsgSubscriberRolesCount = 0;//shows how many different s behaviours is added to this agent

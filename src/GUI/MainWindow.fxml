@@ -9,16 +9,13 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox alignment="CENTER" prefWidth="1000.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1"
+<?import javafx.scene.control.Button?>
+<VBox alignment="CENTER" prefWidth="1200.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="GUI.MainWindow">
     <children>
         <HBox prefWidth="200.0">
             <children>
-                <Label prefHeight="25.0" text="Agents" textAlignment="CENTER">
-                    <padding>
-                        <Insets right="44.0"/>
-                    </padding>
-                </Label>
+
                 <Label fx:id="labelOnTime" prefHeight="25.0" text="OnTime " textAlignment="RIGHT">
                     <padding>
                         <Insets right="44.0"/>
@@ -48,12 +45,16 @@
                         <Insets right="44.0"/>
                     </padding>
                 </CheckBox>
-
+<Button fx:id="buttonShowParameters" text="Change Parameters" prefHeight="25.0" alignment="CENTER" textAlignment="CENTER">
+    <padding>
+        <Insets right="44.0"/>
+    </padding>
+</Button>
 
             </children>
         </HBox>
 
-        <SplitPane dividerPositions="0.6" orientation="VERTICAL" prefWidth="1000.0" VBox.vgrow="ALWAYS">
+        <SplitPane dividerPositions="0.6" orientation="VERTICAL" prefWidth="1200.0" VBox.vgrow="ALWAYS">
             <items>
                 <ListView fx:id="workingAgentsListView"/>
                 <VBox>

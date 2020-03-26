@@ -11,10 +11,16 @@ import static viabots.BoxType.*;
 
 public class BoxGenerationModel implements Serializable {
 
-    BoxType pattern[] = new BoxType[]{B, A, A, C,A,A,B,B,C,C,C,C};//{B, A, A, C,A,B,B,C,C,C};
+
+
+    public   BoxType[] pattern = new BoxType[]{B, A, B, C,B,A,B,B,C,C,C,C};//{B, A, A, C,A,B,B,C,C,C};
     int counter = -1;
     final static int coneTypeValuesLength = ConeType.values().length;
 
+    public void setPattern(BoxType[] pattern) {
+        this.pattern = pattern;
+        counter =-1;
+    }
     public BoxType getNextFromPattern() {
         counter++;
         return pattern[counter % pattern.length];
@@ -43,6 +49,14 @@ public class BoxGenerationModel implements Serializable {
         return predictedConeCounts;
     }
 
+   public String getPatternAsString(){
+       StringBuilder sb = new StringBuilder(20);
+        for (int i = 0; i < pattern.length; i++) {
+           sb.append(pattern[i].name());
+           sb.append(' ');
+       }
+        return sb.toString();
+   }
 
     BoxType getBoxTypeafAfter(int iterations) {
 

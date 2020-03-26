@@ -1,0 +1,10 @@
+Manifest-Version: 1.0
+Main-Class: viabots.Main
+Class-Path: juh.jar jurt.jar ridl.jar gettext.jar libintl.jar RXTXcomm.j
+ ar java_uno.jar juh-6.0.7.jar unoloader.jar javafx-web.jar jurt-6.0.7.j
+ ar ridl-6.0.7.jar javafx-base.jar javafx-fxml.jar javafx-media.jar java
+ fx-swing.jar javafx-web-11.jar javafx-base-11.jar javafx-fxml-11.jar ja
+ vafx-controls.jar javafx-graphics.jar javafx-media-11.jar javafx-swing-
+ 11.jar unoloader-6.0.7.jar RXTXcomm-2.2pre2.jar java-atk-wrapper.jar ja
+ vafx-controls-11.jar javafx-graphics-11.jar jade.jar RXTXcomm.jar
+
