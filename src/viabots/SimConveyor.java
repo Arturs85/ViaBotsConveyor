@@ -1,6 +1,6 @@
 package viabots;
 
-import com.sun.javafx.embed.swing.JFXPanelInterop;
+//import com.sun.javafx.embed.swing.JFXPanelInterop;
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 import javafx.scene.Scene;
@@ -32,7 +32,7 @@ boolean stateIsStopped = true;
 boolean isRunning = true;
 int moveSteps =0;
 Canvas canvas;
-
+    public static final Integer syncLock = new Integer(0);
     public SimConveyor(BaseConveyorAgent master) {
         this.master = master;
         canvas= createWindow();
@@ -56,7 +56,7 @@ void movementStep(){// call only if stateismoving
 
     // move boxes
    ListIterator<Integer> it = boxPositions.listIterator();
-synchronized (this){
+    synchronized (syncLock) {
     while (it.hasNext()) {
         Integer boxPos = it.next();
         boxPos+=beltMmPerStep;
@@ -155,7 +155,7 @@ new JFXPanel();
             gc.strokeOval(x+pad-sensRadi,height-pad-pad-sensRadi-sensRadi-1,2*sensRadi,2*sensRadi);
 
         }
-       synchronized (this){// concurrent modification fix ?
+        synchronized (syncLock) {// concurrent modification fix ?
         for (Integer i:boxPositions) {
 
             gc.strokeRoundRect((i/10)+pad-boxW,height-3*pad,boxW,pad-1,2,2);
