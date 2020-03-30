@@ -26,14 +26,14 @@ int beltMmPerStep = (130*stepPeriodMs)/1000;
     //int sensorPositions[] = new int[]{500,1100,1800,2600,3500};   //mm
 int sensorPositions[] = new int[]{500,1500,2100,2800,3600};   //mm
     int stopRequests[] = new int[]{9999,0,0,0,0};
-    ConveyorAgent master;// for sending messages  only
+    BaseConveyorAgent master;// for sending messages  only
     ArrayList<Integer> currentSensors = new ArrayList<>(5);
 boolean stateIsStopped = true;
 boolean isRunning = true;
 int moveSteps =0;
 Canvas canvas;
 
-    public SimConveyor(ConveyorAgent master) {
+    public SimConveyor(BaseConveyorAgent master) {
         this.master = master;
         canvas= createWindow();
         System.out.println("  mm per step: "+ beltMmPerStep);
@@ -56,7 +56,7 @@ void movementStep(){// call only if stateismoving
 
     // move boxes
    ListIterator<Integer> it = boxPositions.listIterator();
-
+synchronized (this){
     while (it.hasNext()) {
         Integer boxPos = it.next();
         boxPos+=beltMmPerStep;
@@ -81,6 +81,7 @@ void movementStep(){// call only if stateismoving
             }
         }
     }
+}
     //remove last box from conveyor if it has passed all sensors
     if(!boxPositions.isEmpty()){
     if(boxPositions.peekFirst()> sensorPositions[sensorPositions.length-1]) boxPositions.removeFirst();
@@ -154,9 +155,11 @@ new JFXPanel();
             gc.strokeOval(x+pad-sensRadi,height-pad-pad-sensRadi-sensRadi-1,2*sensRadi,2*sensRadi);
 
         }
+       synchronized (this){// concurrent modification fix ?
         for (Integer i:boxPositions) {
 
             gc.strokeRoundRect((i/10)+pad-boxW,height-3*pad,boxW,pad-1,2,2);
+        }
         }
         for (Integer i :currentSensors) {
             int x = sensorPositions[i]/10;

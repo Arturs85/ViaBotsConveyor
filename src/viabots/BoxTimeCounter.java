@@ -67,7 +67,7 @@ public class BoxTimeCounter {
     }
 
     public void print() {
-        System.out.println("nr id  boxType timeMovingMs timeBetweenStationsMs timeAtStationMs");
+        System.out.println("nr id boxType timeMovingMs timeBetweenStationsMs timeAtStationMs");
 
         for (int i = 0; i < processedBoxes.size(); i++) {
             Box b = processedBoxes.get(i);
@@ -76,7 +76,7 @@ public class BoxTimeCounter {
     }
 public String processedBoxesToString(){
         StringBuilder sb = new StringBuilder();
-   sb.append("nr id  boxType timeMovingMs timeBetweenStationsMs timeAtStationMs");
+   sb.append("nr id boxType timeMovingMs timeBetweenStationsMs timeAtStationMs");
 sb.append(System.lineSeparator());
 
     for (int i = 0; i < processedBoxes.size(); i++) {

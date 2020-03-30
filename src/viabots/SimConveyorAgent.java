@@ -5,7 +5,7 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
-public class SimConveyorAgent extends ConveyorAgent {
+public class SimConveyorAgent extends BaseConveyorAgent {
     SimConveyor simConveyor;
 
     @Override

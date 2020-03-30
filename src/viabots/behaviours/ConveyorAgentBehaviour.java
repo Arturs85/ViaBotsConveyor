@@ -14,11 +14,11 @@ import viabots.messageData.TopicNames;
 import java.io.IOException;
 
 public class ConveyorAgentBehaviour extends BaseTopicBasedTickerBehaviour {
-    ConveyorAgent master;
+    BaseConveyorAgent master;
     BoxGenerationModel boxGenerationModel;
     static final int boxGenModelSendingInterval = 5000; //ms
     int boxGenSendingIntCounter = 0;
-    public ConveyorAgentBehaviour(ConveyorAgent a) {
+    public ConveyorAgentBehaviour(BaseConveyorAgent a) {
         super(a);
         master = a;
         boxGenerationModel = new BoxGenerationModel();

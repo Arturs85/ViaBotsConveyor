@@ -2,7 +2,6 @@ package viabots;
 
 import jade.core.AID;
 import jade.lang.acl.ACLMessage;
-import javafx.application.Platform;
 import viabots.behaviours.ConveyorAgentBehaviour;
 import viabots.messageData.MessageContent;
 import viabots.messageData.MessageToGUI;
@@ -10,7 +9,7 @@ import viabots.messageData.TopicNames;
 
 import java.io.IOException;
 
-public class ConveyorAgent extends BaseConveyorAgent {
+public class BaseConveyorAgent extends ViaBotAgent {
     char commandStart = 'g';
     char commandStop = 's';
     char commandPlaceBox = 'p';
@@ -23,7 +22,7 @@ public class ConveyorAgent extends BaseConveyorAgent {
 
     public AID conveyorTopic;
     boolean beltIsOn = false;
-    TwoWaySerialComm serialComm;
+   // TwoWaySerialComm serialComm;
     public static String triggerAt = "triggerAt";
     public static String stoppedAt = "stoppedAt";
     public static String boxArrived = "boxArrived";
@@ -33,39 +32,33 @@ public class ConveyorAgent extends BaseConveyorAgent {
     @Override
     protected void setup() {
         super.setup();
-     //   type = ManipulatorType.CONVEYOR;
-        serialComm = new TwoWaySerialComm(this);
-        try {
-            serialComm.connectToFirstPort();
-        } catch (Exception e) {
-          //  e.printStackTrace();
-        }
-//        conveyorTopic = topicHelper.createTopic(TopicNames.CONVEYOR_OUT_TOPIC.name());
-//        cab = new ConveyorAgentBehaviour(this);
-//        addBehaviour(cab);
+        type = ManipulatorType.CONVEYOR;
+        conveyorTopic = topicHelper.createTopic(TopicNames.CONVEYOR_OUT_TOPIC.name());
+        cab = new ConveyorAgentBehaviour(this);
+        addBehaviour(cab);
     }
 
     @Override
     protected void takeDown() {
         super.takeDown();
-//        System.out.println(getLocalName() + " was taken down----");
-        serialComm.disconect();
+        System.out.println(getLocalName() + " was taken down----");
 
-  //      System.exit(1);
+
+        System.exit(1);
 
     }
-@Override
+    public void setSensorIntervals(int[] intervals){}// implemented in SimConvAgent
+
     public void requestStopBeltAt(int position) {
         position++;//off by one correction
         char pos = String.valueOf(position).charAt(0);
-        serialComm.writeToOutputQeue(pos);
+
 
         Log.soutWTime("conv sent char to avr: "+(String.valueOf(pos)));
     }
 
 
     void stopBelt() {
-        serialComm.writeToOutputQeue(commandStop);
 
         beltIsOn = false;
 
@@ -73,14 +66,12 @@ public class ConveyorAgent extends BaseConveyorAgent {
 
     public void startBelt() {
 
-          serialComm.writeToOutputQeue(commandStart);
-            //serialComm.out.write(commandStart);
-            beltIsOn = true;
+
+        beltIsOn = true;
 
     }
 
     public void  placeBox() {
-        serialComm.writeToOutputQeue(commandPlaceBox);
 
         previousHasLeft = false;
         //cab.sendConveyorMessage(ConveyorAgent.boxArrived + " " + BoxType.A.name());//for testing
@@ -96,7 +87,7 @@ public class ConveyorAgent extends BaseConveyorAgent {
 
     @Override
     public boolean isConnected() {
-        return serialComm.isConnected;
+return false;
     }
 
     void onSerialInput(char data) {
@@ -124,33 +115,33 @@ public class ConveyorAgent extends BaseConveyorAgent {
                 break;
             default:
                 sendConveyorMessage("uninterpreted: " + data);
-               // System.out.println("uninterp: "+String.valueOf(data));
+                // System.out.println("uninterp: "+String.valueOf(data));
                 break;
         }
 
     }
-//    public void sendConveyorMessage(String content) {
-//        ACLMessage msg = new ACLMessage(ACLMessage.UNKNOWN);
-//        msg.setContent(content);
-//        msg.addReceiver(conveyorTopic);
-//        send(msg);
-//      Log.soutWTime(content);
-//    }
+    public void sendConveyorMessage(String content) {
+        ACLMessage msg = new ACLMessage(ACLMessage.UNKNOWN);
+        msg.setContent(content);
+        msg.addReceiver(conveyorTopic);
+        send(msg);
+        Log.soutWTime(content);
+    }
 
 
-//    void sendMessageToGui() {
-//        MessageToGUI data = new MessageToGUI(serialComm.isConnected, type);//impl in GuiInteractions behaviour
-//        ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
-//        try {
-//            msg.setContentObject(data);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//        msg.addReceiver(uiTopic);
-//
-//        send(msg);
-//        // System.out.println(getBehaviourName()+" sent msg to gui-----------");
-//    }
+    void sendMessageToGui(boolean isConnected) {
+        MessageToGUI data = new MessageToGUI(isConnected, type);//impl in GuiInteractions behaviour
+        ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+        try {
+            msg.setContentObject(data);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        msg.addReceiver(uiTopic);
+
+        send(msg);
+        // System.out.println(getBehaviourName()+" sent msg to gui-----------");
+    }
 
     @Override
     public void receiveUImessage() {
@@ -171,6 +162,8 @@ public class ConveyorAgent extends BaseConveyorAgent {
             }
         } //else
     }
+
+
 
 
 }
