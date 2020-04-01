@@ -14,7 +14,7 @@ public class MainWindow {
     public CheckBox checkBoxUsePrediction;
     public CheckBox checkBoxUseCvalues;
     public Button buttonShowParameters;
-
+    int previousCarrerPos = 0;
     GUIAgent owner;
 
     public void setOwner(GUIAgent owner) {
@@ -27,5 +27,13 @@ public class MainWindow {
                 return new AgentInfoListCell();
             }
         });
+    }
+
+    public void appendTextWOAutoscroll(String text) {
+
+        previousCarrerPos = logTextArea.caretPositionProperty().get();
+        logTextArea.appendText(text);
+        if (logTextArea.isFocused())
+            logTextArea.positionCaret(previousCarrerPos);
     }
 }

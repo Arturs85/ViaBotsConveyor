@@ -36,7 +36,8 @@ static int boxContentsUpdateCounter=0;
     public int timeMovingMs = 0;
     public int timeAtStationMs = 0;
     public int timeBetweenStationsMs = 0;
-
+    public int timeAtSensor0Ms = 0;
+    public int timeWaitingOnManagementMs = 0;
     /**
      * for uniqe boxes
      *

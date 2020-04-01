@@ -18,8 +18,10 @@ public class BoxTimeCounter {
 
     long movementStartTime = 0;
     long movementEndTime = 0;
+    boolean stoppedAtZero = false;
 
-    public void stoppedAtSensor() {
+    public void stoppedAtSensor(boolean isSensorZero) {
+        stoppedAtZero = isSensorZero;
         // calc movement time and add it to all boxes
         movementEndTime = System.currentTimeMillis();
         long movementTime = movementEndTime - movementStartTime;
@@ -34,20 +36,35 @@ public class BoxTimeCounter {
     public void startedMovingOn() {
         movementStartTime = System.currentTimeMillis();
         if (movementEndTime == 0) return;
-        long stoppedTime =  movementStartTime- movementEndTime ;
+        long stoppedTime = SimManipulator.timeScale * (movementStartTime - movementEndTime);
 //add stopped time to both types of boxes- ones that was at the sensor and ones, that was between
-        System.out.println("btc current boxes size: "+currentBoxes.size());
-        for (Box b : currentBoxes) {
-            b.timeAtStationMs += stoppedTime;
+        //System.out.println("btc current boxes size: "+currentBoxes.size());
+        if (!stoppedAtZero) {
+            for (Box b : currentBoxes) {
+                b.timeAtStationMs += stoppedTime;
+                System.out.println("        ^^^^^^^       mts " + stoppedTime);
+            }
+        } else {
+            for (Box b : currentBoxes) {
+                b.timeAtSensor0Ms += stoppedTime;
+                //System.out.println("        ^^^^^^^       mts " + stoppedTime);
+            }
         }
 //tell witch boxes are not at sensors
-
         ArrayList<Box> all = toArraylist();
         all.removeAll(currentBoxes);
-        for (Box b :
-                all) {
-            b.timeBetweenStationsMs += stoppedTime;
+        if (!stoppedAtZero) {
+            for (Box b :
+                    all) {
+                b.timeBetweenStationsMs += stoppedTime;
+            }
+        } else {
+            for (Box b :
+                    all) {
+                b.timeWaitingOnManagementMs += stoppedTime;
+            }
         }
+
     }
 
     ArrayList<Box> toArraylist() {
@@ -67,21 +84,21 @@ public class BoxTimeCounter {
     }
 
     public void print() {
-        System.out.println("nr id boxType timeMovingMs timeBetweenStationsMs timeAtStationMs");
+        System.out.println("nr id boxType timeMovingMs timeBetweenStationsMs timeAtStationMs timeAtSensor0Ms timeWaitingOnManagementMs");
 
         for (int i = 0; i < processedBoxes.size(); i++) {
             Box b = processedBoxes.get(i);
-            System.out.println(i + ". " + b.id + " " + b.boxType + " " + b.timeMovingMs + " " + b.timeBetweenStationsMs + " " + b.timeAtStationMs);
+            System.out.println(i + ". " + b.id + " " + b.boxType + " " + b.timeMovingMs + " " + b.timeBetweenStationsMs + " " + b.timeAtStationMs + " " + b.timeAtSensor0Ms + " " + b.timeWaitingOnManagementMs);
         }
     }
 public String processedBoxesToString(){
         StringBuilder sb = new StringBuilder();
-   sb.append("nr id boxType timeMovingMs timeBetweenStationsMs timeAtStationMs");
+    sb.append("nr id boxType timeMovingMs timeBetweenStationsMs timeAtStationMs timeAtSensor0Ms timeWaitingOnManagementMs");
 sb.append(System.lineSeparator());
 
     for (int i = 0; i < processedBoxes.size(); i++) {
         Box b = processedBoxes.get(i);
-       sb.append(i + ". " + b.id + " " + b.boxType + " " + b.timeMovingMs + " " + b.timeBetweenStationsMs + " " + b.timeAtStationMs);
+        sb.append(i + ". " + b.id + " " + b.boxType + " " + b.timeMovingMs + " " + b.timeBetweenStationsMs + " " + b.timeAtStationMs + " " + b.timeAtSensor0Ms + " " + b.timeWaitingOnManagementMs);
     sb.append(System.lineSeparator());
     }
     return sb.toString();

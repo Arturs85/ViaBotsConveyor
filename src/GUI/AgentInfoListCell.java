@@ -7,8 +7,10 @@ import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.util.converter.BooleanStringConverter;
+import viabots.ManipulatorAgent;
 import viabots.ManipulatorType;
 import viabots.behaviours.ConeType;
+import viabots.behaviours.S1ManipulatorBehaviour;
 import viabots.messageData.MessageContent;
 import viabots.messageData.MessageToGUI;
 
@@ -46,7 +48,7 @@ public class AgentInfoListCell extends ListCell<AgentInfo> {
     boolean additionalButtonsInitialised = false;
     public Button beltButton;
     public Button boxButton;
-    final int initialValueSpinner = 0;
+    final static int initialValueSpinner = S1ManipulatorBehaviour.STARTING_CONE_COUNT;// does not matter, overriden by binded item
     final int incrementValueSpinner = 10;
     static int cellId = 0;
     BooleanStringConverter bsc = new BooleanStringConverter() {

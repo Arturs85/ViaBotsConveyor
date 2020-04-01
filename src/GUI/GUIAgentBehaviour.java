@@ -5,7 +5,7 @@ import viabots.ViaBotAgent;
 
 public class GUIAgentBehaviour extends TickerBehaviour {
     GUIAgent owner;
-
+    static long timeLast = 0;
     GUIAgentBehaviour(GUIAgent guiAgent) {
         super(guiAgent, ViaBotAgent.tickerPeriod);
         owner = guiAgent;
@@ -18,9 +18,11 @@ public class GUIAgentBehaviour extends TickerBehaviour {
         owner.receiveLogMsg();
         owner.receiveUImessage();
 
-        if (owner.hasOpertionStarted)
-            owner.onTimeMiliSec += ViaBotAgent.tickerPeriod;
-
+        if (owner.hasOpertionStarted) {
+            long time = System.currentTimeMillis();
+            owner.onTimeMiliSec += (time - timeLast);
+            timeLast = time;
+        }
         owner.displayStatistics();
 
     }

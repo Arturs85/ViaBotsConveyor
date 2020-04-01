@@ -26,8 +26,9 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
     int stationPosition = 0; // box sensor number
     ConcurrentLinkedDeque<String> hardwareMsgQueue;
     ConeType previousType;
-    final static int typeChangeTimeMs = 5000;
+    public static int typeChangeTimeMs = 5000;
     int typeChangeCounter = 0;
+    public final static int STARTING_CONE_COUNT = 50;
 //boolean isHoldingCone=false;
 
     public S1ManipulatorBehaviour(ManipulatorAgent manipulatorAgent, Integer sensorPosition) {
@@ -38,6 +39,7 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
         enabledParts = EnumSet.noneOf(ConeType.class);
         createAndRegisterReceivingTopics(TopicNames.S2_TO_S1_TOPIC);
         manipulatorModel = new ManipulatorModel(owner.getLocalName(), ConeType.A, manipulatorAgent.type);//default cone type is set here!!!
+
         previousType = manipulatorModel.currentCone;
         boxAtStationTpl = MessageTemplate.MatchOntology(ConveyorOntologies.BoxAtSatation.name());
         taskAssignmentTpl = MessageTemplate.MatchOntology(ConveyorOntologies.TaskAssignmentToS1.name());
@@ -46,10 +48,12 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
         createAndRegisterReceivingTopics(TopicNames.UI_TO_MANIPULATOR);
         createSendingTopic(TopicNames.S1_TO_S2_TOPIC);
         createSendingTopic(TopicNames.REQUESTS_TO_MODELER);
+        createAndRegisterReceivingTopics(TopicNames.PARAMETERS_TOPIC);
         stationPosition = sensorPosition;
         System.out.println("created agent at sensor position " + sensorPosition);
         //  GuiInteractionBehaviour.sendConeTypeChanged(owner, manipulatorModel.currentCone);// For initial cone type to bee visible on gui
-
+        manipulatorModel.conesAvailable[0] = STARTING_CONE_COUNT;
+        manipulatorModel.conesAvailable[1] = STARTING_CONE_COUNT;
     }
 
     void setCurentConeType(ConeType coneType) {//for changing cone type that robot currently is set to insert
@@ -70,7 +74,7 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
         receiveBoxArrivedMessage();
         receiveTypeChangeMsg();
         receiveUImessage();
-
+        receiveParamsMsg();
         switch (state) {
             case IDLE:
 // try to pick up cone for next box, that will arrive i.e. box with least id on the todolist
@@ -80,7 +84,7 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
                     // dont set curBoxId yet, because that would mean that box has arrived
                     ConeType nextConeType = Box.getConeTypeForBoxPosition(currentPosition);
                     if (nextConeType != previousType) {// start tool change
-                        typeChangeCounter = typeChangeTimeMs / ViaBotAgent.tickerPeriod;
+                        typeChangeCounter = typeChangeTimeMs / ViaBotAgent.tickerPeriod / (int) SimManipulator.timeScale;
                         Log.soutWTime("Starting cone type change to: " + nextConeType+" cntr: "+typeChangeCounter);
 Log.soutWTime("Ticker period: "+getPeriod());
                         state = S1States.CHANGING_TYPE;
@@ -143,7 +147,7 @@ Log.soutWTime("Ticker period: "+getPeriod());
                 break;
             case CHANGING_TYPE:
                 typeChangeCounter--;
-                Log.soutWTime("tc ctr: "+typeChangeCounter);
+                // Log.soutWTime("tc ctr: "+typeChangeCounter);
                 if (typeChangeCounter <= 0) {// tool change has ended
                     previousType = Box.getConeTypeForBoxPosition(currentPosition);//mark, that type is changed
                     state = S1States.IDLE;
@@ -372,6 +376,21 @@ Log.soutWTime("Ticker period: "+getPeriod());
         owner.send(msg);
         Log.soutWTime(getAgent().getLocalName() + " sent msg insertion complete to modeler, boxid " + boxMessage.boxID);
 
+    }
+
+    void receiveParamsMsg() {
+        ACLMessage msg = owner.receive(templates[TopicNames.PARAMETERS_TOPIC.ordinal()]);
+        if (msg != null) {
+            BoxParamsMsg msgObj = null;
+            try {
+                msgObj = (BoxParamsMsg) msg.getContentObject();
+            } catch (UnreadableException e) {
+                e.printStackTrace();
+            }
+            typeChangeTimeMs = msgObj.toolChangeTime;
+            System.out.println(master.getLocalName() + " received tool change time from gui:  " + typeChangeTimeMs);
+            owner.sendLogMsgToGui(master.getLocalName() + " received tool change time from gui:  " + typeChangeTimeMs);
+        }
     }
 
     public void receiveUImessage() {//for testing insertion

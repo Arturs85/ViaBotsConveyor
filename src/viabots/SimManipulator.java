@@ -5,6 +5,7 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 public class SimManipulator {
     long pickupTime;
     long insertTime;
+    public static long timeScale = 1;//10;
     ConcurrentLinkedDeque<String> hardwareMsgQueue;
 ManipulatorType manipType;
 
@@ -16,11 +17,11 @@ ManipulatorType manipType;
     }
 
     void insertConeInPosition(int position) {
-        new Thread(new InsertionTimer(insertTime)).start();
+        new Thread(new InsertionTimer(insertTime / timeScale)).start();
     }
 
     void pickupCone() {
-        new Thread(new InsertionTimer(pickupTime)).start();
+        new Thread(new InsertionTimer(pickupTime / timeScale)).start();
 
     }
 

@@ -4,6 +4,7 @@ import javafx.beans.property.*;
 import viabots.ManipulatorType;
 import viabots.VSMRoles;
 import viabots.behaviours.ConeType;
+import viabots.behaviours.S1ManipulatorBehaviour;
 import viabots.messageData.MessageToGUI;
 
 import java.util.EnumSet;
@@ -18,10 +19,10 @@ public class AgentInfo {
     static GUIAgent guiAgent;
 
 
-    ObjectProperty<Integer> objectPropConeAvailA = new SimpleObjectProperty<>(0);
+    ObjectProperty<Integer> objectPropConeAvailA = new SimpleObjectProperty<>(S1ManipulatorBehaviour.STARTING_CONE_COUNT);
     IntegerProperty coneAvailableCountA = IntegerProperty.integerProperty(objectPropConeAvailA);
 
-    ObjectProperty<Integer> objectPropConeAvailB = new SimpleObjectProperty<>(0);
+    ObjectProperty<Integer> objectPropConeAvailB = new SimpleObjectProperty<>(S1ManipulatorBehaviour.STARTING_CONE_COUNT);
     IntegerProperty coneAvailableCountB = IntegerProperty.integerProperty(objectPropConeAvailB);
 
     ObjectProperty<Integer> objectPropConeAvailC = new SimpleObjectProperty<>(0);

@@ -92,16 +92,21 @@ grid.setPrefWidth(600);
         boxContentsDef.setText("{0,1,0,0,1,0},{1,0,1,1,0,1}");
         //boxContentsDef.setPromptText("Boxes Content Definition");
         TextField boxPattern = new TextField();
-        boxPattern.setText("A,A,A,A,B,B");
+        boxPattern.setText("A,A,A,B,B,B,B,B");
         TextField sensorPositions = new TextField();
         sensorPositions.setText("500,1500,2100,2800,3600");
 sensorPositions.setPrefWidth(300);
+        Spinner<Integer> spinnerToolChangeTime = new Spinner<>(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 25000, 5000, 500));
+
         grid.add(new Label("Boxes Type definition (max 3):"), 0, 0);
         grid.add(boxContentsDef, 1, 0);
         grid.add(new Label("Incoming Boxes pattern:"), 0, 1);
         grid.add(boxPattern, 1, 1);
         grid.add(new Label("Sensor positions:"), 0, 2);
         grid.add(sensorPositions, 1, 2);
+        grid.add(new Label("Tool change time ms:"), 0, 3);
+        grid.add(spinnerToolChangeTime, 1, 3);
+
 // Enable/Disable login button depending on whether a username was entered.
         Node loginButton = dialog.getDialogPane().lookupButton(loginButtonType);
       //  loginButton.setDisable(true);
@@ -119,7 +124,7 @@ sensorPositions.setPrefWidth(300);
 // Convert the result to a username-password-pair when the login button is clicked.
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == loginButtonType) {
-                return new String[]{boxContentsDef.getText(), boxPattern.getText(),sensorPositions.getText()};
+                return new String[]{boxContentsDef.getText(), boxPattern.getText(), sensorPositions.getText(), spinnerToolChangeTime.getValue().toString()};
             }
             return null;
         });
@@ -137,6 +142,7 @@ sensorPositions.setPrefWidth(300);
 
             BoxParamsMsg msg = new BoxParamsMsg(pattern,boxType);
             msg.sensorPositions = sensPos;
+                msg.toolChangeTime = Integer.parseInt(paramsString[3]);
             owner.sendParametersMessage(msg);
 
       }

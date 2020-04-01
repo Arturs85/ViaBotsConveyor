@@ -19,6 +19,7 @@ public class BoxParamsMsg implements Serializable {
   public  BoxType pattern[] = new BoxType[]{B, A, B, C,B,A,B,B,C,C,C,C};//{B, A, A, C,A,B,B,C,C,C};
   public    int[][] boxContents = new int[][]{new int[]{1, 1, 1, 1, 0, 1}, new int[]{1, 0, 1, 1, 0, 1}, new int[]{0, 1, 1, 0, 1, 0}};// first index- boxType ordinal, contents of arrays- required positions for boxType
 public int[] sensorPositions = null;
+    public int toolChangeTime;
     public BoxParamsMsg(BoxType[] pattern, int[][] boxContents) {
         this.pattern = pattern;
         this.boxContents = boxContents;

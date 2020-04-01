@@ -86,11 +86,14 @@ boolean isBeltRunning = false;// to determine if issue moveOn command
                 owner.sendLogMsgToGui(getBehaviourName() + " received sopped at, read char: " + position);
                 Log.soutWTime("sending log " + getBehaviourName() + " received sopped at, read char: " + position);
 
-              putBoxToNextQueue(position);
-               lastCurrentBoxes = new ArrayList<>(currentBoxes);
+                putBoxToNextQueue(position);
+                lastCurrentBoxes = new ArrayList<>(currentBoxes);
+
+
               boxTimeCounter.currentBoxes= lastCurrentBoxes;
                Log.soutWTime("cmb --->>> lastCurrentBoxes size: "+lastCurrentBoxes.size()); // for testing
-               boxTimeCounter.stoppedAtSensor();
+
+                boxTimeCounter.stoppedAtSensor(position == 'A');
             }else if (msg.getContent().contains(ConveyorAgent.triggerAt)) {
                 char position = msg.getContent().charAt(ConveyorAgent.triggerAt.length());
                 owner.sendLogMsgToGui(getBehaviourName() + " received trigger at, read char: " + position);
@@ -142,7 +145,7 @@ void putBoxToNextQueue(char position){
 
         if ((sensorNumber + 1) >= boxQueues.size()) {//no more queues, erease box(do nothing)
             boxTimeCounter.addToFinished(box);
-        if(box.id==5){
+            if (box.id % 5 == 0) {
             //sendTimesToGUI();// statistics- results
         owner.sendLogMsgToGui(boxTimeCounter.processedBoxesToString());
         }
@@ -339,7 +342,7 @@ int printIntervalCounter=0;//for testing
             sendMoveOnMessage();
         }else{
         printIntervalCounter++;
-            if(printIntervalCounter>10){
+            if (printIntervalCounter > 50) {
                 printIntervalCounter=0;
                 Log.soutWTime("cant move on because curBoxes size: "+ currentBoxes.size() + "  - " + currentBoxes.toString());
             }

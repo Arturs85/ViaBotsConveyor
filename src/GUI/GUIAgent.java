@@ -24,6 +24,8 @@ import viabots.messageData.*;
 
 import java.awt.*;
 import java.io.IOException;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
@@ -41,7 +43,7 @@ public class GUIAgent extends Agent {
     public AID disableControlTopic;
 public AID parametersTopic;
     public AID boxTimesTopic;
-
+    DecimalFormat decimalFormat = new DecimalFormat("###.00");
     MessageTemplate uiMsgTpl;
     MessageTemplate convMsgTpl;
     MessageTemplate modelerToGuiTpl;
@@ -125,9 +127,11 @@ parametersTopic = topicHelper.createTopic(TopicNames.PARAMETERS_TOPIC.name());//
         Platform.runLater(() -> {
             conveyorGUI.controller.labelOnTime.setText("On Time " + mins + " : " + secs);
             conveyorGUI.controller.labelProcessedBoxes.setText("Processed boxes " + processedBoxes);
-            if (processedBoxes != 0)
-                conveyorGUI.controller.labelSecPerBox.setText("Seconds per box " + (onTimeMiliSec / 1000 / processedBoxes));
+            if (processedBoxes != 0) {
+                String timePB = decimalFormat.format(onTimeMiliSec / 1000.0 / processedBoxes);
 
+                conveyorGUI.controller.labelSecPerBox.setText("Seconds per box " + timePB);
+            }
         });
     }
 
@@ -170,8 +174,10 @@ parametersTopic = topicHelper.createTopic(TopicNames.PARAMETERS_TOPIC.name());//
     void receiveConvMsg() {
         ACLMessage msg = receive(convMsgTpl);
         if (msg != null) {
-            Platform.runLater(() -> conveyorGUI.controller.logTextArea.appendText("Msg from conveyor: " + msg.getContent() + "\n"));
-        //    System.out.println("Msg from conveyor: " + msg.getContent());
+            // Platform.runLater(() -> conveyorGUI.controller.logTextArea.appendText("Msg from conveyor: " + msg.getContent() + "\n"));
+            Platform.runLater(() -> conveyorGUI.controller.appendTextWOAutoscroll("Msg from conveyor: " + msg.getContent() + "\n"));
+
+            //    System.out.println("Msg from conveyor: " + msg.getContent());
         }
     }
 
@@ -186,7 +192,9 @@ parametersTopic = topicHelper.createTopic(TopicNames.PARAMETERS_TOPIC.name());//
         ACLMessage msg = receive(logTopicTpl);
         while (msg != null) {
             String cont = msg.getContent();
-            Platform.runLater(() -> conveyorGUI.controller.logTextArea.appendText("-----LOG---: " + cont + "\n"));
+            // Platform.runLater(() -> conveyorGUI.controller.logTextArea.appendText("-----LOG---: " + cont + "\n"));
+            Platform.runLater(() -> conveyorGUI.controller.appendTextWOAutoscroll(cont + "\n"));
+
             // System.out.println("Msg from conveyor: " + msg.getContent());
             msg = receive(logTopicTpl);
         }
@@ -203,7 +211,9 @@ parametersTopic = topicHelper.createTopic(TopicNames.PARAMETERS_TOPIC.name());//
             }
             //display conveyor model
             String data = getModelAsString(boxQueues);
-            Platform.runLater(() -> conveyorGUI.controller.logTextArea.appendText("Msg from modeler: " + data + "\n"));
+            //   Platform.runLater(() -> conveyorGUI.controller.logTextArea.appendText("Msg from modeler: " + data + "\n"));
+            Platform.runLater(() -> conveyorGUI.controller.appendTextWOAutoscroll("Msg from modeler: " + data + "\n"));
+
             //System.out.println("Msg from conveyor: " + msg.getContent());
             //see if some box has left conveyor
 
@@ -268,6 +278,7 @@ parametersTopic = topicHelper.createTopic(TopicNames.PARAMETERS_TOPIC.name());//
 
     void sendUImessage(String agentName, String content) {
         if (content.equals(MessageContent.PLACE_BOX.name())) {//conv has been started
+            GUIAgentBehaviour.timeLast = System.currentTimeMillis();
             hasOpertionStarted = true;
         }
 
