@@ -92,7 +92,7 @@ grid.setPrefWidth(600);
         boxContentsDef.setText("{0,1,0,0,1,0},{1,0,1,1,0,1}");
         //boxContentsDef.setPromptText("Boxes Content Definition");
         TextField boxPattern = new TextField();
-        boxPattern.setText("A,A,A,B,B,B,B,B");
+        boxPattern.setText("B,B,B,A,B,B,B,A,B,B,B,A,A,A");
         TextField sensorPositions = new TextField();
         sensorPositions.setText("500,1500,2100,2800,3600");
 sensorPositions.setPrefWidth(300);

@@ -90,7 +90,7 @@ public class S3Behaviour extends BaseTopicBasedTickerBehaviour {
 
             //update control values and send it to s2
             cValueCalc.processNewBox(boxMessage);
-            double[] predictedCvals = boxGenerationModel.countAvarageCones(10);
+            double[] predictedCvals = boxGenerationModel.countAvarageCones(3);
             if (isUsingPrediction) {
                 if (predictedCvals != null) {// add prediction to the cVals
 

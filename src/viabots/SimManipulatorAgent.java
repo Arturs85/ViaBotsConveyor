@@ -7,9 +7,9 @@ SimManipulator simManipulator;
     final static int ABB_INSERT_TIME = 4000;
     final static int SMALL_INSERT_TIME = 5000;
     final static int BAXTER_INSERT_TIME = 6000;
-    final static int ABB_PICKUP_TIME = 4000;
-    final static int SMALL_PICKUP_TIME = 5000;
-    final static int BAXTER_PICKUP_TIME = 6000;
+    final static int ABB_PICKUP_TIME = 7000;
+    final static int SMALL_PICKUP_TIME = 8000;
+    final static int BAXTER_PICKUP_TIME = 9000;
 
     ManipulatorType manipType;
 

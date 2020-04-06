@@ -28,7 +28,7 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
     ConeType previousType;
     public static int typeChangeTimeMs = 5000;
     int typeChangeCounter = 0;
-    public final static int STARTING_CONE_COUNT = 50;
+    public final static int STARTING_CONE_COUNT = 80;
 //boolean isHoldingCone=false;
 
     public S1ManipulatorBehaviour(ManipulatorAgent manipulatorAgent, Integer sensorPosition) {
