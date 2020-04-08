@@ -27,6 +27,7 @@ public class S3Behaviour extends BaseTopicBasedTickerBehaviour {
     BoxGenerationModel boxGenerationModel = null;
     boolean isUsingPrediction = true;
     boolean isProducingCvalues = true;
+
     public S3Behaviour(ViaBotAgent a) {
         super(a);
         owner = a;
@@ -95,7 +96,8 @@ public class S3Behaviour extends BaseTopicBasedTickerBehaviour {
                 if (predictedCvals != null) {// add prediction to the cVals
 
                     System.out.println("predicted cVals : " + predictedCvals[0] + "  " + predictedCvals[1] + "  " + predictedCvals[2]);
-                    cValueCalc.addPrediction(predictedCvals);
+                    //cValueCalc.addPrediction(predictedCvals);
+                    cValueCalc.addPredictionOneStepForward(boxGenerationModel.getBoxTypeafAfter(0), boxGenerationModel.getBoxTypeafAfter(1), boxGenerationModel.getBoxTypeafAfter(2));
                 }
             }
             if (isProducingCvalues)

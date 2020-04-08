@@ -26,6 +26,7 @@ import java.awt.*;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
@@ -53,8 +54,9 @@ public AID parametersTopic;
     int onTimeMiliSec = 0;
     int processedBoxes = 0;
     static boolean hasOpertionStarted = false;
+    static final int NR_OF_BOX_TO_START_TIMEING_WITH = 5;
     List<LinkedList<Box>> previousBoxQueues = null;
-
+    ArrayList<Double> avgBoxTimes = new ArrayList<>(60);
     @Override
     protected void setup() {
         super.setup();
@@ -128,10 +130,11 @@ parametersTopic = topicHelper.createTopic(TopicNames.PARAMETERS_TOPIC.name());//
             conveyorGUI.controller.labelOnTime.setText("On Time " + mins + " : " + secs);
             conveyorGUI.controller.labelProcessedBoxes.setText("Processed boxes " + processedBoxes);
             if (processedBoxes != 0) {
-                String timePB = decimalFormat.format(onTimeMiliSec / 1000.0 / processedBoxes);
+                String timePB = decimalFormat.format(onTimeMiliSec / 1000.0 / (processedBoxes - NR_OF_BOX_TO_START_TIMEING_WITH));
 
                 conveyorGUI.controller.labelSecPerBox.setText("Seconds per box " + timePB);
             }
+
         });
     }
 
@@ -222,9 +225,20 @@ parametersTopic = topicHelper.createTopic(TopicNames.PARAMETERS_TOPIC.name());//
             if (previousBoxQueues != null)
                 boxType = ConveyorModelingBehaviour.boxHasLeftConv(previousBoxQueues, boxQueues);
 
-            if (boxType != null)
+            if (boxType != null) {
                 processedBoxes++;
+                if (processedBoxes == NR_OF_BOX_TO_START_TIMEING_WITH) {
+                    GUIAgentBehaviour.timeLast = System.currentTimeMillis();
+                    hasOpertionStarted = true;
+                }
+                if (processedBoxes > NR_OF_BOX_TO_START_TIMEING_WITH) {
+                    avgBoxTimes.add(onTimeMiliSec / 1000.0 / (processedBoxes - NR_OF_BOX_TO_START_TIMEING_WITH));
+                    if (avgBoxTimes.size() % 5 == 0) {
+                        System.out.println(avgBoxTimes.toString());
+                    }
+                }
 
+            }
             previousBoxQueues = boxQueues;
         }
     }
@@ -278,8 +292,8 @@ parametersTopic = topicHelper.createTopic(TopicNames.PARAMETERS_TOPIC.name());//
 
     void sendUImessage(String agentName, String content) {
         if (content.equals(MessageContent.PLACE_BOX.name())) {//conv has been started
-            GUIAgentBehaviour.timeLast = System.currentTimeMillis();
-            hasOpertionStarted = true;
+            //      GUIAgentBehaviour.timeLast = System.currentTimeMillis();
+            //     hasOpertionStarted = true;
         }
 
         ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);

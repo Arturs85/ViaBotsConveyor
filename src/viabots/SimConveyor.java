@@ -17,7 +17,7 @@ public class SimConveyor implements Runnable {
 int beltSpeed = 130; // mm/sec
     int stepPeriodMs = 100 / (int) SimManipulator.timeScale;
     int beltMmPerStep = (130 * stepPeriodMs * (int) SimManipulator.timeScale) / 1000;
- volatile    LinkedList<Integer> boxPositions = new LinkedList<Integer>();
+    volatile LinkedList<Integer> boxPositions = new LinkedList<Integer>();
 
     public void setSensorPositions(int[] sensorPositions) {
         this.sensorPositions = sensorPositions;
@@ -136,7 +136,7 @@ new JFXPanel();
         root.getChildren().add(canvas);
         stage.setTitle("Conveyor Sim");
         stage.setScene(new Scene(root));
-        stage.show();
+        // stage.show();
 
     }
 });
@@ -185,12 +185,12 @@ simStep();
             framerateCounter++;
             if (framerateCounter >= SimManipulator.timeScale && canvas != null) {
                 framerateCounter = 0;
-           Platform.runLater(new Runnable() {
-               @Override
-               public void run() {
-                   draw();
-               }
-           });
+//           Platform.runLater(new Runnable() {
+//               @Override
+//               public void run() {
+//                   draw();
+//               }
+//           });
        }
         try {
             Thread.sleep(stepPeriodMs);

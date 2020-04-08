@@ -1,6 +1,7 @@
 package viabots;
 
 import viabots.behaviours.ConeType;
+import viabots.behaviours.ConveyorModelingBehaviour;
 
 import javax.swing.*;
 
@@ -49,6 +50,24 @@ public class BoxGenerationModel implements Serializable {
         return predictedConeCounts;
     }
 
+    static final double avgPickupTime = 10;
+    static final double avgInsertTime = 5;
+    static final double avgToolChangeTime = 10;
+
+//    public double[][] findOptCVals(int length){
+//        int leastTimeSoFar=Integer.MAX_VALUE;
+//        int[] aCountSoFar= new int[length];
+//        for (int i = 0; i < length; i++) {
+//            BoxType bt = getBoxTypeafAfter(i);
+//
+//            for (int aMan = 0; aMan <= ConveyorModelingBehaviour.numberOfSensors-1; aMan++) {//manip count = 4
+//                int bMan =  ConveyorModelingBehaviour.numberOfSensors-1-aMan;
+//          //  double timeForBox =
+//            }
+//        }
+//
+//    }
+
    public String getPatternAsString(){
        StringBuilder sb = new StringBuilder(20);
         for (int i = 0; i < pattern.length; i++) {
@@ -58,9 +77,12 @@ public class BoxGenerationModel implements Serializable {
         return sb.toString();
    }
 
-    BoxType getBoxTypeafAfter(int iterations) {
+    public BoxType getBoxTypeafAfter(int iterations) {
 
         int index = counter + iterations;
+        if (index < 0) {// to handle negative indexes
+            index = pattern.length + index - 1;
+        }
         index = index % pattern.length;
         return pattern[index];
     }

@@ -1,6 +1,7 @@
 package viabots.behaviours;
 
 import viabots.Box;
+import viabots.BoxType;
 import viabots.messageData.BoxMessage;
 
 import java.util.ArrayList;
@@ -8,6 +9,9 @@ import java.util.Arrays;
 
 public class ControlValueCalculator {
     static ConeType[] conesPossible = ConeType.values();
+    BoxType previousBoxType;
+    BoxType currentBoxType;
+    double[] previousCvals;
 
     public double[] cVals = new double[conesPossible.length];
     public static double[] zeroes = new double[conesPossible.length];
@@ -22,6 +26,7 @@ public class ControlValueCalculator {
             ArrayList<Integer> positions = Box.getPositions(conesPossible[i], boxMessage.boxType);
             cVals[i] = positions.size();
         }
+        currentBoxType = boxMessage.boxType;
     }
 
     void increaseAskersVal(ConeType askersConeType) {
@@ -35,5 +40,16 @@ public class ControlValueCalculator {
         }
     }
 
+    void addPredictionOneStepForward(BoxType curBox, BoxType nextBox, BoxType thirdBox) { // todo - test
+        if (currentBoxType != curBox) {//checking whether prediction is at right offset
+            System.out.println("--!!--!!--!!-- prediction does not match actual --!!--!!--!!--");
+        }
+        if (nextBox.equals(previousBoxType) && !curBox.equals(previousBoxType)) {
+            cVals = previousCvals;
+        }
+
+        previousCvals = cVals;
+        previousBoxType = currentBoxType;
+    }
 
 }

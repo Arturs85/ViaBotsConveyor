@@ -96,7 +96,7 @@ grid.setPrefWidth(600);
         TextField sensorPositions = new TextField();
         sensorPositions.setText("500,1500,2100,2800,3600");
 sensorPositions.setPrefWidth(300);
-        Spinner<Integer> spinnerToolChangeTime = new Spinner<>(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 25000, 5000, 500));
+        Spinner<Integer> spinnerToolChangeTime = new Spinner<>(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 25000, 12000, 1000));
 
         grid.add(new Label("Boxes Type definition (max 3):"), 0, 0);
         grid.add(boxContentsDef, 1, 0);
