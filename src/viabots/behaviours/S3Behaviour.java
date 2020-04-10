@@ -140,7 +140,7 @@ public class S3Behaviour extends BaseTopicBasedTickerBehaviour {
     void receiveInsertersReady() {
         ACLMessage msg = owner.receive(templates[TopicNames.S2_TO_S3_TOPIC.ordinal()]);
         while (msg != null) {
-            System.out.println(getBehaviourName() + " msg received");
+            Log.sout(getBehaviourName() + " msg received");
             if (msg.getPerformative() == ACLMessage.CONFIRM) {//this should be inserters ready msg
                 BoxMessage boxMessage = null;
                 try {
@@ -148,7 +148,7 @@ public class S3Behaviour extends BaseTopicBasedTickerBehaviour {
                 } catch (UnreadableException e) {
                     e.printStackTrace();
                 }
-                System.out.println("S3 received inserters ready from " + msg.getSender().getLocalName());
+                Log.sout("S3 received inserters ready from " + msg.getSender().getLocalName());
                 EnumSet<ConeType> unfilledList = jobsListc.get(boxMessage.boxID);
                 if (unfilledList == null) {//create new job
                     unfilledList = Box.getConeTypes(boxMessage.boxType);

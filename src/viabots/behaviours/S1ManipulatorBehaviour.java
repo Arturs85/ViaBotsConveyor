@@ -28,6 +28,7 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
     ConeType previousType;
     public static int typeChangeTimeMs = 5000;
     int typeChangeCounter = 0;
+    int nrOfChanges =0;
     public final static int STARTING_CONE_COUNT = 80;
 //boolean isHoldingCone=false;
 
@@ -85,7 +86,7 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
                     ConeType nextConeType = Box.getConeTypeForBoxPosition(currentPosition);
                     if (nextConeType != previousType) {// start tool change
                         typeChangeCounter = typeChangeTimeMs / ViaBotAgent.tickerPeriod / (int) SimManipulator.timeScale;
-                        Log.soutWTime("Starting cone type change to: " + nextConeType+" cntr: "+typeChangeCounter);
+                        Log.soutWTime2(owner.getLocalName()+" changing to " + nextConeType+" cntr: "+typeChangeCounter);
 Log.soutWTime("Ticker period: "+getPeriod());
                         state = S1States.CHANGING_TYPE;
                         break;
@@ -151,7 +152,8 @@ Log.soutWTime("Ticker period: "+getPeriod());
                 if (typeChangeCounter <= 0) {// tool change has ended
                     previousType = Box.getConeTypeForBoxPosition(currentPosition);//mark, that type is changed
                     state = S1States.IDLE;
-                    Log.soutWTime("S1 Finished type change: " + previousType);
+                    nrOfChanges++;//for ui
+                    Log.soutWTime2(owner.getLocalName()+" changed to " + previousType+" total changes: "+nrOfChanges);
                 }
 
                 break;
@@ -388,7 +390,7 @@ Log.soutWTime("Ticker period: "+getPeriod());
                 e.printStackTrace();
             }
             typeChangeTimeMs = msgObj.toolChangeTime;
-            System.out.println(master.getLocalName() + " received tool change time from gui:  " + typeChangeTimeMs);
+            Log.soutWTime(master.getLocalName() + " received tool change time from gui:  " + typeChangeTimeMs);
             owner.sendLogMsgToGui(master.getLocalName() + " received tool change time from gui:  " + typeChangeTimeMs);
         }
     }

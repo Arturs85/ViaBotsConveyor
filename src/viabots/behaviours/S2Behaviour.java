@@ -125,7 +125,7 @@ receiveParamsMsg();
                 break;
             case WAITING_S1_CONFIRM_PREPEARED:
                 if (insertersList.get(currentBoxMessage.boxID).hasAllInserters(coneType)) {// all inserters ready, send ready msg to S3
-                    System.out.println(coneType + " has all inserters for box id: " + currentBoxMessage.boxID);
+                    Log.soutS2(coneType + " has all inserters for box id: " + currentBoxMessage.boxID);
                     sendInsertersReady(currentBoxMessage.boxID, currentBoxMessage.boxType, coneType);
                     enterState(S2States.IDLE);
                 }
@@ -258,7 +258,7 @@ receiveParamsMsg();
             processMessages2(template);
         }//start processing from last msg, to be able to post back unrelated messages
         if (msg != null) {
-            // System.out.println(owner.getLocalName() + " received msg with template: " + template.toString());
+            // Log.soutS2(owner.getLocalName() + " received msg with template: " + template.toString());
             if (template.equals(templates[TopicNames.S1_TO_S2_TOPIC.ordinal()])) {
                 if (msg.getPerformative() == ACLMessage.INFORM) {// this should be reply to info request
                     try {
@@ -268,7 +268,7 @@ receiveParamsMsg();
                             //return;
                         } else {
                             s1List.put(msg.getSender().getName(), incomingMsg);
-                            System.out.println("s2" + coneType + " received model from " + msg.getSender().getLocalName() + incomingMsg.toString());
+                            Log.soutS2("s2" + coneType + " received model from " + msg.getSender().getLocalName() + incomingMsg.toString());
                         }
                     } catch (UnreadableException e) {
                         e.printStackTrace();
@@ -284,15 +284,15 @@ receiveParamsMsg();
                         }
                         if (!reply.coneType.equals(coneType)) {//this msg is for other s2 type
                             owner.postMessage(msg);
-                            System.out.println("s2" + coneType + " received agree s1 " + reply.coneType + ", posting back");
+                            Log.soutS2("s2" + coneType + " received agree s1 " + reply.coneType + ", posting back");
 
                         } else {
-                            System.out.println("s2" + coneType + " received agree from " + msg.getSender().getLocalName());
+                            Log.soutS2("s2" + coneType + " received agree from " + msg.getSender().getLocalName());
 
                             if (insertersList.get(reply.boxID) != null) {
                                 insertersList.get(reply.boxID).setInserter(msg.getSender(), reply.positionInBox);//mark insertion request accepted//!!!NULL POINTER ERROR
                             } else {
-                                System.out.println(getBehaviourName() + " 254---NULL POINTER WARNING____");
+                                Log.soutS2(getBehaviourName() + " 254---NULL POINTER WARNING____");
                             }
                         }
                     }
@@ -337,7 +337,7 @@ receiveParamsMsg();
         latestCVals = cVals;
         if (owner.s2MustPostMsg(msg, TopicNames.S3_TO_S2_TOPIC))
             owner.postMessage(msg);
-        System.out.println("S2" + coneType + " received control values from S3, own value: " + latestCval);
+        Log.soutS2("S2" + coneType + " received control values from S3, own value: " + latestCval);
         return true;
     }
 
@@ -346,7 +346,7 @@ receiveParamsMsg();
         if (msg == null) return;
 
         if (msg.getOntology().equals(ConveyorOntologies.S1Request.name()) && (msg.getPerformative() == ACLMessage.REQUEST)) {
-            System.out.println("S2" + coneType + " Received s2 request for worker from S2, msg hash: " + msg.hashCode() + " ");
+            Log.soutS2("S2" + coneType + " Received s2 request for worker from S2, msg hash: " + msg.hashCode() + " ");
 
             S2RequestMsg requestMsg = null;
             try {
@@ -358,7 +358,7 @@ receiveParamsMsg();
                 owner.postMessage(msg);
             if (requestMsg.coneType.equals(coneType)) return;// it is message from itself
             if (state != S2States.IDLE) return;// process message only when not planing own inserters
-            System.out.println("S2" + coneType + " Received s2 request for worker from S2" + requestMsg.coneType);
+            Log.soutS2("S2" + coneType + " Received s2 request for worker from S2" + requestMsg.coneType);
             String manip = findLeastValuedManipulator(requestMsg.coneType);
 
             // compare own cVal with requesting s2
@@ -370,12 +370,12 @@ receiveParamsMsg();
                 sendChangeConeType(manip, requestMsg.coneType);
                 //send reply to requester
                 sendReplyToS2Request(true, requestMsg.coneType);
-                System.out.println("S2" + coneType + " sending change to " + requestMsg.coneType+" to "+manip);
+                Log.soutS2("S2" + coneType + " sending change to " + requestMsg.coneType+" to "+manip);
             } else {
                 sendReplyToS2Request(false, requestMsg.coneType);
 
             }
-            System.out.println("initiator: " + requestMsg.coneType + " " + requestMsg.cVal + " receiver: " + coneType + " " + getLatestCval());
+            Log.soutS2("initiator: " + requestMsg.coneType + " " + requestMsg.cVal + " receiver: " + coneType + " " + getLatestCval());
 
         } else// different ontology, or reply to request-> those msgs will be processed separately
             owner.postMessage(msg);
@@ -394,11 +394,11 @@ receiveParamsMsg();
             }
 
             if (msg.getPerformative() == ACLMessage.AGREE && replyMsg.coneType.equals(coneType)) {
-                System.out.println("S2" + coneType + " Received POSITIVE reply to request for worker from S2");
+                Log.soutS2("S2" + coneType + " Received POSITIVE reply to request for worker from S2");
                 //try to send requests to workers
                 return true;
             } else if (msg.getPerformative() == ACLMessage.REFUSE && replyMsg.coneType.equals(coneType)) {
-                System.out.println("S2" + coneType + " Received NEGATIVE reply to request for worker from S2");
+                Log.soutS2("S2" + coneType + " Received NEGATIVE reply to request for worker from S2");
 
             } else owner.postMessage(msg);//other receiver
         }
@@ -428,7 +428,7 @@ receiveParamsMsg();
         msg.addReceiver(sendingTopics[TopicNames.S2_TO_S3_TOPIC.ordinal()]);
         owner.send(msg);
         //enterState(S2States.WAITING_S2_REPLY);
-        System.out.println(getBehaviourName() + coneType + " sending failure to S3");
+        Log.soutS2(getBehaviourName() + coneType + " sending failure to S3");
     }
 
     /**
@@ -444,7 +444,7 @@ receiveParamsMsg();
         }
         msg.addReceiver(sendingTopics[TopicNames.S2_TO_S1_TOPIC.ordinal()]);// should this be sent to all s1 or just ones with same cone type as sender?
         owner.send(msg);
-       // System.out.println(owner.getLocalName() + " sent info request to s1 topic");
+       // Log.soutS2(owner.getLocalName() + " sent info request to s1 topic");
     }
 
     void sendInsertersReady(int boxID, BoxType boxType, ConeType coneType) {
@@ -472,7 +472,7 @@ receiveParamsMsg();
 
         msg.addReceiver(new AID(agentName, true));
         owner.send(msg);
-        System.out.println(getBehaviourName() + coneType + " sending insertion request to s1: " + agentName + " position " + position);
+        Log.soutS2(getBehaviourName() + coneType + " sending insertion request to s1: " + agentName + " position " + position);
     }
 
     //for informing own s1 to change its cone type
@@ -517,7 +517,7 @@ receiveParamsMsg();
         msg.addReceiver(sendingTopics[TopicNames.S2_TO_S2_TOPIC.ordinal()]);
         owner.send(msg);
         //enterState(S2States.WAITING_S2_REPLY);
-        System.out.println(getBehaviourName() + coneType + " sending worker request to other S2's");
+        Log.soutS2(getBehaviourName() + coneType + " sending worker request to other S2's");
 
     }
 
@@ -531,7 +531,7 @@ receiveParamsMsg();
                 e.printStackTrace();
             }
             Box.setBoxContents(msgObj.boxContents);
-            System.out.println("S2 "+coneType +" received parameters from gui:  "+System.lineSeparator()+ Box.boxContentsToString());
+            Log.soutS2("S2 "+coneType +" received parameters from gui:  "+System.lineSeparator()+ Box.boxContentsToString());
 owner.sendLogMsgToGui("S2 "+coneType +" received parameters from gui:  "+System.lineSeparator()+ Box.boxContentsToString());
         }
     }

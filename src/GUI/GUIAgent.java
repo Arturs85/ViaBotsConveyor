@@ -15,10 +15,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.embed.swing.JFXPanel;
 import javafx.scene.control.CheckBox;
-import viabots.Box;
-import viabots.BoxType;
-import viabots.ManipulatorType;
-import viabots.ViaBotAgent;
+import viabots.*;
 import viabots.behaviours.ConveyorModelingBehaviour;
 import viabots.messageData.*;
 
@@ -303,7 +300,7 @@ parametersTopic = topicHelper.createTopic(TopicNames.PARAMETERS_TOPIC.name());//
         }
         msg.addReceiver(new AID(agentName, true));
         send(msg);
-        System.out.println(getName() + " command msg sent");
+        Log.sout(getName() + " command msg sent");
     }
 
     void sendUImessage(String agentName, MessageToGUI messageToGUI) {
@@ -320,7 +317,7 @@ parametersTopic = topicHelper.createTopic(TopicNames.PARAMETERS_TOPIC.name());//
         }
         msg.addReceiver(new AID(agentName, true));
         send(msg);
-        System.out.println(getName() + "checkbox info msg sent");
+        Log.sout(getName() + "checkbox info msg sent");
     }
 
 

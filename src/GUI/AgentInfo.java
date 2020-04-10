@@ -1,6 +1,7 @@
 package GUI;
 
 import javafx.beans.property.*;
+import viabots.Log;
 import viabots.ManipulatorType;
 import viabots.VSMRoles;
 import viabots.behaviours.ConeType;
@@ -116,7 +117,7 @@ public class AgentInfo {
         this.type = type;
 
         currentRolesString.addListener((observable, oldValue, newValue) -> {
-            System.out.println("cur roles changed " + agentName);
+            Log.sout("cur roles changed " + agentName);
         });
 
         enabledParts = EnumSet.noneOf(ConeType.class);
@@ -124,19 +125,19 @@ public class AgentInfo {
 
 
         coneAvailableCountA.addListener((observable, oldValue, newValue) -> {
-            System.out.println(agentName + " info - changed coneAvailableCount: " + oldValue + " to " + newValue);
+            Log.sout(agentName + " info - changed coneAvailableCount: " + oldValue + " to " + newValue);
             if (guiAgent != null) {
                 guiAgent.sendUImessage(agentName, new MessageToGUI(new int[]{newValue.intValue(), -1, -1}));
             }
         });
         coneAvailableCountB.addListener((observable, oldValue, newValue) -> {
-            System.out.println(agentName + " info - changed coneAvailableCount: " + oldValue + " to " + newValue);
+            Log.sout(agentName + " info - changed coneAvailableCount: " + oldValue + " to " + newValue);
             if (guiAgent != null) {
                 guiAgent.sendUImessage(agentName, new MessageToGUI(new int[]{-1, newValue.intValue(), -1}));
             }
         });
         coneAvailableCountC.addListener((observable, oldValue, newValue) -> {
-            System.out.println(agentName + " info - changed coneAvailableCount: " + oldValue + " to " + newValue);
+            Log.sout(agentName + " info - changed coneAvailableCount: " + oldValue + " to " + newValue);
             if (guiAgent != null) {
                 guiAgent.sendUImessage(agentName, new MessageToGUI(new int[]{-1, -1, newValue.intValue()}));
             }

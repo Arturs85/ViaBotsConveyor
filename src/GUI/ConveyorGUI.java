@@ -89,14 +89,14 @@ else
         grid.setPadding(new Insets(20, 150, 10, 10));
 grid.setPrefWidth(600);
         TextField boxContentsDef = new TextField();
-        boxContentsDef.setText("{0,1,0,0,1,0},{1,0,1,1,0,1}");
+        boxContentsDef.setText("{0,1,0,0,1,0},{1,1,1,1,0,0}");
         //boxContentsDef.setPromptText("Boxes Content Definition");
         TextField boxPattern = new TextField();
-        boxPattern.setText("B,B,B,A,B,B,B,A,B,B,B,A,A,A");
+        boxPattern.setText("B,B,B,A,B,B,B,A,B,B,B,A");
         TextField sensorPositions = new TextField();
         sensorPositions.setText("500,1500,2100,2800,3600");
 sensorPositions.setPrefWidth(300);
-        Spinner<Integer> spinnerToolChangeTime = new Spinner<>(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 25000, 12000, 1000));
+        Spinner<Integer> spinnerToolChangeTime = new Spinner<>(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 25000, 13000, 1000));
 
         grid.add(new Label("Boxes Type definition (max 3):"), 0, 0);
         grid.add(boxContentsDef, 1, 0);
