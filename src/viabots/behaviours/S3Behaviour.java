@@ -95,8 +95,8 @@ public class S3Behaviour extends BaseTopicBasedTickerBehaviour {
             if (isUsingPrediction) {
                 if (predictedCvals != null) {// add prediction to the cVals
 
-                    System.out.println("predicted cVals : " + predictedCvals[0] + "  " + predictedCvals[1] + "  " + predictedCvals[2]);
-                    //cValueCalc.addPrediction(predictedCvals);
+                  //  System.out.println("predicted cVals : " + predictedCvals[0] + "  " + predictedCvals[1] + "  " + predictedCvals[2]);
+                   // cValueCalc.addPrediction(predictedCvals);
                     cValueCalc.addPredictionOneStepForward(boxGenerationModel.getBoxTypeafAfter(0), boxGenerationModel.getBoxTypeafAfter(1), boxGenerationModel.getBoxTypeafAfter(2));
                 }
             }
@@ -133,7 +133,7 @@ public class S3Behaviour extends BaseTopicBasedTickerBehaviour {
             e.printStackTrace();
         }
         owner.send(msg);
-
+        System.out.println("s3 sent cVals : " + cVals[0] + "  " + cVals[1] + "  " + cVals[2]);
     }
 
 
