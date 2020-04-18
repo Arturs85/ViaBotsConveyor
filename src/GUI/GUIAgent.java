@@ -126,8 +126,8 @@ parametersTopic = topicHelper.createTopic(TopicNames.PARAMETERS_TOPIC.name());//
         Platform.runLater(() -> {
             conveyorGUI.controller.labelOnTime.setText("On Time " + mins + " : " + secs);
             conveyorGUI.controller.labelProcessedBoxes.setText("Processed boxes " + processedBoxes);
-            if (processedBoxes != 0) {
-                String timePB = decimalFormat.format(onTimeMiliSec / 1000.0 / (processedBoxes - NR_OF_BOX_TO_START_TIMEING_WITH));
+            if (!avgBoxTimes.isEmpty()) {
+                String timePB = decimalFormat.format(avgBoxTimes.get(avgBoxTimes.size()-1) );
 
                 conveyorGUI.controller.labelSecPerBox.setText("Seconds per box " + timePB);
             }
