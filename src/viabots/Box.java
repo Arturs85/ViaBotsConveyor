@@ -9,14 +9,15 @@ import java.util.EnumSet;
 public class Box implements Serializable {
     static int idCounter = 0;
 static int boxContentsUpdateCounter=0;
-    public static synchronized void setBoxContents(int[][] boxContents) {
+public static final int nrOfPositionsInBox= 6;
+public static synchronized void setBoxContents(int[][] boxContents) {
         Box.boxContents = boxContents;
     boxContentsUpdateCounter++;
         System.out.println("Box contents definition updated "+boxContentsUpdateCounter+" times" );
     }
 
     static int[][] boxContents = new int[][]{new int[]{1, 1, 1, 1, 0, 1}, new int[]{1, 0, 1, 1, 0, 1}, new int[]{0, 1, 1, 0, 1, 0}};// first index- boxType ordinal, contents of arrays- required positions for boxType
-    static final ConeType[] baseBoxModel = new ConeType[]{ConeType.B, ConeType.A, ConeType.B, ConeType.B, ConeType.A, ConeType.B};//cone types for each position
+    static  ConeType[] baseBoxModel = new ConeType[]{ConeType.B, ConeType.A, ConeType.B, ConeType.B, ConeType.A, ConeType.B};//cone types for each position
 /*
      ____
     |0 1 |
@@ -132,4 +133,25 @@ static int boxContentsUpdateCounter=0;
                 ", boxType=" + boxType +
                 '}';
     }
+public static void setBaseModel(String patten){
+    if(patten.length()<nrOfPositionsInBox){
+        System.out.println("cone positions in the box was not changed, input too short");
+    return;    }
+
+    ConeType[] newbaseBoxModel = new ConeType[nrOfPositionsInBox];
+    for (int i = 0; i < nrOfPositionsInBox; i++) {
+       newbaseBoxModel[i]=ConeType.fromString(patten.charAt(i));
+       if(newbaseBoxModel[i]==null) {
+           System.out.println("cone positions in the box was not changed, input contains incorrect symbols");
+           return;
+    }
+    }
+    baseBoxModel = newbaseBoxModel;
+    System.out.println("cone positions in the box updated: ");
+    for (int i = 0; i < baseBoxModel.length; i++) {
+        System.out.print(baseBoxModel[i].name()+" ");
+
+    }
+    System.out.println();
+}
 }

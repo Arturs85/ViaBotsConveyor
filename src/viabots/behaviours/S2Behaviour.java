@@ -41,11 +41,11 @@ boolean hasPlan = true;// true, for to be able to receive newbox msg
         subscribeToMessages();
     }
     int printStateCounter=0;
-    int printStatePeriodTicks = 30;
+    int printStatePeriodTicks = 300;
 void printState(){
-    System.out.println("*** *** S2 type : "+coneType) ;
-    System.out.println("hasPlan: "+hasPlan);
-    System.out.println("hasPositiveReplyFromS2: "+hasPositiveReplyFromS2);
+  //  System.out.println("*** *** S2 type : "+coneType) ;
+    System.out.println("hasPlan: "+hasPlan+"  hasnewcontrVals "+hasNewControlValues);
+   // System.out.println("hasPositiveReplyFromS2: "+hasPositiveReplyFromS2);
     System.out.println("state: "+state);
     if(currentBoxMessage!= null)
     System.out.println("currentBoxMessage id: "+currentBoxMessage.boxID);
@@ -53,22 +53,22 @@ void printState(){
 
 
 }
-
+    boolean hasNewControlValues=false;
     @Override
     protected void onTick() {
         super.onTick();
         //     System.out.println(owner.getLocalName() + " has " + owner.getCurQueueSize() + " msgs ," + getBehaviourName());
 // look through all new messages
-//       printStateCounter++;
-//       if(printStateCounter>= printStatePeriodTicks){
-//           printState();
-//           printStateCounter=0;
-//       }
+       printStateCounter++;
+       if(coneType.equals(ConeType.A) && printStateCounter>= printStatePeriodTicks){
+           printState();
+           printStateCounter=0;
+       }
 
         processMessages2(templates[TopicNames.S1_TO_S2_TOPIC.ordinal()]);
         processMessages2(templates[TopicNames.MODELER_NEW_BOX_TOPIC.ordinal()]);//receive new box msg
-       boolean hasNewControlValues = receiveControlValue();// right moment?
-
+       boolean receivedNewControlValues = receiveControlValue();// right moment?
+if(receivedNewControlValues) hasNewControlValues = true;//only set this flag here, remove it when receive next box info
         switch (state) {
             case IDLE:
 
@@ -185,6 +185,7 @@ receiveParamsMsg();
                 break;
             case REFRESH_S1_LIST:
                 s1List.clear();
+                latestS1Count=0;
                 currentBoxMessage.coneType = coneType;// sets own cone type, so receivers can only select messages with appropriate cone type
                 sendInfoRequestMessagesToS1(currentBoxMessage);
                 waitingCounter = infoWaitingTimeout / ViaBotAgent.tickerPeriod;
@@ -193,6 +194,7 @@ receiveParamsMsg();
 
                 break;
             case WAITING_S1_CONFIRM_PREPEARED:
+                hasNewControlValues = false;
 
                 state = S2States.WAITING_S1_CONFIRM_PREPEARED;
                 break;
@@ -211,6 +213,7 @@ receiveParamsMsg();
     if(newBoxMessagesQueue.isEmpty()) return;
     currentBoxMessage = newBoxMessagesQueue.removeFirst();
         hasPlan=false;// mark that previous plan is invalid for new box
+       latestS1Count=0;//right?
         enterState(S2States.WAITING_S1_INFO);// sends info requests and waits time
     }
 
@@ -310,7 +313,7 @@ receiveParamsMsg();
                         return;
                     }
                     newBoxMessagesQueue.addLast(boxMessage);// put new box msg in own queue so that it does not get lost i.e. is not removed by s3 or other s2
-
+                    latestS1Count =0;// right place?
 //check if this msg should be post back for other s2 to be able to receive it
                     if (owner.s2MustPostNewBoxMsg(boxMessage.boxID)) {
                         owner.postMessage(msg);

@@ -9,8 +9,8 @@ import java.util.Arrays;
 public class ManipulatorModel implements Serializable {
 
     static int manipTypesCount = ManipulatorType.values().length;
-   public static int[][] firstInsertionTimes= {{},{2000,2000},{1000,1000},{1100,1100},{},{},{2000,2000},{1000,1000},{1100,1100}};//first index - manip type ordinal, second index- cone type ordinal
-   public static int[][] nextInsertionTimes= {{},{5000,5000},{4000,4000},{4100,4100},{},{},{5000,5000},{4000,4000},{4100,4100}};//first index - manip type ordinal, second index- cone type ordinal
+   public static int[][] firstInsertionTimes= {{},{2000,2000,2000},{1000,1000,1000},{1100,1100,1100},{},{},{2000,2000,2000},{1000,1000,1000},{1100,1100,1100}};//first index - manip type ordinal, second index- cone type ordinal
+   public static int[][] nextInsertionTimes= {{},{5000,5000,5000},{4000,4000,4000},{4100,4100,4100},{},{},{5000,5000,5000},{4000,4000,4000},{4100,4100,4100   }};//first index - manip type ordinal, second index- cone type ordinal
 
 
     String agentName;

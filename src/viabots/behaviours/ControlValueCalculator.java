@@ -48,8 +48,13 @@ public class ControlValueCalculator {
             cVals = previousCvals;
         }
 
-        previousCvals = cVals;
+        previousCvals = Arrays.copyOf(cVals,cVals.length);
         previousBoxType = currentBoxType;
+    }
+    //for one different box dont change values compleatly, but use one for positions in actula box that are needed to fill, so that s2 dont need to ask for increase
+    void mergeCVals(){
+
+
     }
 
 }

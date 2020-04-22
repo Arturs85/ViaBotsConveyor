@@ -92,6 +92,8 @@ public class ViaBotAgent extends Agent {
 
             addVsmRole(VSMRoles.S2_A);
             addVsmRole(VSMRoles.S2_B);
+            addVsmRole(VSMRoles.S2_C);
+
             addVsmRole(VSMRoles.S3);
 
 
@@ -118,6 +120,10 @@ public class ViaBotAgent extends Agent {
                 addBehaviour(new S2Behaviour(this, ConeType.B));
                 sNewBoxArrivedMsgSubscriberRolesCount++;
 
+                break;
+            case S2_C:
+                addBehaviour(new S2Behaviour(this, ConeType.C));
+                sNewBoxArrivedMsgSubscriberRolesCount++;
                 break;
         }
     }

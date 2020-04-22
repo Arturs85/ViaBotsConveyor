@@ -26,7 +26,7 @@ public class S1ManipulatorBehaviour extends BaseTopicBasedTickerBehaviour {
     int stationPosition = 0; // box sensor number
     ConcurrentLinkedDeque<String> hardwareMsgQueue;
     ConeType previousType;
-    public static int typeChangeTimeMs = 5000;
+    public static int typeChangeTimeMs = 16000;
     int typeChangeCounter = 0;
     int nrOfChanges =0;
     public final static int STARTING_CONE_COUNT = 80;

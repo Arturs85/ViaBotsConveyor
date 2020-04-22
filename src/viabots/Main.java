@@ -15,7 +15,7 @@ public class Main {
     static int agentsCounter = 0;
     static String localHost = "vnpc-Precision-T1700";
     final static int CONNECTING_INTERVAL = 4000;
-    static String version = "mar18";
+    static String version = "apr22_12.50";
     /**
      * arg[0] hostname of main container- needed only if this is peripherial container
      * arg[1] manipulator type name as in enum {@link ManipulatorType}
@@ -78,7 +78,7 @@ public class Main {
 
             //  main.createAgent(ManipulatorType.BAXTER);//for testing
 
-            main.createAgent(ManipulatorType.SIM_IRB120,"abb", 1);//for testing
+          //  main.createAgent(ManipulatorType.SIM_IRB120,"abb", 1);//for testing
 
             try {
                 Thread.sleep(1000);
@@ -87,10 +87,10 @@ public class Main {
             }
 
 
-             main.createAgent(ManipulatorType.SIM_CONVEYOR);
-            main.createAgent(ManipulatorType.SIM_BAXTER,"baxter", 3);//for testing
-            main.createAgent(ManipulatorType.SIM_SMALL_ONE,"small1(B cones)", 2);//for testing
-            main.createAgent(ManipulatorType.SIM_SMALL_ONE,"small2", 4);//for testing
+//             main.createAgent(ManipulatorType.SIM_CONVEYOR);
+//            main.createAgent(ManipulatorType.SIM_BAXTER,"baxter", 3);//for testing
+//            main.createAgent(ManipulatorType.SIM_SMALL_ONE,"small1(B cones)", 2);//for testing
+//            main.createAgent(ManipulatorType.SIM_SMALL_ONE,"small2", 4);//for testing
 
         }
 

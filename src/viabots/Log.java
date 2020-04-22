@@ -2,10 +2,12 @@ package viabots;
 
 public class Log {
 public static void soutWTime(String s ) {
-}//System.out.println(milisToString(System.currentTimeMillis())+" "+ s);
-//}
-public static void soutS2(String s ) {}
-    public static void sout(String s ) {}
+System.out.println(milisToString(System.currentTimeMillis())+" "+ s);
+}
+public static void soutS2(String s ) {System.out.println(milisToString(System.currentTimeMillis())+" "+ s);
+}
+    public static void sout(String s ) {System.out.println(s);
+    }
     public static void soutWTime2(String s ){
         System.out.println(milisToString(System.currentTimeMillis())+" "+ s);
     }

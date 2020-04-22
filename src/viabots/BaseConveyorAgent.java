@@ -26,7 +26,7 @@ public class BaseConveyorAgent extends ViaBotAgent {
     public static String triggerAt = "triggerAt";
     public static String stoppedAt = "stoppedAt";
     public static String boxArrived = "boxArrived";
-    public boolean previousHasLeft = false;// true when there is no box in new box placement area
+    public volatile boolean previousHasLeft = false;// true when there is no box in new box placement area
     ConveyorAgentBehaviour cab;
 
     @Override

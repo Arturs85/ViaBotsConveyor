@@ -11,24 +11,20 @@ import viabots.messageData.TopicNames;
 import java.io.IOException;
 
 public class ConveyorAgent extends BaseConveyorAgent {
-    char commandStart = 'g';
-    char commandStop = 's';
-    char commandPlaceBox = 'p';
-    char commansStopAt1 = '1';
-    char commansStopAt2 = '2';
-    char commansStopAt3 = '3';
-    char commansStopAt4 = '4';
-    char commansStopAt5 = '5';
-    char commansStopAt6 = '6';
+//    char commandStart = 'g';
+//    char commandStop = 's';
+//    char commandPlaceBox = 'p';
+//    char commansStopAt1 = '1';
+//    char commansStopAt2 = '2';
+//    char commansStopAt3 = '3';
+//    char commansStopAt4 = '4';
+//    char commansStopAt5 = '5';
+//    char commansStopAt6 = '6';
 
-    public AID conveyorTopic;
-    boolean beltIsOn = false;
+    //public AID conveyorTopic;
+ //   boolean beltIsOn = false;
     TwoWaySerialComm serialComm;
-    public static String triggerAt = "triggerAt";
-    public static String stoppedAt = "stoppedAt";
-    public static String boxArrived = "boxArrived";
-    public boolean previousHasLeft = false;// true when there is no box in new box placement area
-    ConveyorAgentBehaviour cab;
+   // ConveyorAgentBehaviour cab;
 
     @Override
     protected void setup() {
@@ -63,22 +59,20 @@ public class ConveyorAgent extends BaseConveyorAgent {
         Log.soutWTime("conv sent char to avr: "+(String.valueOf(pos)));
     }
 
-
+    @Override
     void stopBelt() {
         serialComm.writeToOutputQeue(commandStop);
 
         beltIsOn = false;
 
     }
-
+@Override
     public void startBelt() {
-
           serialComm.writeToOutputQeue(commandStart);
             //serialComm.out.write(commandStart);
             beltIsOn = true;
-
     }
-
+@Override
     public void  placeBox() {
         serialComm.writeToOutputQeue(commandPlaceBox);
 
@@ -152,25 +146,6 @@ public class ConveyorAgent extends BaseConveyorAgent {
 //        // System.out.println(getBehaviourName()+" sent msg to gui-----------");
 //    }
 
-    @Override
-    public void receiveUImessage() {
-        ACLMessage msg = receive(uiCommandTpl);
-        if (msg != null) {
-            String content = msg.getContent();
-            if (content != null) {
-                System.out.println("request msg from gui received msg:" + content + "   " + getName());
-
-                if (content.equalsIgnoreCase(MessageContent.TOGGLE_BELT.name())) {
-                    if (beltIsOn) stopBelt();
-                    else startBelt();
-                } else if (content.equalsIgnoreCase(MessageContent.PLACE_BOX.name())) {//
-                    //  placeBox();
-                    previousHasLeft = true;//override state to achieve box placement
-                    //  cab.placeBoxOnBelt();// this also sends msg of new box arrival
-                }
-            }
-        } //else
-    }
 
 
 }

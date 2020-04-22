@@ -14,6 +14,7 @@ import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import javafx.util.Pair;
+import viabots.Box;
 import viabots.BoxType;
 import viabots.messageData.BoxParamsMsg;
 
@@ -90,13 +91,16 @@ else
 grid.setPrefWidth(600);
         TextField boxContentsDef = new TextField();
         boxContentsDef.setText("{0,1,0,0,1,0},{1,1,1,1,0,0}");
+        TextField conePositionsDef = new TextField();
+        conePositionsDef.setText("babbab");
+
         //boxContentsDef.setPromptText("Boxes Content Definition");
         TextField boxPattern = new TextField();
-        boxPattern.setText("B,B,B,A,B,B,B,A,B,B,B,A");
+        boxPattern.setText("B,B,B,A");
         TextField sensorPositions = new TextField();
         sensorPositions.setText("500,1500,2100,2800,3600");
 sensorPositions.setPrefWidth(300);
-        Spinner<Integer> spinnerToolChangeTime = new Spinner<>(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 25000, 13000, 1000));
+        Spinner<Integer> spinnerToolChangeTime = new Spinner<>(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 25000, 16000, 1000));
 
         grid.add(new Label("Boxes Type definition (max 3):"), 0, 0);
         grid.add(boxContentsDef, 1, 0);
@@ -106,6 +110,8 @@ sensorPositions.setPrefWidth(300);
         grid.add(sensorPositions, 1, 2);
         grid.add(new Label("Tool change time ms:"), 0, 3);
         grid.add(spinnerToolChangeTime, 1, 3);
+        grid.add(new Label("Cone positions definition (use small letters abc for cone types, no spaces) :"), 0, 4);
+        grid.add(conePositionsDef, 1, 4);
 
 // Enable/Disable login button depending on whether a username was entered.
         Node loginButton = dialog.getDialogPane().lookupButton(loginButtonType);
@@ -124,7 +130,7 @@ sensorPositions.setPrefWidth(300);
 // Convert the result to a username-password-pair when the login button is clicked.
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == loginButtonType) {
-                return new String[]{boxContentsDef.getText(), boxPattern.getText(), sensorPositions.getText(), spinnerToolChangeTime.getValue().toString()};
+                return new String[]{boxContentsDef.getText(), boxPattern.getText(), sensorPositions.getText(), spinnerToolChangeTime.getValue().toString(),conePositionsDef.getText()};
             }
             return null;
         });
@@ -138,7 +144,7 @@ sensorPositions.setPrefWidth(300);
       int[] sensPos = BoxParamsMsg.parseSensorPositionsFromString(paramsString[2]);
       if(pattern!= null) {System.out.println("pattern ok: "+pattern.toString());
             if(boxType!= null){ System.out.println("boxes definition ok: "+boxType.toString());
-
+Box.setBaseModel(paramsString[4]);// !!! this should not be used when all agents are not in same programm
 
             BoxParamsMsg msg = new BoxParamsMsg(pattern,boxType);
             msg.sensorPositions = sensPos;
