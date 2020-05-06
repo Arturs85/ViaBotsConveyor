@@ -20,6 +20,7 @@ public class CommunicationWithHardware extends Thread {
     Socket socket = null;
     DataInputStream din = null;
     DataOutputStream dout = null;
+    byte[] dataToSend = null;
     final Integer syncLock = 1;
     volatile boolean isRunning = true;
     ConcurrentLinkedDeque<String> hardwareMsgQueue;// created in ManipulatorAgent
@@ -51,6 +52,10 @@ public class CommunicationWithHardware extends Thread {
                 }
             }
 
+            if (dataToSend != null) {// try to resend previously unsent data
+                sendBytes(dataToSend);
+            }
+
             try {
 
                 byte[] reply = new byte[MAX_MSG_LENGTH];
@@ -58,6 +63,7 @@ public class CommunicationWithHardware extends Thread {
                 synchronized (syncLock) {
                     if (socket != null) {
                         try {
+
 
                             String incoming = listenForReplyWTimeout(10);// does it need timeout?
                             if (incoming != null) {
@@ -108,12 +114,14 @@ public class CommunicationWithHardware extends Thread {
                 try {
                     dout.write(bytes);
                     System.out.println(getName() + " sent: " + new String(bytes));
+                    dataToSend = null;// mark unsent data as sent
                 } catch (IOException e) {
                     e.printStackTrace();
                     socket = null;
                 }
             } else {
                 System.out.println(getClass().getCanonicalName() + ": socket  null");
+                dataToSend = bytes;// will try to send this array after socket is reenabled
             }
         }
     }
